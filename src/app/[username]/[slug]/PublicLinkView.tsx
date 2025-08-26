@@ -3,15 +3,21 @@
 import { useState, useEffect } from "react"
 import { motion, Reorder, useDragControls } from "framer-motion"
 import { Eye, Edit2, Save, Trash2, Copy, Check, ExternalLink, GripVertical } from "lucide-react"
+import { useRouter } from "next/navigation"
+import Link from "next/link"
+import Image from "next/image"
+import { Avatar } from "@/components/Avatar"
 import { LinkCard } from "@/components/LinkCard"
 import { LinkInput } from "@/components/LinkInput"
-import { incrementClicks, updateLinkylink, addLink, deleteLink, updateLinkOrder } from "@/lib/actions"
+import { DeleteModal } from "@/components/DeleteModal"
+import { incrementClicks, updateLinkylink, addLink, deleteLink, updateLinkOrder, deleteLinkylink } from "@/lib/actions"
 
 interface PublicLinkViewProps {
   linkylink: {
     id: string
     title: string
     subtitle: string | null
+    avatar: string | null
     views: number
     user: {
       username: string
@@ -34,7 +40,13 @@ function DraggableLink({
   link, 
   onDelete 
 }: { 
-  link: any
+  link: {
+    id: string
+    title: string
+    url: string
+    favicon: string | null
+    order?: number
+  }
   onDelete: (id: string) => void 
 }) {
   const controls = useDragControls()
@@ -59,9 +71,11 @@ function DraggableLink({
         {/* Favicon */}
         <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-gray-50 flex items-center justify-center overflow-hidden border border-gray-100">
           {link.favicon ? (
-            <img 
+            <Image
               src={link.favicon} 
               alt="" 
+              width={24}
+              height={24}
               className="w-6 h-6 object-contain"
               onError={(e) => {
                 e.currentTarget.style.display = 'none'
@@ -95,12 +109,14 @@ function DraggableLink({
 }
 
 export default function PublicLinkView({ linkylink, isOwner = false }: PublicLinkViewProps) {
+  const router = useRouter()
   const [isEditing, setIsEditing] = useState(false)
   const [title, setTitle] = useState(linkylink.title)
   const [subtitle, setSubtitle] = useState(linkylink.subtitle || "")
   const [links, setLinks] = useState(linkylink.links)
   const [isSaving, setIsSaving] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
 
   const [currentUrl, setCurrentUrl] = useState('')
   
@@ -128,7 +144,7 @@ export default function PublicLinkView({ linkylink, isOwner = false }: PublicLin
     try {
       await updateLinkylink(linkylink.id, { 
         title: title.trim(), 
-        subtitle: subtitle.trim() || null 
+        subtitle: subtitle.trim() || undefined 
       })
       linkylink.title = title.trim()
       linkylink.subtitle = subtitle.trim() || null
@@ -174,6 +190,11 @@ export default function PublicLinkView({ linkylink, isOwner = false }: PublicLin
     })
   }
 
+  const handleDelete = async () => {
+    await deleteLinkylink(linkylink.id)
+    router.push('/dashboard')
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Minimal header with edit controls */}
@@ -216,19 +237,15 @@ export default function PublicLinkView({ linkylink, isOwner = false }: PublicLin
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-8"
         >
-          {/* User avatar */}
-          <div className="mb-4">
-            {linkylink.user.image ? (
-              <img
-                src={linkylink.user.image}
-                alt={linkylink.user.name || linkylink.user.username}
-                className="w-20 h-20 rounded-full mx-auto border-4 border-white shadow-sm"
+          {/* Avatar */}
+          <div className="mb-4 flex justify-center">
+            <div className="border-4 border-white shadow-sm rounded-full">
+              <Avatar
+                src={linkylink.avatar || linkylink.user.image}
+                username={linkylink.user.username}
+                size={80}
               />
-            ) : (
-              <div className="w-20 h-20 rounded-full bg-gray-200 mx-auto flex items-center justify-center text-2xl font-medium text-gray-600 border-4 border-white shadow-sm">
-                {linkylink.user.username[0].toUpperCase()}
-              </div>
-            )}
+            </div>
           </div>
 
           {/* Title & subtitle */}
@@ -373,18 +390,39 @@ export default function PublicLinkView({ linkylink, isOwner = false }: PublicLin
           </motion.div>
         )}
 
+        {/* Delete Button */}
+        {isOwner && (
+          <div className="text-center mt-12 pt-8 border-t border-gray-200">
+            <button
+              onClick={() => setShowDeleteModal(true)}
+              className="text-red-600 hover:text-red-700 text-sm font-medium transition-colors"
+            >
+              Delete LinkyLink
+            </button>
+          </div>
+        )}
+
         {/* Footer */}
         {!isOwner && (
           <div className="text-center mt-12">
             <p className="text-sm text-gray-400">
               Create your own at{" "}
-              <a href="/" className="text-gray-600 hover:text-gray-900 transition-colors">
+              <Link href="/" className="text-gray-600 hover:text-gray-900 transition-colors">
                 linklink.app
-              </a>
+              </Link>
             </p>
           </div>
         )}
       </div>
+
+      {/* Delete Modal */}
+      <DeleteModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleDelete}
+        title="Delete LinkyLink"
+        message={`Are you sure you want to delete "${linkylink.title}"? This action cannot be undone and will permanently remove this LinkyLink and all its links.`}
+      />
     </div>
   )
 }

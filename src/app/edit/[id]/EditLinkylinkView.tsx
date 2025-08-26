@@ -2,8 +2,9 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { motion, Reorder } from "framer-motion"
-import { ExternalLink, Trash2, Copy, Check, Link2, Eye, ArrowLeft } from "lucide-react"
+import { ExternalLink, Trash2, Copy, Check, Link2, ArrowLeft } from "lucide-react"
 import { LinkInput } from "@/components/LinkInput"
 import { addLink, deleteLink, updateLinkOrder, updateLinkylink } from "@/lib/actions"
 
@@ -79,7 +80,7 @@ export default function EditLinkylinkView({ linkylink, username }: EditLinkylink
     
     setIsSaving(true)
     try {
-      await updateLinkylink(linkylink.id, { subtitle: subtitle.trim() || null })
+      await updateLinkylink(linkylink.id, { subtitle: subtitle.trim() || undefined })
       linkylink.subtitle = subtitle.trim() || null
     } finally {
       setIsSaving(false)
@@ -177,10 +178,12 @@ export default function EditLinkylinkView({ linkylink, username }: EditLinkylink
                     {/* Favicon */}
                     <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-gray-50 flex items-center justify-center overflow-hidden border border-gray-100">
                       {link.favicon ? (
-                        <img 
+                        <Image 
                           src={link.favicon} 
                           alt="" 
-                          className="w-6 h-6 object-contain"
+                          width={24}
+                          height={24}
+                          className="object-contain"
                           onError={(e) => {
                             e.currentTarget.style.display = 'none'
                           }}

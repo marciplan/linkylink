@@ -9,6 +9,7 @@ import { z } from "zod"
 const createLinkylinkSchema = z.object({
   title: z.string().min(1).max(100),
   subtitle: z.string().max(200).optional(),
+  avatar: z.string().url().optional(),
 })
 
 const addLinkSchema = z.object({
@@ -23,10 +24,10 @@ export async function createLinkylink(data: z.infer<typeof createLinkylinkSchema
     throw new Error("Unauthorized")
   }
 
-  const { title, subtitle } = createLinkylinkSchema.parse(data)
+  const { title, subtitle, avatar } = createLinkylinkSchema.parse(data)
   
   // Generate unique slug
-  let slug = generateSlug(title)
+  const slug = generateSlug(title)
   let counter = 0
   let uniqueSlug = slug
   
@@ -39,9 +40,13 @@ export async function createLinkylink(data: z.infer<typeof createLinkylinkSchema
     data: {
       title,
       subtitle,
+      avatar,
       slug: uniqueSlug,
       userId: session.user.id,
     },
+    include: {
+      user: true
+    }
   })
 
   revalidatePath("/dashboard")
@@ -71,7 +76,7 @@ export async function addLink(data: z.infer<typeof addLinkSchema>) {
   try {
     const domain = new URL(url).hostname
     favicon = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`
-  } catch (error) {
+  } catch {
     // Ignore favicon errors
   }
 
@@ -81,6 +86,46 @@ export async function addLink(data: z.infer<typeof addLinkSchema>) {
       url,
       favicon,
       order: linkylink.links.length,
+      linkylinkId,
+    },
+  })
+
+  revalidatePath(`/dashboard`)
+  revalidatePath(`/edit/${linkylinkId}`)
+  return link
+}
+
+export async function addLinkToLinkylink(linkylinkId: string, linkData: { title: string; url: string; order?: number }) {
+  const session = await auth()
+  if (!session?.user?.id) {
+    throw new Error("Unauthorized")
+  }
+
+  // Verify ownership
+  const linkylink = await prisma.linkLink.findUnique({
+    where: { id: linkylinkId, userId: session.user.id },
+    include: { links: true },
+  })
+
+  if (!linkylink) {
+    throw new Error("LinkyLink not found")
+  }
+
+  // Fetch favicon
+  let favicon = null
+  try {
+    const domain = new URL(linkData.url).hostname
+    favicon = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`
+  } catch {
+    // Ignore favicon errors
+  }
+
+  const link = await prisma.link.create({
+    data: {
+      title: linkData.title,
+      url: linkData.url,
+      favicon,
+      order: linkData.order ?? linkylink.links.length,
       linkylinkId,
     },
   })
@@ -201,4 +246,27 @@ export async function incrementClicks(linkId: string) {
     where: { id: linkId },
     data: { clicks: { increment: 1 } },
   })
+}
+
+export async function deleteLinkylink(linkylinkId: string) {
+  const session = await auth()
+  if (!session?.user?.id) {
+    throw new Error("Unauthorized")
+  }
+
+  // Verify ownership
+  const linkylink = await prisma.linkLink.findUnique({
+    where: { id: linkylinkId, userId: session.user.id },
+  })
+
+  if (!linkylink) {
+    throw new Error("LinkyLink not found")
+  }
+
+  await prisma.linkLink.delete({
+    where: { id: linkylinkId },
+  })
+
+  revalidatePath("/dashboard")
+  return { success: true }
 }

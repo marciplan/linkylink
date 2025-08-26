@@ -1,6 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
+import Image from "next/image"
 import { ExternalLink, GripVertical } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -41,10 +42,12 @@ export function LinkCard({
         
         <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-gray-50 flex items-center justify-center overflow-hidden border border-gray-200">
           {favicon ? (
-            <img 
+            <Image 
               src={favicon} 
               alt="" 
-              className="w-6 h-6 object-contain"
+              width={24}
+              height={24}
+              className="object-contain"
               onError={(e) => {
                 e.currentTarget.style.display = 'none'
               }}

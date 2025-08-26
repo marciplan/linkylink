@@ -4,10 +4,13 @@ import Link from "next/link"
 import { motion } from "framer-motion"
 import { Eye, Link2, ExternalLink } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { Avatar } from "./Avatar"
 
 interface LinkylinkCardProps {
   title: string
   subtitle?: string | null
+  avatar?: string | null
+  userImage?: string | null
   slug: string
   username: string
   linkCount: number
@@ -18,6 +21,8 @@ interface LinkylinkCardProps {
 export function LinkylinkCard({
   title,
   subtitle,
+  avatar,
+  userImage,
   slug,
   username,
   linkCount,
@@ -34,14 +39,24 @@ export function LinkylinkCard({
           className
         )}
       >
-        <div className="flex justify-between items-start mb-2">
-          <h3 className="text-lg font-medium text-gray-900">{title}</h3>
-          <ExternalLink className="w-4 h-4 text-gray-400" />
+        <div className="flex items-start gap-3 mb-3">
+          <Avatar
+            src={avatar || userImage}
+            username={username}
+            size={40}
+            className="flex-shrink-0"
+          />
+          <div className="flex-1 min-w-0">
+            <div className="flex justify-between items-start mb-1">
+              <h3 className="text-lg font-medium text-gray-900 truncate">{title}</h3>
+              <ExternalLink className="w-4 h-4 text-gray-400 flex-shrink-0 ml-2" />
+            </div>
+            {subtitle && (
+              <p className="text-sm text-gray-600 mb-2 line-clamp-2">{subtitle}</p>
+            )}
+            <p className="text-xs text-gray-400">@{username}</p>
+          </div>
         </div>
-        
-        {subtitle && (
-          <p className="text-sm text-gray-600 mb-3">{subtitle}</p>
-        )}
         
         <div className="flex items-center gap-4 text-xs text-gray-500">
           <span className="flex items-center gap-1">
@@ -53,8 +68,6 @@ export function LinkylinkCard({
             {views} {views === 1 ? 'view' : 'views'}
           </span>
         </div>
-        
-        <p className="text-xs text-gray-400 mt-2">@{username}</p>
       </motion.div>
     </Link>
   )

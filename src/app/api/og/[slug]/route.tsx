@@ -17,6 +17,9 @@ export async function GET(
           take: 3,
           orderBy: { order: "asc" },
         },
+        _count: {
+          select: { links: true }
+        }
       },
     })
 
@@ -208,7 +211,7 @@ export async function GET(
         height: 630,
       }
     )
-  } catch (error) {
+  } catch {
     return new Response("Failed to generate image", { status: 500 })
   }
 }

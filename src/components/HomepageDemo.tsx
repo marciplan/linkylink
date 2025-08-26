@@ -1,13 +1,35 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Link2, ExternalLink, Globe, Mail, Github, Twitter } from "lucide-react"
+import { ExternalLink, User, Eye, Calendar } from "lucide-react"
+import Image from "next/image"
 
 const demoLinks = [
-  { icon: Github, title: "GitHub", subtitle: "github.com/username" },
-  { icon: Twitter, title: "Twitter", subtitle: "twitter.com/username" },
-  { icon: Globe, title: "Portfolio", subtitle: "portfolio.com" },
-  { icon: Mail, title: "Contact", subtitle: "hello@example.com" },
+  { 
+    title: "Fred Again - Boiler Room", 
+    favicon: "https://www.google.com/s2/favicons?domain=youtube.com&sz=64",
+    platform: "YouTube"
+  },
+  { 
+    title: "Bon Iver at AIR Studios", 
+    favicon: "https://www.google.com/s2/favicons?domain=youtube.com&sz=64",
+    platform: "YouTube"
+  },
+  { 
+    title: "The Beatles - Rooftop Concert", 
+    favicon: "https://www.google.com/s2/favicons?domain=vimeo.com&sz=64",
+    platform: "Vimeo"
+  },
+  { 
+    title: "Eric Prydz at Tomorrowland [2023]", 
+    favicon: "https://www.google.com/s2/favicons?domain=soundcloud.com&sz=64",
+    platform: "SoundCloud"
+  },
+  { 
+    title: "Taylor Swift - Reputation", 
+    favicon: "https://www.google.com/s2/favicons?domain=netflix.com&sz=64",
+    platform: "Netflix"
+  },
 ]
 
 export function HomepageDemo() {
@@ -64,22 +86,32 @@ export function HomepageDemo() {
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.6 }}
                 >
-                  John Doe
+                  My favorite web videos
                 </motion.h3>
-                <motion.p 
-                  className="text-sm text-gray-500"
+                <motion.div 
+                  className="flex items-center justify-center gap-4 text-xs text-gray-500 mt-2"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.7 }}
                 >
-                  Designer & Developer
-                </motion.p>
+                  <span className="flex items-center gap-1">
+                    <User className="w-3 h-3" />
+                    @marciplan
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Eye className="w-3 h-3" />
+                    64 views
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Calendar className="w-3 h-3" />
+                    August 2, 2024
+                  </span>
+                </motion.div>
               </motion.div>
 
               {/* Links */}
               <div className="space-y-3">
                 {demoLinks.map((link, index) => {
-                  const Icon = link.icon
                   return (
                     <motion.div
                       key={link.title}
@@ -93,14 +125,20 @@ export function HomepageDemo() {
                       <div className="flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 rounded-xl border border-gray-200 hover:border-gray-300 transition-all cursor-pointer">
                         <div className="flex items-center gap-3">
                           <motion.div 
-                            className="w-10 h-10 bg-white rounded-lg flex items-center justify-center"
+                            className="w-10 h-10 bg-white rounded-lg flex items-center justify-center overflow-hidden border border-gray-100"
                             whileHover={{ rotate: 5 }}
                           >
-                            <Icon className="w-5 h-5 text-gray-700" />
+                            <Image
+                              src={link.favicon}
+                              alt=""
+                              width={24}
+                              height={24}
+                              className="object-contain"
+                            />
                           </motion.div>
                           <div className="text-left">
                             <div className="font-medium text-gray-900 text-sm">{link.title}</div>
-                            <div className="text-xs text-gray-500">{link.subtitle}</div>
+                            <div className="text-xs text-gray-500">{link.platform}</div>
                           </div>
                         </div>
                         <motion.div

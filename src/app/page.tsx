@@ -49,10 +49,10 @@ export default async function HomePage() {
       <main className="flex-1 flex items-center justify-center px-4">
         <div className="text-center max-w-5xl mx-auto py-20">
           <h1 className="text-5xl sm:text-6xl font-medium text-gray-900 mb-6">
-            One link for everything
+            All your links, one place
           </h1>
           <p className="text-xl text-gray-600 mb-10 max-w-xl mx-auto">
-            Share all your important links in one simple, beautiful page.
+            Stop sending multiple links. Create one page that works.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
@@ -70,14 +70,14 @@ export default async function HomePage() {
                   href="/register"
                   className="inline-flex items-center gap-2 bg-gray-900 text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-colors"
                 >
-                  Create your LinkyLink
+                  Start now
                   <ArrowRight className="w-4 h-4" />
                 </Link>
                 <Link
                   href="/directory"
                   className="text-gray-600 hover:text-gray-900 transition-colors"
                 >
-                  Browse directory
+                  See examples
                 </Link>
               </>
             )}
@@ -99,12 +99,12 @@ export default async function HomePage() {
               <Link href="/directory" className="text-sm text-gray-500 hover:text-gray-700">
                 Directory
               </Link>
-              <a href="#" className="text-sm text-gray-500 hover:text-gray-700">
+              <Link href="/about" className="text-sm text-gray-500 hover:text-gray-700">
                 About
-              </a>
-              <a href="#" className="text-sm text-gray-500 hover:text-gray-700">
+              </Link>
+              <Link href="/privacy" className="text-sm text-gray-500 hover:text-gray-700">
                 Privacy
-              </a>
+              </Link>
             </div>
           </div>
         </div>

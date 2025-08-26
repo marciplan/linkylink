@@ -4,7 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
-import { Link2, Mail, Lock, User, Loader2 } from "lucide-react"
+import { Link2, Loader2 } from "lucide-react"
 import { z } from "zod"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -49,7 +49,7 @@ export default function RegisterPage() {
       } else {
         router.push("/login")
       }
-    } catch (error) {
+    } catch {
       setError("Something went wrong. Please try again.")
     } finally {
       setIsLoading(false)

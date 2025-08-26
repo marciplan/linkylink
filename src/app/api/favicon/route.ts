@@ -22,7 +22,7 @@ export async function GET(request: Request) {
 
     // Return the Google favicon as default (most reliable)
     return NextResponse.json({ favicon: faviconUrls[0] })
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: "Invalid URL" }, { status: 400 })
   }
 }

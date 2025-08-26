@@ -74,6 +74,8 @@ export default async function DashboardPage() {
                   key={linkylink.id}
                   title={linkylink.title}
                   subtitle={linkylink.subtitle}
+                  avatar={linkylink.avatar}
+                  userImage={session.user.image}
                   slug={linkylink.slug}
                   username={session.user.username || session.user.email?.split("@")[0] || "user"}
                   linkCount={linkylink._count.links}

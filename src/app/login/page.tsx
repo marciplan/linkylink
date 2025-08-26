@@ -5,7 +5,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { signIn } from "next-auth/react"
 import { motion } from "framer-motion"
-import { Link2, Mail, Lock, Loader2, ArrowLeft } from "lucide-react"
+import { Link2, Loader2 } from "lucide-react"
 import { z } from "zod"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -47,7 +47,7 @@ export default function LoginPage() {
         router.push("/dashboard")
         router.refresh()
       }
-    } catch (error) {
+    } catch {
       setError("Something went wrong. Please try again.")
     } finally {
       setIsLoading(false)
@@ -136,7 +136,7 @@ export default function LoginPage() {
           </form>
 
           <p className="text-center text-sm text-gray-600 mt-6">
-            Don't have an account?{" "}
+            Don&apos;t have an account?{" "}
             <Link
               href="/register"
               className="text-gray-900 font-medium hover:underline"
