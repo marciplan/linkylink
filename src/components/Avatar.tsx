@@ -15,6 +15,14 @@ export function Avatar({ src, username, size = 80, className = "" }: AvatarProps
   const [gradientSvg, setGradientSvg] = useState<string>("")
   const initial = username?.charAt(0)?.toUpperCase() || "?"
 
+  // Check if src is an emoji or if it's not a valid URL
+  const isEmoji = src && (
+    // Single emoji character (with possible multi-byte emojis)
+    (src.length <= 4 && /\p{Emoji}/u.test(src)) ||
+    // Or it's not a valid URL format
+    (!src.includes('http') && !src.includes('/') && !src.includes('.'))
+  )
+
   useEffect(() => {
     if (!src && username) {
       const svgString = generateGradient(username, size)
@@ -22,6 +30,24 @@ export function Avatar({ src, username, size = 80, className = "" }: AvatarProps
     }
   }, [src, username, size])
 
+  // Render emoji avatar
+  if (isEmoji) {
+    // Clean the emoji string - take only the first valid emoji character
+    const cleanEmoji = src?.match(/\p{Emoji}/u)?.[0] || src?.charAt(0) || '😀'
+    
+    return (
+      <div
+        className={`relative flex items-center justify-center rounded-full bg-gray-100 ${className}`}
+        style={{ width: size, height: size }}
+      >
+        <span style={{ fontSize: size * 0.6 }}>
+          {cleanEmoji}
+        </span>
+      </div>
+    )
+  }
+
+  // Render image avatar
   if (src) {
     return (
       <div

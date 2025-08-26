@@ -27,6 +27,7 @@ export default async function EditLinkylinkPage({ params }: PageProps) {
         orderBy: { order: "asc" },
       },
     },
+    // Note: headerImage, headerPrompt, headerImages are included by default
   })
 
   if (!linkylink) {

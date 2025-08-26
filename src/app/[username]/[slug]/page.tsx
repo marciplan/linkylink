@@ -18,6 +18,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const linkylink = await prisma.linkLink.findUnique({
     where: { slug },
     include: { user: true },
+    // Note: headerImage, headerPrompt, headerImages are included by default
   })
 
   if (!linkylink || linkylink.user.username !== username) {
@@ -56,6 +57,7 @@ export default async function PublicLinkylinkPage({ params }: PageProps) {
         orderBy: { order: "asc" },
       },
     },
+    // Note: headerImage, headerPrompt, headerImages are included by default
   })
 
   if (!linkylink || linkylink.user.username !== username) {

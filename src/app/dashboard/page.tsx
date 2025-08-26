@@ -14,12 +14,20 @@ export default async function DashboardPage() {
 
   const linkylinks = await prisma.linkLink.findMany({
     where: { userId: session.user.id },
-    include: {
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      title: true,
+      subtitle: true,
+      avatar: true,
+      slug: true,
+      views: true,
+      headerImage: true,
+      createdAt: true,
       _count: {
         select: { links: true },
       },
     },
-    orderBy: { createdAt: "desc" },
   })
 
   return (
@@ -80,6 +88,7 @@ export default async function DashboardPage() {
                   username={session.user.username || session.user.email?.split("@")[0] || "user"}
                   linkCount={linkylink._count.links}
                   views={linkylink.views}
+                  headerImage={linkylink.headerImage}
                 />
               ))}
             </div>

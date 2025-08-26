@@ -4,13 +4,12 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { motion } from "framer-motion"
-import { Loader2, Link2, Plus, Trash2 } from "lucide-react"
+import { Loader2, Link2, Plus, Trash2, ArrowLeft } from "lucide-react"
 import { z } from "zod"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { createLinkylink, addLinkToLinkylink } from "@/lib/actions"
 import { useSession } from "next-auth/react"
-import { Avatar } from "@/components/Avatar"
 
 const createSchema = z.object({
   title: z.string().min(1, "Title is required").max(100, "Title is too long"),
@@ -24,28 +23,44 @@ interface LinkItem {
   id: string
   title: string
   url: string
+  context?: string
 }
 
 export default function CreatePage() {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
   const [links, setLinks] = useState<LinkItem[]>([])
   const [linkTitle, setLinkTitle] = useState("")
   const [linkUrl, setLinkUrl] = useState("")
+  const [linkContext, setLinkContext] = useState("")
 
   const {
     register,
     handleSubmit,
-    watch,
     formState: { errors },
   } = useForm<CreateFormData>({
     resolver: zodResolver(createSchema),
+    defaultValues: {
+      title: "",
+      subtitle: "",
+      avatar: "",
+    },
   })
 
-  const watchedAvatar = watch("avatar")
-  const watchedTitle = watch("title")
+  // Redirect to login if not authenticated
+  if (status === "loading") {
+    return <div className="min-h-screen flex items-center justify-center">
+      <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+    </div>
+  }
+
+  if (!session) {
+    router.push("/login?callbackUrl=/create")
+    return null
+  }
+
 
   const extractTitleFromUrl = (url: string): string => {
     if (!url) return ""
@@ -81,12 +96,14 @@ export default function CreatePage() {
     const newLink: LinkItem = {
       id: Date.now().toString(),
       title: linkTitle.trim(),
-      url: linkUrl.trim()
+      url: linkUrl.trim(),
+      context: linkContext.trim() || undefined
     }
     
     setLinks(prev => [...prev, newLink])
     setLinkTitle("")
     setLinkUrl("")
+    setLinkContext("")
   }
 
   const removeLinkFromList = (id: string) => {
@@ -111,15 +128,12 @@ export default function CreatePage() {
         await addLinkToLinkylink(linkylink.id, {
           title: link.title,
           url: link.url,
+          context: link.context,
           order: i
         })
       }
       
-      if (session) {
-        router.push(`/edit/${linkylink.id}`)
-      } else {
-        router.push(`/${linkylink.user.username}/${linkylink.slug}`)
-      }
+      router.push(`/${linkylink.user.username}/${linkylink.slug}?edit=true`)
     } catch {
       setError("Failed to create LinkyLink. Please try again.")
     } finally {
@@ -139,8 +153,9 @@ export default function CreatePage() {
             </Link>
             <Link
               href="/dashboard"
-              className="text-sm text-gray-600 hover:text-gray-900"
+              className="px-4 py-2 bg-white text-gray-600 rounded-lg text-sm font-medium flex items-center gap-2 border border-gray-200 hover:border-gray-300 transition-colors"
             >
+              <ArrowLeft className="w-4 h-4" />
               Back to dashboard
             </Link>
           </div>
@@ -193,36 +208,6 @@ export default function CreatePage() {
                 )}
               </div>
 
-              {/* Avatar Section */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Avatar (optional)
-                </label>
-                <div className="flex items-center gap-4">
-                  <div className="flex-shrink-0">
-                    <Avatar 
-                      src={watchedAvatar || session?.user?.image}
-                      username={session?.user?.username || watchedTitle || "User"}
-                      size={60}
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <input
-                      {...register("avatar")}
-                      type="url"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-gray-900 focus:ring-1 focus:ring-gray-900 outline-none transition-colors"
-                      placeholder="https://example.com/your-photo.jpg"
-                      disabled={isLoading}
-                    />
-                    {errors.avatar && (
-                      <p className="text-red-600 text-sm mt-1">{errors.avatar.message}</p>
-                    )}
-                    <p className="text-gray-500 text-xs mt-1">
-                      {session?.user?.image ? "Override your profile photo for this LinkyLink" : "Add a custom photo or we'll use a colorful gradient"}
-                    </p>
-                  </div>
-                </div>
-              </div>
 
               {/* Add Links Section */}
               <div className="border-t pt-6">
@@ -249,44 +234,56 @@ export default function CreatePage() {
                       disabled={isLoading}
                     />
                   </div>
-                  <div className="flex gap-2">
+                  <div>
                     <input
                       type="text"
                       value={linkTitle}
                       onChange={(e) => setLinkTitle(e.target.value)}
                       placeholder="Link title (e.g., My YouTube Channel)"
-                      className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:border-gray-900 focus:ring-1 focus:ring-gray-900 outline-none transition-colors"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-gray-900 focus:ring-1 focus:ring-gray-900 outline-none transition-colors"
                       disabled={isLoading}
                       onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
+                        if (e.key === 'Enter' && !e.shiftKey) {
                           e.preventDefault()
                           addLinkToList()
                         }
                       }}
                     />
+                  </div>
+                  <div>
+                    <textarea
+                      value={linkContext}
+                      onChange={(e) => {
+                        if (e.target.value.length <= 280) {
+                          setLinkContext(e.target.value)
+                        }
+                      }}
+                      placeholder="Add context or description (optional, 280 chars)"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-gray-900 focus:ring-1 focus:ring-gray-900 outline-none transition-colors resize-none"
+                      disabled={isLoading}
+                      rows={2}
+                    />
+                    <div className="text-xs text-gray-400 mt-1 text-right">
+                      {linkContext.length}/280
+                    </div>
+                  </div>
+                  <div>
                     <button
                       type="button"
                       onClick={addLinkToList}
                       disabled={!linkTitle.trim() || !linkUrl.trim() || isLoading}
-                      className="px-4 py-3 bg-gray-900 text-white rounded-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      className="w-full px-4 py-3 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
                     >
-                      <Plus className="w-5 h-5" />
+                      <Plus className="w-4 h-4" />
+                      Add Link
                     </button>
                   </div>
                 </div>
 
                 {/* Notification */}
-                {!session && (
-                  <div className="bg-blue-50 text-blue-700 px-4 py-3 rounded-lg text-sm border border-blue-200 mb-4">
-                    <p><strong>Note:</strong> You can create this LinkyLink without an account. To edit links later, <Link href="/register" className="underline">create an account</Link>.</p>
-                  </div>
-                )}
-
-                {session && (
-                  <div className="bg-gray-50 text-gray-600 px-4 py-3 rounded-lg text-sm border border-gray-200 mb-4">
-                    <p>You can add more links and edit them anytime after creating your LinkyLink.</p>
-                  </div>
-                )}
+                <div className="bg-gray-50 text-gray-600 px-4 py-3 rounded-lg text-sm border border-gray-200 mb-4">
+                  <p>You can add more links and edit them anytime after creating your LinkyLink.</p>
+                </div>
 
                 {/* Divider */}
                 {links.length > 0 && <div className="border-t my-4"></div>}
@@ -304,6 +301,11 @@ export default function CreatePage() {
                           <div className="flex-1 min-w-0">
                             <div className="font-medium text-gray-900 text-sm">{link.title}</div>
                             <div className="text-xs text-gray-500 truncate max-w-full">{link.url}</div>
+                            {link.context && (
+                              <div className="text-xs text-gray-600 mt-1 bg-blue-50 px-2 py-1 rounded border-l-2 border-blue-200">
+                                {link.context}
+                              </div>
+                            )}
                           </div>
                           <button
                             type="button"
@@ -329,17 +331,12 @@ export default function CreatePage() {
                 </div>
               )}
 
-              <div className="flex gap-3">
-                <Link
-                  href="/dashboard"
-                  className="flex-1 px-6 py-3 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors text-center"
-                >
-                  Cancel
-                </Link>
+              <div className="space-y-3">
                 <button
                   type="submit"
-                  disabled={isLoading}
-                  className="flex-1 bg-gray-900 text-white px-6 py-3 rounded-lg font-medium hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                  disabled={isLoading || links.length === 0}
+                  className="w-full bg-gray-900 text-white px-6 py-3 rounded-lg font-medium hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                  title={links.length === 0 ? "Please add at least one link first" : ""}
                 >
                   {isLoading ? (
                     <>
@@ -347,9 +344,15 @@ export default function CreatePage() {
                       Creating...
                     </>
                   ) : (
-                    links.length > 0 ? "Create LinkyLink" : "Create & Add Links Later"
+                    "Create LinkyLink"
                   )}
                 </button>
+                <Link
+                  href="/dashboard"
+                  className="w-full px-6 py-3 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors text-center block"
+                >
+                  Cancel
+                </Link>
               </div>
             </form>
 

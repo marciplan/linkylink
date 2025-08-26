@@ -4,8 +4,9 @@ import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { motion, Reorder } from "framer-motion"
-import { ExternalLink, Trash2, Copy, Check, Link2, ArrowLeft } from "lucide-react"
+import { ExternalLink, Trash2, Copy, Check, Link2, ArrowLeft, Image as ImageIcon, Loader2 } from "lucide-react"
 import { LinkInput } from "@/components/LinkInput"
+import { VisualHeader } from "@/components/VisualHeader"
 import { addLink, deleteLink, updateLinkOrder, updateLinkylink } from "@/lib/actions"
 
 interface EditLinkylinkViewProps {
@@ -14,11 +15,15 @@ interface EditLinkylinkViewProps {
     title: string
     subtitle: string | null
     slug: string
+    headerImage?: string | null
+    headerPrompt?: string | null
+    headerImages?: string[]
     links: {
       id: string
       title: string
       url: string
       favicon: string | null
+      context: string | null
       order: number
     }[]
   }
@@ -31,14 +36,16 @@ export default function EditLinkylinkView({ linkylink, username }: EditLinkylink
   const [title, setTitle] = useState(linkylink.title)
   const [subtitle, setSubtitle] = useState(linkylink.subtitle || "")
   const [isSaving, setIsSaving] = useState(false)
+  const [isGeneratingHeader, setIsGeneratingHeader] = useState(false)
   
   const linkylinkUrl = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/${username}/${linkylink.slug}`
 
-  const handleAddLink = async (title: string, url: string) => {
+  const handleAddLink = async (title: string, url: string, context?: string) => {
     const newLink = await addLink({
       linkylinkId: linkylink.id,
       title,
       url,
+      context,
     })
     
     setLinks([...links, newLink])
@@ -87,39 +94,56 @@ export default function EditLinkylinkView({ linkylink, username }: EditLinkylink
     }
   }
 
+  const handleGenerateHeader = async () => {
+    setIsGeneratingHeader(true)
+    try {
+      const response = await fetch('/api/generate-header', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          linkylinkId: linkylink.id,
+          title: title,
+          subtitle: subtitle,
+        }),
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        // Update the linkylink object with new data
+        linkylink.headerPrompt = data.prompt
+        linkylink.headerImages = data.images
+        linkylink.headerImage = data.selectedImage
+        // Force a re-render by updating state
+        setTitle(title) // This will trigger a re-render
+      } else {
+        console.error('Failed to generate header images')
+      }
+    } catch (error) {
+      console.error('Error generating header images:', error)
+    } finally {
+      setIsGeneratingHeader(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Minimal fixed header */}
-      <div className="fixed top-0 left-0 right-0 bg-white border-b z-40">
-        <div className="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
-          <Link 
-            href="/dashboard" 
-            className="text-gray-600 hover:text-gray-900 flex items-center gap-2 text-sm"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Dashboard
-          </Link>
-          <Link
-            href={`/${username}/${linkylink.slug}`}
-            target="_blank"
-            className="text-gray-600 hover:text-gray-900 flex items-center gap-2 text-sm"
-          >
-            View
-            <ExternalLink className="w-3.5 h-3.5" />
-          </Link>
-        </div>
-      </div>
-
-      {/* Main content with padding for fixed header */}
-      <div className="max-w-2xl mx-auto px-4 pt-20 pb-12">
-        {/* Title & Subtitle */}
-        <div className="text-center mb-8">
+      {/* Visual Header with Profile Content Overlay */}
+      <VisualHeader 
+        linkylink={linkylink} 
+        isOwner={true}
+        isEditMode={true}
+      >
+        {/* Profile section overlaid on header */}
+        <div className="text-center px-4 max-w-2xl mx-auto">
+          {/* Title & Subtitle */}
           <input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             onBlur={handleUpdateTitle}
-            className="w-full text-2xl font-semibold text-center bg-transparent hover:bg-white focus:bg-white border border-transparent hover:border-gray-200 focus:border-gray-300 rounded-lg px-4 py-2 focus:outline-none transition-all"
+            className="w-full text-3xl font-bold text-center bg-white/90 backdrop-blur-sm border border-white/30 rounded-lg px-4 py-3 focus:outline-none focus:border-white text-gray-900 mb-3 drop-shadow-lg"
             placeholder="LinkyLink Title"
             disabled={isSaving}
           />
@@ -128,16 +152,65 @@ export default function EditLinkylinkView({ linkylink, username }: EditLinkylink
             value={subtitle}
             onChange={(e) => setSubtitle(e.target.value)}
             onBlur={handleUpdateSubtitle}
-            className="w-full text-gray-600 text-center bg-transparent hover:bg-white focus:bg-white border border-transparent hover:border-gray-200 focus:border-gray-300 rounded-lg px-4 py-2 focus:outline-none transition-all mt-2"
+            className="w-full text-lg text-center bg-white/90 backdrop-blur-sm border border-white/30 rounded-lg px-4 py-2 focus:outline-none focus:border-white text-gray-700 mb-4 drop-shadow-lg"
             placeholder="Add a subtitle (optional)"
             disabled={isSaving}
           />
           
           {/* Stats */}
-          <div className="flex items-center justify-center gap-4 mt-4 text-sm text-gray-500">
-            <span>@{username}</span>
+          <div className="flex items-center justify-center gap-4 text-sm text-white/90 drop-shadow-md">
+            <span className="bg-black/20 px-3 py-1 rounded-full backdrop-blur-sm">@{username}</span>
           </div>
         </div>
+      </VisualHeader>
+
+      {/* Minimal fixed header */}
+      <div className="fixed top-0 left-0 right-0 bg-white border-b z-40">
+        <div className="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
+          <div className="flex items-center gap-2 sm:gap-4">
+            <Link 
+              href="/dashboard" 
+              className="text-gray-600 hover:text-gray-900 flex items-center gap-2 text-sm"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span className="hidden sm:inline">Dashboard</span>
+            </Link>
+            
+            {/* Generate Header Button */}
+            {(!linkylink.headerImage || linkylink.headerImages?.length === 0) && (
+              <button
+                onClick={handleGenerateHeader}
+                disabled={isGeneratingHeader}
+                className="text-gray-600 hover:text-gray-900 flex items-center gap-2 text-sm disabled:opacity-50"
+              >
+                {isGeneratingHeader ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span className="hidden sm:inline">Generating...</span>
+                  </>
+                ) : (
+                  <>
+                    <ImageIcon className="w-4 h-4" />
+                    <span className="hidden sm:inline">Generate Header</span>
+                  </>
+                )}
+              </button>
+            )}
+          </div>
+          
+          <Link
+            href={`/${username}/${linkylink.slug}`}
+            target="_blank"
+            className="text-gray-600 hover:text-gray-900 flex items-center gap-2 text-sm"
+          >
+            <span className="hidden sm:inline">View</span>
+            <ExternalLink className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+      </div>
+
+      {/* Main content with padding for fixed header */}
+      <div className="max-w-2xl mx-auto px-4 pt-8 pb-12">
 
         {/* Add Link */}
         <LinkInput onAdd={handleAddLink} className="mb-6" />

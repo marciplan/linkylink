@@ -6,7 +6,7 @@ import { Plus, Link, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface LinkInputProps {
-  onAdd: (title: string, url: string) => Promise<void>
+  onAdd: (title: string, url: string, context?: string) => Promise<void>
   className?: string
 }
 
@@ -14,6 +14,7 @@ export function LinkInput({ onAdd, className }: LinkInputProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [title, setTitle] = useState("")
   const [url, setUrl] = useState("")
+  const [context, setContext] = useState("")
   const [isLoading, setIsLoading] = useState(false)
 
   const extractTitleFromUrl = (url: string): string => {
@@ -50,9 +51,10 @@ export function LinkInput({ onAdd, className }: LinkInputProps) {
 
     setIsLoading(true)
     try {
-      await onAdd(title, url)
+      await onAdd(title, url, context.trim() || undefined)
       setTitle("")
       setUrl("")
+      setContext("")
       setIsOpen(false)
     } finally {
       setIsLoading(false)
@@ -117,12 +119,33 @@ export function LinkInput({ onAdd, className }: LinkInputProps) {
               className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-gray-900 focus:ring-1 focus:ring-gray-900 outline-none transition-colors"
               disabled={isLoading}
               onKeyDown={(e) => {
-                if (e.key === 'Enter') {
+                if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault()
                   handleSubmit(e)
                 }
               }}
             />
+          </div>
+          
+          <div>
+            <label className="text-xs font-medium text-gray-600 mb-1 block">
+              Context <span className="text-gray-400">(optional, 280 chars)</span>
+            </label>
+            <textarea
+              value={context}
+              onChange={(e) => {
+                if (e.target.value.length <= 280) {
+                  setContext(e.target.value)
+                }
+              }}
+              placeholder="Add some context or description for this link..."
+              className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-gray-900 focus:ring-1 focus:ring-gray-900 outline-none transition-colors resize-none"
+              disabled={isLoading}
+              rows={2}
+            />
+            <div className="text-xs text-gray-400 mt-1 text-right">
+              {context.length}/280
+            </div>
           </div>
           
           <div className="flex gap-2">
@@ -132,6 +155,7 @@ export function LinkInput({ onAdd, className }: LinkInputProps) {
                 setIsOpen(false)
                 setTitle("")
                 setUrl("")
+                setContext("")
               }}
               className="flex-1 px-4 py-2 rounded-lg border border-gray-200 text-gray-600 font-medium hover:bg-gray-50 transition-colors"
               disabled={isLoading}

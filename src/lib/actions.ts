@@ -9,13 +9,14 @@ import { z } from "zod"
 const createLinkylinkSchema = z.object({
   title: z.string().min(1).max(100),
   subtitle: z.string().max(200).optional(),
-  avatar: z.string().url().optional(),
+  avatar: z.string().url().optional().or(z.literal("")),
 })
 
 const addLinkSchema = z.object({
   linkylinkId: z.string(),
   title: z.string().min(1).max(100),
   url: z.string().url(),
+  context: z.string().max(280).optional(),
 })
 
 export async function createLinkylink(data: z.infer<typeof createLinkylinkSchema>) {
@@ -40,7 +41,7 @@ export async function createLinkylink(data: z.infer<typeof createLinkylinkSchema
     data: {
       title,
       subtitle,
-      avatar,
+      avatar: avatar || undefined,
       slug: uniqueSlug,
       userId: session.user.id,
     },
@@ -59,7 +60,7 @@ export async function addLink(data: z.infer<typeof addLinkSchema>) {
     throw new Error("Unauthorized")
   }
 
-  const { linkylinkId, title, url } = addLinkSchema.parse(data)
+  const { linkylinkId, title, url, context } = addLinkSchema.parse(data)
 
   // Verify ownership
   const linkylink = await prisma.linkLink.findUnique({
@@ -71,13 +72,16 @@ export async function addLink(data: z.infer<typeof addLinkSchema>) {
     throw new Error("LinkyLink not found")
   }
 
-  // Fetch favicon
+  // Fetch favicon using API with fallback handling
   let favicon = null
   try {
-    const domain = new URL(url).hostname
-    favicon = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`
+    const response = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/favicon?url=${encodeURIComponent(url)}`)
+    if (response.ok) {
+      const data = await response.json()
+      favicon = data.favicon
+    }
   } catch {
-    // Ignore favicon errors
+    // Ignore favicon errors - favicon will remain null
   }
 
   const link = await prisma.link.create({
@@ -85,6 +89,7 @@ export async function addLink(data: z.infer<typeof addLinkSchema>) {
       title,
       url,
       favicon,
+      context,
       order: linkylink.links.length,
       linkylinkId,
     },
@@ -95,7 +100,7 @@ export async function addLink(data: z.infer<typeof addLinkSchema>) {
   return link
 }
 
-export async function addLinkToLinkylink(linkylinkId: string, linkData: { title: string; url: string; order?: number }) {
+export async function addLinkToLinkylink(linkylinkId: string, linkData: { title: string; url: string; context?: string; order?: number }) {
   const session = await auth()
   if (!session?.user?.id) {
     throw new Error("Unauthorized")
@@ -111,13 +116,16 @@ export async function addLinkToLinkylink(linkylinkId: string, linkData: { title:
     throw new Error("LinkyLink not found")
   }
 
-  // Fetch favicon
+  // Fetch favicon using API with fallback handling
   let favicon = null
   try {
-    const domain = new URL(linkData.url).hostname
-    favicon = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`
+    const response = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/favicon?url=${encodeURIComponent(linkData.url)}`)
+    if (response.ok) {
+      const data = await response.json()
+      favicon = data.favicon
+    }
   } catch {
-    // Ignore favicon errors
+    // Ignore favicon errors - favicon will remain null
   }
 
   const link = await prisma.link.create({
@@ -125,6 +133,7 @@ export async function addLinkToLinkylink(linkylinkId: string, linkData: { title:
       title: linkData.title,
       url: linkData.url,
       favicon,
+      context: linkData.context,
       order: linkData.order ?? linkylink.links.length,
       linkylinkId,
     },
@@ -206,7 +215,7 @@ export async function updateLinkOrder(linkylinkId: string, linkIds: string[]) {
   revalidatePath(`/${linkylink.user.username}/${linkylink.slug}`)
 }
 
-export async function updateLinkylink(linkylinkId: string, data: { title?: string, subtitle?: string }) {
+export async function updateLinkylink(linkylinkId: string, data: { title?: string, subtitle?: string, avatar?: string }) {
   const session = await auth()
   if (!session?.user?.id) {
     throw new Error("Unauthorized")
@@ -226,6 +235,7 @@ export async function updateLinkylink(linkylinkId: string, data: { title?: strin
     data: {
       ...(data.title && { title: data.title }),
       ...(data.subtitle !== undefined && { subtitle: data.subtitle }),
+      ...(data.avatar !== undefined && { avatar: data.avatar }),
     },
   })
 

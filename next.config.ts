@@ -26,6 +26,22 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
+        hostname: 'api.lummi.ai',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.lummi.ai',
+      },
+      {
+        protocol: 'https',
+        hostname: 'cdn.lummi.ai',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
+      {
+        protocol: 'https',
         hostname: '**',
       }
     ],

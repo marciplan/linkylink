@@ -30,6 +30,9 @@ model LinkLink {
   title         String
   subtitle      String?
   avatar        String?
+  headerImage   String?
+  headerPrompt  String?
+  headerImages  String[]
   links         Link[]
   views         Int         @default(0)
   isPublic      Boolean     @default(true)
@@ -44,6 +47,7 @@ model Link {
   title         String
   url           String
   favicon       String?
+  context       String?
   order         Int
   clicks        Int         @default(0)
   createdAt     DateTime    @default(now())
