@@ -1,36 +1,129 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# LinkyLink - Beautiful Link Sharing
+
+A mobile-first web app for creating and sharing beautiful link collections. Perfect for social media bios, portfolios, and resource collections.
+
+## Features
+
+- 🎨 Beautiful mobile-first design with stunning gradients
+- 🔗 Create multiple link collections (LinkyLinks)
+- 📱 Fully responsive and optimized for mobile
+- 🖼️ Dynamic social media cards (OG images)
+- 🔒 Secure authentication with Auth.js
+- ⚡ Built with Next.js 15 and React Server Components
+- 🎯 SEO optimized
+- 📊 View and click tracking
+
+## Tech Stack
+
+- **Framework:** Next.js 15 with App Router
+- **Database:** Neon (Serverless PostgreSQL)
+- **ORM:** Prisma
+- **Authentication:** Auth.js (NextAuth v5)
+- **Styling:** Tailwind CSS
+- **Animations:** Framer Motion
+- **Icons:** Lucide React
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- Node.js 18+ installed
+- A Neon database account (free tier available at [neon.tech](https://neon.tech))
+
+### Setup Instructions
+
+1. **Clone the repository**
+   ```bash
+   git clone <your-repo-url>
+   cd linkylink
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Set up Neon Database**
+   - Create a free account at [neon.tech](https://neon.tech)
+   - Create a new project
+   - Copy your database connection string
+
+4. **Configure environment variables**
+   
+   Create a `.env` file in the root directory:
+   ```env
+   # Copy your Neon database URL here
+   DATABASE_URL="postgresql://username:password@host/database?sslmode=require"
+   
+   # Generate a secret with: openssl rand -base64 32
+   NEXTAUTH_SECRET="your-generated-secret-here"
+   NEXTAUTH_URL="http://localhost:3000"
+   
+   # For production deployment
+   NEXT_PUBLIC_APP_URL="https://your-domain.com"
+   ```
+
+5. **Set up the database**
+   ```bash
+   npx prisma generate
+   npx prisma db push
+   ```
+
+6. **Run the development server**
+   ```bash
+   npm run dev
+   ```
+
+7. **Open your browser**
+   Navigate to [http://localhost:3000](http://localhost:3000)
+
+## Deployment
+
+### Deploy to Vercel (Recommended)
+
+1. Push your code to GitHub
+2. Import your repository on [Vercel](https://vercel.com)
+3. Add your environment variables:
+   - `DATABASE_URL` - Your Neon connection string
+   - `NEXTAUTH_SECRET` - Your generated secret
+   - `NEXTAUTH_URL` - Your production URL (e.g., https://yourdomain.com)
+   - `NEXT_PUBLIC_APP_URL` - Same as NEXTAUTH_URL
+4. Deploy!
+
+## Project Structure
+
+```
+src/
+├── app/                  # Next.js app router pages
+│   ├── [username]/      # Public LinkyLink pages
+│   ├── api/             # API routes
+│   ├── create/          # Create new LinkyLink
+│   ├── dashboard/       # User dashboard
+│   ├── directory/       # Browse public LinkyLinks
+│   ├── edit/           # Edit LinkyLink
+│   ├── login/          # Login page
+│   └── register/       # Registration page
+├── components/          # React components
+├── lib/                # Utilities and configurations
+│   ├── actions.ts      # Server actions
+│   ├── auth.ts        # Auth.js configuration
+│   ├── prisma.ts      # Prisma client
+│   └── utils.ts       # Utility functions
+└── types/              # TypeScript type definitions
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Usage
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. **Create an account** - Sign up with your email
+2. **Create a LinkyLink** - Give it a title and optional subtitle
+3. **Add links** - Add as many links as you want
+4. **Share** - Share your LinkyLink URL anywhere
+5. **Track views** - See how many people view your links
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Contributing
 
-## Learn More
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-To learn more about Next.js, take a look at the following resources:
+## License
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+MIT# linkylink
