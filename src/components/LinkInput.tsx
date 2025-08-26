@@ -16,6 +16,34 @@ export function LinkInput({ onAdd, className }: LinkInputProps) {
   const [url, setUrl] = useState("")
   const [isLoading, setIsLoading] = useState(false)
 
+  const extractTitleFromUrl = (url: string): string => {
+    if (!url) return ""
+    
+    try {
+      const urlObj = new URL(url)
+      const pathname = urlObj.pathname
+      
+      // Extract the last segment of the path, remove file extensions, and clean it up
+      const segments = pathname.split('/').filter(Boolean)
+      const lastSegment = segments[segments.length - 1] || urlObj.hostname
+      
+      // Remove common file extensions and clean up
+      const cleanSegment = lastSegment
+        .replace(/\.[a-zA-Z0-9]+$/, '') // Remove file extensions
+        .replace(/[-_]/g, ' ') // Replace hyphens and underscores with spaces
+        .replace(/([a-z])([A-Z])/g, '$1 $2') // Add spaces between camelCase
+        .toLowerCase()
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1)) // Capitalize first letter of each word
+        .join(' ')
+        .trim()
+      
+      return cleanSegment || urlObj.hostname
+    } catch {
+      return ""
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!title || !url) return
@@ -52,6 +80,33 @@ export function LinkInput({ onAdd, className }: LinkInputProps) {
         >
           <div>
             <label className="text-xs font-medium text-gray-600 mb-1 block">
+              URL
+            </label>
+            <div className="relative">
+              <Link className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="url"
+                value={url}
+                onChange={(e) => {
+                  const newUrl = e.target.value
+                  setUrl(newUrl)
+                  
+                  // Auto-generate title from URL if title is empty
+                  if (!title.trim()) {
+                    const suggestedTitle = extractTitleFromUrl(newUrl)
+                    setTitle(suggestedTitle)
+                  }
+                }}
+                placeholder="https://example.com"
+                className="w-full pl-10 pr-3 py-2 rounded-lg border border-gray-200 focus:border-gray-900 focus:ring-1 focus:ring-gray-900 outline-none transition-colors"
+                autoFocus
+                disabled={isLoading}
+              />
+            </div>
+          </div>
+          
+          <div>
+            <label className="text-xs font-medium text-gray-600 mb-1 block">
               Title
             </label>
             <input
@@ -60,26 +115,14 @@ export function LinkInput({ onAdd, className }: LinkInputProps) {
               onChange={(e) => setTitle(e.target.value)}
               placeholder="My Awesome Link"
               className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-gray-900 focus:ring-1 focus:ring-gray-900 outline-none transition-colors"
-              autoFocus
               disabled={isLoading}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  handleSubmit(e)
+                }
+              }}
             />
-          </div>
-          
-          <div>
-            <label className="text-xs font-medium text-gray-600 mb-1 block">
-              URL
-            </label>
-            <div className="relative">
-              <Link className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input
-                type="url"
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                placeholder="https://example.com"
-                className="w-full pl-10 pr-3 py-2 rounded-lg border border-gray-200 focus:border-gray-900 focus:ring-1 focus:ring-gray-900 outline-none transition-colors"
-                disabled={isLoading}
-              />
-            </div>
           </div>
           
           <div className="flex gap-2">

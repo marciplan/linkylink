@@ -11,6 +11,7 @@ interface LinkCardProps {
   favicon?: string | null
   onClick?: () => void
   isDragging?: boolean
+  showDragHandle?: boolean
   className?: string
 }
 
@@ -20,6 +21,7 @@ export function LinkCard({
   favicon,
   onClick,
   isDragging,
+  showDragHandle = false,
   className,
 }: LinkCardProps) {
   const domain = new URL(url).hostname.replace("www.", "")
@@ -36,9 +38,11 @@ export function LinkCard({
       onClick={onClick}
     >
       <div className="flex items-center gap-4">
-        <div className="drag-handle cursor-move p-1 -ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
-          <GripVertical className="w-4 h-4 text-gray-400" />
-        </div>
+        {showDragHandle && (
+          <div className="drag-handle cursor-move p-1 -ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <GripVertical className="w-4 h-4 text-gray-400" />
+          </div>
+        )}
         
         <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-gray-50 flex items-center justify-center overflow-hidden border border-gray-200">
           {favicon ? (

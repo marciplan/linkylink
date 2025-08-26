@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { motion, Reorder, useDragControls } from "framer-motion"
-import { Eye, Edit2, Save, Trash2, Copy, Check, ExternalLink, GripVertical } from "lucide-react"
+import { Eye, Edit2, Save, Trash2, Copy, Check, ExternalLink, GripVertical, Share, AtSign, Calendar } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
@@ -19,6 +19,7 @@ interface PublicLinkViewProps {
     subtitle: string | null
     avatar: string | null
     views: number
+    createdAt: Date
     user: {
       username: string
       name: string | null
@@ -117,12 +118,15 @@ export default function PublicLinkView({ linkylink, isOwner = false }: PublicLin
   const [isSaving, setIsSaving] = useState(false)
   const [copied, setCopied] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [canShare, setCanShare] = useState(false)
 
   const [currentUrl, setCurrentUrl] = useState('')
   
   // Set URL on client side only
   useEffect(() => {
     setCurrentUrl(window.location.href)
+    // Check if Web Share API is supported
+    setCanShare('share' in navigator)
   }, [])
 
   const handleLinkClick = async (linkId: string, url: string) => {
@@ -137,6 +141,26 @@ export default function PublicLinkView({ linkylink, isOwner = false }: PublicLin
     await navigator.clipboard.writeText(currentUrl)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  const handleShare = async () => {
+    if ('share' in navigator) {
+      try {
+        await navigator.share({
+          title: title,
+          text: subtitle || `Check out ${title}`,
+          url: currentUrl
+        })
+      } catch (error) {
+        // User cancelled or sharing failed, fallback to copy
+        if (error instanceof Error && error.name !== 'AbortError') {
+          handleCopyUrl()
+        }
+      }
+    } else {
+      // Fallback to copy if Web Share API is not supported
+      handleCopyUrl()
+    }
   }
 
   const handleSave = async () => {
@@ -197,38 +221,60 @@ export default function PublicLinkView({ linkylink, isOwner = false }: PublicLin
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Minimal header with edit controls */}
-      {isOwner && (
-        <div className="fixed top-4 right-4 z-50">
-          {isEditing ? (
-            <div className="flex gap-2">
-              <button
-                onClick={handleSave}
-                disabled={isSaving}
-                className="px-4 py-2 bg-gray-900 text-white rounded-lg text-sm flex items-center gap-2 hover:bg-gray-800 transition-colors disabled:opacity-50"
-              >
-                <Save className="w-4 h-4" />
-                Save
-              </button>
-              <button
-                onClick={handleCancel}
-                disabled={isSaving}
-                className="px-4 py-2 bg-white text-gray-600 rounded-lg text-sm border border-gray-200 hover:border-gray-300 transition-colors"
-              >
-                Cancel
-              </button>
-            </div>
-          ) : (
+      {/* Header with controls */}
+      <div className="fixed top-4 right-4 z-50">
+        <div className="flex items-center gap-2">
+          {/* Owner controls */}
+          {isOwner && (
+            <>
+              {isEditing ? (
+                <>
+                  <button
+                    onClick={handleSave}
+                    disabled={isSaving}
+                    className="px-4 py-2 bg-gray-900 text-white rounded-lg text-sm flex items-center gap-2 hover:bg-gray-800 transition-colors disabled:opacity-50"
+                  >
+                    <Save className="w-4 h-4" />
+                    Save
+                  </button>
+                  <button
+                    onClick={handleCancel}
+                    disabled={isSaving}
+                    className="px-4 py-2 bg-white text-gray-600 rounded-lg text-sm border border-gray-200 hover:border-gray-300 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="px-4 py-2 bg-white text-gray-600 rounded-lg text-sm flex items-center gap-2 border border-gray-200 hover:border-gray-300 transition-colors"
+                >
+                  <Edit2 className="w-4 h-4" />
+                  Edit
+                </button>
+              )}
+              
+              {/* Divider between owner controls and share */}
+              {!isEditing && currentUrl && (
+                <div className="w-px h-6 bg-gray-300"></div>
+              )}
+            </>
+          )}
+          
+          {/* Share button - always visible when not editing, always rightmost */}
+          {!isEditing && currentUrl && (
             <button
-              onClick={() => setIsEditing(true)}
+              onClick={handleShare}
               className="px-4 py-2 bg-white text-gray-600 rounded-lg text-sm flex items-center gap-2 border border-gray-200 hover:border-gray-300 transition-colors"
+              title={canShare ? "Share this LinkyLink" : "Copy link"}
             >
-              <Edit2 className="w-4 h-4" />
-              Edit
+              <Share className="w-4 h-4" />
+              Share
             </button>
           )}
         </div>
-      )}
+      </div>
 
       <div className="max-w-2xl mx-auto px-4 py-12">
         {/* Profile section */}
@@ -279,11 +325,19 @@ export default function PublicLinkView({ linkylink, isOwner = false }: PublicLin
 
           {/* User info and stats - always visible */}
           <div className="flex items-center justify-center gap-4 mt-4 text-sm text-gray-500">
-            <span>@{linkylink.user.username}</span>
+            <span className="flex items-center gap-1">
+              <AtSign className="w-3.5 h-3.5" />
+              {linkylink.user.username}
+            </span>
             <span>•</span>
             <span className="flex items-center gap-1">
               <Eye className="w-3.5 h-3.5" />
-              {linkylink.views} views
+              {linkylink.views.toLocaleString()} views
+            </span>
+            <span>•</span>
+            <span className="flex items-center gap-1">
+              <Calendar className="w-3.5 h-3.5" />
+              {new Date(linkylink.createdAt).toLocaleDateString()}
             </span>
           </div>
         </motion.div>

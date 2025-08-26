@@ -47,6 +47,34 @@ export default function CreatePage() {
   const watchedAvatar = watch("avatar")
   const watchedTitle = watch("title")
 
+  const extractTitleFromUrl = (url: string): string => {
+    if (!url) return ""
+    
+    try {
+      const urlObj = new URL(url)
+      const pathname = urlObj.pathname
+      
+      // Extract the last segment of the path, remove file extensions, and clean it up
+      const segments = pathname.split('/').filter(Boolean)
+      const lastSegment = segments[segments.length - 1] || urlObj.hostname
+      
+      // Remove common file extensions and clean up
+      const cleanSegment = lastSegment
+        .replace(/\.[a-zA-Z0-9]+$/, '') // Remove file extensions
+        .replace(/[-_]/g, ' ') // Replace hyphens and underscores with spaces
+        .replace(/([a-z])([A-Z])/g, '$1 $2') // Add spaces between camelCase
+        .toLowerCase()
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1)) // Capitalize first letter of each word
+        .join(' ')
+        .trim()
+      
+      return cleanSegment || urlObj.hostname
+    } catch {
+      return ""
+    }
+  }
+
   const addLinkToList = () => {
     if (!linkTitle.trim() || !linkUrl.trim()) return
     
@@ -204,20 +232,29 @@ export default function CreatePage() {
                 <div className="space-y-3 mb-4">
                   <div>
                     <input
-                      type="text"
-                      value={linkTitle}
-                      onChange={(e) => setLinkTitle(e.target.value)}
-                      placeholder="Link title (e.g., My YouTube Channel)"
+                      type="url"
+                      value={linkUrl}
+                      onChange={(e) => {
+                        const newUrl = e.target.value
+                        setLinkUrl(newUrl)
+                        
+                        // Auto-generate title from URL if title is empty
+                        if (!linkTitle.trim()) {
+                          const suggestedTitle = extractTitleFromUrl(newUrl)
+                          setLinkTitle(suggestedTitle)
+                        }
+                      }}
+                      placeholder="https://..."
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-gray-900 focus:ring-1 focus:ring-gray-900 outline-none transition-colors"
                       disabled={isLoading}
                     />
                   </div>
                   <div className="flex gap-2">
                     <input
-                      type="url"
-                      value={linkUrl}
-                      onChange={(e) => setLinkUrl(e.target.value)}
-                      placeholder="https://..."
+                      type="text"
+                      value={linkTitle}
+                      onChange={(e) => setLinkTitle(e.target.value)}
+                      placeholder="Link title (e.g., My YouTube Channel)"
                       className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:border-gray-900 focus:ring-1 focus:ring-gray-900 outline-none transition-colors"
                       disabled={isLoading}
                       onKeyDown={(e) => {
@@ -330,7 +367,7 @@ export default function CreatePage() {
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-gray-400 mt-0.5">•</span>
-                  <span>Press Enter in the URL field to quickly add links</span>
+                  <span>Press Enter in the title field to quickly add links</span>
                 </li>
               </ul>
             </div>
