@@ -118,6 +118,31 @@ export async function createLinkylink(data: z.infer<typeof createLinkylinkSchema
   return linkylink
 }
 
+async function fetchFavicon(url: string): Promise<string | null> {
+  try {
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout for initial fetch
+    
+    const response = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/favicon?url=${encodeURIComponent(url)}`, {
+      signal: controller.signal,
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    })
+    
+    clearTimeout(timeoutId)
+    
+    if (response.ok) {
+      const data = await response.json()
+      return data.favicon || null
+    }
+    return null
+  } catch (error) {
+    console.log('Favicon fetch failed for', url, ':', error)
+    return null
+  }
+}
+
 export async function addLink(data: z.infer<typeof addLinkSchema>) {
   const session = await auth()
   if (!session?.user?.id) {
@@ -136,48 +161,44 @@ export async function addLink(data: z.infer<typeof addLinkSchema>) {
     throw new Error("LinkyLink not found")
   }
 
-  // Create the link first, then fetch favicon async
+  // Fetch favicon BEFORE creating the link - users get instant visual feedback
+  const favicon = await fetchFavicon(url)
+
+  // Create the link with favicon (or null if fetch failed)
   const link = await prisma.link.create({
     data: {
       title,
       url,
-      favicon: null, // Will be updated later
+      favicon,
       context,
       order: linkylink.links.length,
       linkylinkId,
     },
   })
 
-  // Fetch favicon asynchronously in background - don't block link creation
-  setImmediate(async () => {
-    try {
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 3000) // 3 second timeout
+  // If favicon fetch failed, retry in background with exponential backoff
+  if (!favicon) {
+    setImmediate(async () => {
+      let retryCount = 0
+      const maxRetries = 3
       
-      const response = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/favicon?url=${encodeURIComponent(url)}`, {
-        signal: controller.signal,
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      })
-      
-      clearTimeout(timeoutId)
-      
-      if (response.ok) {
-        const data = await response.json()
-        if (data.favicon) {
-          // Update the link with the favicon
+      while (retryCount < maxRetries) {
+        const delay = Math.pow(2, retryCount) * 1000 // 1s, 2s, 4s
+        await new Promise(resolve => setTimeout(resolve, delay))
+        
+        const retryFavicon = await fetchFavicon(url)
+        if (retryFavicon) {
           await prisma.link.update({
             where: { id: link.id },
-            data: { favicon: data.favicon }
+            data: { favicon: retryFavicon }
           })
+          break
         }
+        
+        retryCount++
       }
-    } catch (error) {
-      // Ignore favicon errors - favicon will remain null
-      console.log('Background favicon fetch failed:', error)
-    }
-  })
+    })
+  }
 
   revalidatePath(`/dashboard`)
   revalidatePath(`/edit/${linkylinkId}`)
@@ -200,48 +221,44 @@ export async function addLinkToLinkylink(linkylinkId: string, linkData: { title:
     throw new Error("LinkyLink not found")
   }
 
-  // Create the link first, then fetch favicon async
+  // Fetch favicon BEFORE creating the link - users get instant visual feedback
+  const favicon = await fetchFavicon(linkData.url)
+
+  // Create the link with favicon (or null if fetch failed)
   const link = await prisma.link.create({
     data: {
       title: linkData.title,
       url: linkData.url,
-      favicon: null, // Will be updated later
+      favicon,
       context: linkData.context,
       order: linkData.order ?? linkylink.links.length,
       linkylinkId,
     },
   })
 
-  // Fetch favicon asynchronously in background - don't block link creation
-  setImmediate(async () => {
-    try {
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 3000) // 3 second timeout
+  // If favicon fetch failed, retry in background with exponential backoff
+  if (!favicon) {
+    setImmediate(async () => {
+      let retryCount = 0
+      const maxRetries = 3
       
-      const response = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/favicon?url=${encodeURIComponent(linkData.url)}`, {
-        signal: controller.signal,
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      })
-      
-      clearTimeout(timeoutId)
-      
-      if (response.ok) {
-        const data = await response.json()
-        if (data.favicon) {
-          // Update the link with the favicon
+      while (retryCount < maxRetries) {
+        const delay = Math.pow(2, retryCount) * 1000 // 1s, 2s, 4s
+        await new Promise(resolve => setTimeout(resolve, delay))
+        
+        const retryFavicon = await fetchFavicon(linkData.url)
+        if (retryFavicon) {
           await prisma.link.update({
             where: { id: link.id },
-            data: { favicon: data.favicon }
+            data: { favicon: retryFavicon }
           })
+          break
         }
+        
+        retryCount++
       }
-    } catch (error) {
-      // Ignore favicon errors - favicon will remain null
-      console.log('Background favicon fetch failed:', error)
-    }
-  })
+    })
+  }
 
   revalidatePath(`/dashboard`)
   revalidatePath(`/edit/${linkylinkId}`)

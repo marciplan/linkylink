@@ -73,12 +73,21 @@ export function LinkCard({
             {favicon ? (
               <Image 
                 src={favicon} 
-                alt="" 
+                alt={`${title} favicon`} 
                 width={24}
                 height={24}
                 className="object-contain"
                 onError={(e) => {
-                  e.currentTarget.style.display = 'none'
+                  const target = e.currentTarget
+                  target.style.display = 'none'
+                  // Show fallback icon when image fails
+                  const parent = target.parentElement
+                  if (parent && !parent.querySelector('.fallback-icon')) {
+                    const fallbackIcon = document.createElement('div')
+                    fallbackIcon.className = 'fallback-icon w-5 h-5 text-gray-400'
+                    fallbackIcon.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>'
+                    parent.appendChild(fallbackIcon)
+                  }
                 }}
               />
             ) : (
