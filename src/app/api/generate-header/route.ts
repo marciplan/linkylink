@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { auth } from '@/lib/auth'
+import { generateGradientSet, COLOR_PALETTES } from '@/lib/gradient-generator'
+import { generateAdvancedGradientSet } from '@/lib/advanced-gradient-generator'
 
 export async function POST(request: NextRequest) {
   try {
-    const { linkylinkId, title, subtitle } = await request.json()
+    const { linkylinkId, title, subtitle, selectedEmoji } = await request.json()
 
     if (!linkylinkId || !title) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
@@ -25,156 +27,181 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'LinkyLink not found or access denied' }, { status: 404 })
     }
 
-    // Generate theme variations using OpenAI GPT-4o-mini
-    const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.NEXT_OPENAI_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-5-mini',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are an expert at creating color themes for abstract gradient backgrounds. Based on the given title and subtitle, suggest 5 different color themes that would complement the content. Each theme should be 2-3 words describing colors/moods (e.g., "warm sunset", "ocean depths", "forest morning", "cosmic purple", "golden hour"). Return only the themes separated by commas, no explanations.'
-          },
-          {
-            role: 'user',
-            content: `Title: "${title}"${subtitle ? `\nSubtitle: "${subtitle}"` : ''}`
-          }
-        ],
-        max_tokens: 100,
-        temperature: 0.8,
-      }),
-    })
-
-    let themes = ['warm sunset', 'ocean depths', 'forest morning', 'cosmic purple', 'golden hour']
-    
-    if (openaiResponse.ok) {
-      const openaiData = await openaiResponse.json()
-      const themeString = openaiData.choices[0]?.message?.content || ''
-      const suggestedThemes = themeString.split(',').map((t: string) => t.trim()).filter(Boolean)
-      if (suggestedThemes.length >= 5) {
-        themes = suggestedThemes.slice(0, 5)
-      }
-    }
-
-    // Bulletproof background generation with multiple fallback layers
-    const selectedImages = []
-    
-    console.log('Generated themes:', themes)
-    
-    // First attempt: Try LUMMI API with error handling and timeout
-    const lummiAttempts = []
-    for (const theme of themes.slice(0, 3)) { // Only try first 3 themes to save time
+    // Function to get AI-analyzed emoji color themes
+    const getEmojiColorThemes = async (emoji: string): Promise<string[]> => {
       try {
-        const searchTerm = `gradient ${theme}`
-        const lummiUrl = new URL('https://api.lummi.ai/v1/search')
-        lummiUrl.searchParams.append('query', searchTerm)
-        lummiUrl.searchParams.append('per_page', '2')
-        lummiUrl.searchParams.append('orientation', 'landscape')
-
-        // Add timeout to prevent hanging
-        const controller = new AbortController()
-        const timeoutId = setTimeout(() => controller.abort(), 3000) // 3 second timeout
-
-        const lummiImageResponse = await fetch(lummiUrl.toString(), {
-          method: 'GET',
+        const response = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/analyze-emoji-colors`, {
+          method: 'POST',
           headers: {
-            'Authorization': `Bearer ${process.env.LUMMI_API_KEY}`,
+            'Content-Type': 'application/json',
           },
-          signal: controller.signal,
+          body: JSON.stringify({ emoji }),
         })
 
-        clearTimeout(timeoutId)
+        if (response.ok) {
+          const data = await response.json()
+          console.log('🎨 AI Color Analysis Result:', data)
+          return data.suggestedThemes || ['warm sunset', 'professional', 'electric blue']
+        }
+      } catch (error) {
+        console.error('Error analyzing emoji colors:', error)
+      }
+      
+      // Fallback to simple mapping if API fails
+      return ['warm sunset', 'professional', 'electric blue']
+    }
 
-        if (lummiImageResponse.ok) {
-          const lummiData = await lummiImageResponse.json()
-          const images = lummiData.data || []
-          
-          // Validate images before adding
-          for (const img of images) {
-            if (img.url && typeof img.url === 'string' && img.url.startsWith('http')) {
-              // Test if the image actually exists
-              try {
-                const testResponse = await fetch(img.url, { 
-                  method: 'HEAD', 
-                  signal: AbortSignal.timeout(2000) 
-                })
-                if (testResponse.ok) {
-                  lummiAttempts.push(img.url)
-                  break // Only take one per theme
-                }
-              } catch (testError) {
-                console.log('LUMMI image failed validation:', img.url, testError instanceof Error ? testError.message : 'Unknown error')
-                continue
-              }
+    // Generate themes with emoji color influence + randomization
+    const contentText = `${title} ${subtitle || ''}`.toLowerCase()
+    const availableThemes = Object.keys(COLOR_PALETTES)
+    
+    // Add timestamp-based randomization to ensure different results each time
+    const seed = Date.now()
+    const random = () => {
+      const x = Math.sin(seed + Math.random() * 1000) * 10000
+      return x - Math.floor(x)
+    }
+    
+    // Emoji-influenced theme selection with content awareness as fallback
+    let candidateThemes: string[] = []
+    
+    // If emoji is selected, prioritize its AI-analyzed color themes
+    if (selectedEmoji) {
+      const emojiThemes = await getEmojiColorThemes(selectedEmoji)
+      candidateThemes = [...emojiThemes]
+      console.log(`🎨 Using AI-analyzed themes for "${selectedEmoji}":`, emojiThemes)
+      
+      // Add 2 more complementary themes based on content
+      if (contentText.includes('tech') || contentText.includes('startup') || contentText.includes('business')) {
+        candidateThemes.push('professional', 'electric blue')
+      } else if (contentText.includes('art') || contentText.includes('creative') || contentText.includes('design')) {
+        candidateThemes.push('cosmic purple', 'pink dawn')  
+      } else if (contentText.includes('nature') || contentText.includes('outdoor') || contentText.includes('green')) {
+        candidateThemes.push('forest morning', 'earth tones')
+      } else if (contentText.includes('food') || contentText.includes('cooking') || contentText.includes('recipe')) {
+        candidateThemes.push('warm sunset', 'golden hour')
+      } else {
+        candidateThemes.push('professional', 'warm sunset')
+      }
+    } else {
+      // No emoji selected - use content-based selection as before
+      if (contentText.includes('tech') || contentText.includes('startup') || contentText.includes('business')) {
+        candidateThemes = ['professional', 'electric blue', 'cosmic purple', 'neon lights', 'deep ocean']
+      } else if (contentText.includes('art') || contentText.includes('creative') || contentText.includes('design')) {
+        candidateThemes = ['cosmic purple', 'pink dawn', 'neon lights', 'warm sunset', 'golden hour']  
+      } else if (contentText.includes('nature') || contentText.includes('outdoor') || contentText.includes('green')) {
+        candidateThemes = ['forest morning', 'earth tones', 'ocean depths', 'warm sunset', 'professional']
+      } else if (contentText.includes('food') || contentText.includes('cooking') || contentText.includes('recipe')) {
+        candidateThemes = ['warm sunset', 'golden hour', 'earth tones', 'pink dawn', 'forest morning']
+      } else {
+        // For general content, use all themes with bias toward popular ones
+        candidateThemes = [...availableThemes]
+      }
+    }
+    
+    // Shuffle candidate themes and mix with other random themes
+    const shuffledCandidates = candidateThemes.sort(() => random() - 0.5)
+    const otherThemes = availableThemes.filter(theme => !candidateThemes.includes(theme))
+    const shuffledOthers = otherThemes.sort(() => random() - 0.5)
+    
+    // Select 2-3 themes from candidates, rest from all themes
+    const selectedThemes: string[] = []
+    const numFromCandidates = Math.floor(random() * 2) + 2 // 2 or 3
+    
+    // Add themes from candidates
+    selectedThemes.push(...shuffledCandidates.slice(0, numFromCandidates))
+    
+    // Fill remaining slots with random themes from all available
+    const allShuffled = [...shuffledCandidates, ...shuffledOthers].sort(() => random() - 0.5)
+    const remainingThemes = allShuffled.filter(theme => !selectedThemes.includes(theme))
+    
+    while (selectedThemes.length < 5 && remainingThemes.length > 0) {
+      selectedThemes.push(remainingThemes.shift()!)
+    }
+    
+    // Ensure we have exactly 5 themes
+    const themes = selectedThemes.slice(0, 5)
+
+    // Generate SVG gradients for each theme
+    console.log('Generated themes:', themes)
+    
+    const selectedImages: string[] = []
+    
+    // Generate mix of simple and advanced gradients with unique seeds (60% advanced, 40% simple)
+    for (let i = 0; i < themes.length; i++) {
+      try {
+        const theme = themes[i]
+        const palette = COLOR_PALETTES[theme] || COLOR_PALETTES['warm sunset']
+        
+        // Create unique seed for each gradient to ensure variety
+        const gradientSeed = seed + i * 1000 + Math.floor(Math.random() * 10000)
+        
+        if (i < 3) {
+          // Use advanced gradient types for first 3 (60%)
+          const advancedGradients = generateAdvancedGradientSet(
+            theme, 
+            palette.colors, 
+            1, 
+            { width: 1200, height: 400 },
+            { seed: gradientSeed }
+          )
+          if (advancedGradients.length > 0) {
+            selectedImages.push(advancedGradients[0])
+          } else {
+            // Fallback to simple gradient
+            const simpleGradients = generateGradientSet(theme, 1, { width: 1200, height: 400 }, { seed: gradientSeed })
+            if (simpleGradients.length > 0) {
+              selectedImages.push(simpleGradients[0])
             }
+          }
+        } else {
+          // Use simple gradients for remaining 2 (40%)
+          const simpleGradients = generateGradientSet(theme, 1, { width: 1200, height: 400 }, { seed: gradientSeed })
+          if (simpleGradients.length > 0) {
+            selectedImages.push(simpleGradients[0])
           }
         }
       } catch (error) {
-        console.log('LUMMI API error for theme', theme, ':', error instanceof Error ? error.message : 'Unknown error')
-        continue
-      }
-    }
-
-    // Add valid LUMMI results first
-    selectedImages.push(...lummiAttempts.slice(0, 5))
-    console.log('LUMMI results:', lummiAttempts.length, 'valid images')
-    
-    // Second layer: Curated atmospheric gradients (always reliable)
-    const atmosphericGradients = [
-      'https://images.unsplash.com/photo-1558591710-4b4a1ae0f04d?w=1200&h=400&fit=crop&crop=entropy&q=80', // warm sunset gradient
-      'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&h=400&fit=crop&crop=entropy&q=80', // cool blue gradient  
-      'https://images.unsplash.com/photo-1519681393784-d120af497cc8?w=1200&h=400&fit=crop&crop=entropy&q=80', // purple cosmic gradient
-      'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=1200&h=400&fit=crop&crop=entropy&q=80', // golden hour gradient
-      'https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=1200&h=400&fit=crop&crop=entropy&q=80', // pink dawn gradient
-      'https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?w=1200&h=400&fit=crop&crop=entropy&q=80', // ocean depth gradient
-      'https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=1200&h=400&fit=crop&crop=entropy&q=80', // forest morning gradient
-      'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1200&h=400&fit=crop&crop=entropy&q=80', // nature gradient
-      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1200&h=400&fit=crop&crop=entropy&q=80', // misty gradient
-      'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?w=1200&h=400&fit=crop&crop=entropy&q=80', // ethereal gradient
-    ]
-    
-    // Shuffle and fill remaining slots
-    const shuffled = [...atmosphericGradients].sort(() => Math.random() - 0.5)
-    
-    // Fill up to 5 images total, mixing LUMMI (if any) with curated gradients
-    while (selectedImages.length < 5 && shuffled.length > 0) {
-      const nextGradient = shuffled.shift()
-      if (nextGradient && !selectedImages.includes(nextGradient)) {
-        selectedImages.push(nextGradient)
+        console.error(`Failed to generate gradient for theme ${themes[i]}:`, error)
+        
+        // Fallback to a simple gradient
+        const fallbackGradients = generateGradientSet('warm sunset', 1, { width: 1200, height: 400 })
+        if (fallbackGradients.length > 0) {
+          selectedImages.push(fallbackGradients[0])
+        }
       }
     }
     
-    // Third layer: Emergency fallback (should never be needed)
-    if (selectedImages.length === 0) {
-      selectedImages.push(
-        'https://images.unsplash.com/photo-1558591710-4b4a1ae0f04d?w=1200&h=400&fit=crop&crop=entropy&q=80',
-        'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&h=400&fit=crop&crop=entropy&q=80',
-        'https://images.unsplash.com/photo-1519681393784-d120af497cc8?w=1200&h=400&fit=crop&crop=entropy&q=80',
-        'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=1200&h=400&fit=crop&crop=entropy&q=80',
-        'https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=1200&h=400&fit=crop&crop=entropy&q=80'
-      )
+    // Ensure we always have 5 gradients
+    while (selectedImages.length < 5) {
+      const fallbackTheme = themes[selectedImages.length % themes.length] || 'warm sunset'
+      const fallbackGradients = generateGradientSet(fallbackTheme, 1, { width: 1200, height: 400 })
+      if (fallbackGradients.length > 0) {
+        selectedImages.push(fallbackGradients[0])
+      } else {
+        // Ultimate fallback - create a simple linear gradient data URI
+        const fallbackSvg = `<svg width="1200" height="400" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="fallback" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ff6b6b"/><stop offset="100%" stop-color="#4ecdc4"/></linearGradient></defs><rect width="100%" height="100%" fill="url(#fallback)"/></svg>`
+        const fallbackDataUri = `data:image/svg+xml;base64,${btoa(fallbackSvg)}`
+        selectedImages.push(fallbackDataUri)
+      }
     }
     
-    console.log('Final selected images:', selectedImages.length)
-
+    console.log('Generated SVG gradients:', selectedImages.length)
+    
     const finalImages = selectedImages.slice(0, 5)
 
     // Update database with generated data
     await prisma.linkLink.update({
       where: { id: linkylinkId },
       data: {
-        headerPrompt: `Themed gradients: ${themes.join(', ')}`,
+        headerPrompt: `SVG Gradients: ${themes.join(', ')}`,
         headerImages: finalImages,
-        headerImage: finalImages[0], // Auto-select first image
+        headerImage: finalImages[0], // Auto-select first gradient
       },
     })
 
     return NextResponse.json({
-      prompt: `Themed gradients: ${themes.join(', ')}`,
+      prompt: `SVG Gradients: ${themes.join(', ')}`,
       images: finalImages,
       selectedImage: finalImages[0],
       themes: themes,

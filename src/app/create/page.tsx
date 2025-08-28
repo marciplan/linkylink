@@ -150,7 +150,8 @@ export default function CreatePage() {
       })
       
       router.push(`/${createdLinkylink.user.username}/${createdLinkylink.slug}?edit=true`)
-    } catch {
+    } catch (error) {
+      console.error('Failed to add link:', error)
       setError("Failed to add link. Please try again.")
     } finally {
       setIsLoading(false)

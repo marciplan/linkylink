@@ -16,6 +16,7 @@ export function LinkInput({ onAdd, className }: LinkInputProps) {
   const [url, setUrl] = useState("")
   const [context, setContext] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState("")
 
   const normalizeUrl = (input: string): string => {
     if (!input.trim()) return input
@@ -71,12 +72,17 @@ export function LinkInput({ onAdd, className }: LinkInputProps) {
     const normalizedUrl = normalizeUrl(url)
     
     setIsLoading(true)
+    setError("")
     try {
       await onAdd(title, normalizedUrl, context.trim() || undefined)
       setTitle("")
       setUrl("")
       setContext("")
+      setError("")
       setIsOpen(false)
+    } catch (error) {
+      console.error('Failed to add link:', error)
+      setError("Failed to add link. Please try again.")
     } finally {
       setIsLoading(false)
     }
@@ -177,6 +183,12 @@ export function LinkInput({ onAdd, className }: LinkInputProps) {
             </div>
           </div>
           
+          {error && (
+            <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 px-3 py-2 rounded-lg text-sm border border-red-200 dark:border-red-800">
+              {error}
+            </div>
+          )}
+          
           <div className="flex gap-2">
             <button
               type="button"
@@ -185,6 +197,7 @@ export function LinkInput({ onAdd, className }: LinkInputProps) {
                 setTitle("")
                 setUrl("")
                 setContext("")
+                setError("")
               }}
               className="flex-1 px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
               disabled={isLoading}

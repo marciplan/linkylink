@@ -22,7 +22,7 @@ interface TweakModalProps {
 }
 
 export function TweakModal({ isOpen, onClose, linkylink, onSave }: TweakModalProps) {
-  const [activeTab, setActiveTab] = useState<'background' | 'icon'>('background')
+  const [activeTab, setActiveTab] = useState<'background' | 'icon'>('icon')
   const [selectedBackground, setSelectedBackground] = useState(linkylink.headerImage || '')
   const [selectedIcon, setSelectedIcon] = useState(linkylink.avatar || '')
   const [isGeneratingBackgrounds, setIsGeneratingBackgrounds] = useState(false)
@@ -78,6 +78,7 @@ export function TweakModal({ isOpen, onClose, linkylink, onSave }: TweakModalPro
             linkylinkId: linkylink.id,
             title: linkylink.title,
             subtitle: linkylink.subtitle,
+            selectedEmoji: selectedIcon, // Pass selected emoji to influence color palette
           }),
         })
 
@@ -163,16 +164,6 @@ export function TweakModal({ isOpen, onClose, linkylink, onSave }: TweakModalPro
           {/* Tabs */}
           <div className="flex border-b">
             <button
-              onClick={() => setActiveTab('background')}
-              className={`flex-1 px-6 py-3 font-medium transition-colors ${
-                activeTab === 'background'
-                  ? 'text-gray-900 border-b-2 border-gray-900'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              Background
-            </button>
-            <button
               onClick={() => setActiveTab('icon')}
               className={`flex-1 px-6 py-3 font-medium transition-colors ${
                 activeTab === 'icon'
@@ -181,6 +172,16 @@ export function TweakModal({ isOpen, onClose, linkylink, onSave }: TweakModalPro
               }`}
             >
               Icon
+            </button>
+            <button
+              onClick={() => setActiveTab('background')}
+              className={`flex-1 px-6 py-3 font-medium transition-colors ${
+                activeTab === 'background'
+                  ? 'text-gray-900 border-b-2 border-gray-900'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Background
             </button>
           </div>
 

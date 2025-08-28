@@ -41,14 +41,19 @@ export default function EditLinkylinkView({ linkylink, username }: EditLinkylink
   const linkylinkUrl = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/${username}/${linkylink.slug}`
 
   const handleAddLink = async (title: string, url: string, context?: string) => {
-    const newLink = await addLink({
-      linkylinkId: linkylink.id,
-      title,
-      url,
-      context,
-    })
-    
-    setLinks([...links, newLink])
+    try {
+      const newLink = await addLink({
+        linkylinkId: linkylink.id,
+        title,
+        url,
+        context,
+      })
+      
+      setLinks([...links, newLink])
+    } catch (error) {
+      console.error('Failed to add link:', error)
+      throw error // Re-throw to let LinkInput component handle the error display
+    }
   }
 
   const handleDeleteLink = async (linkId: string) => {
