@@ -272,7 +272,13 @@ export default function EditLinkylinkView({ linkylink, username }: EditLinkylink
                         {link.title}
                       </h3>
                       <p className="text-sm text-gray-500 truncate">
-                        {new URL(link.url).hostname.replace("www.", "")}
+                        {(() => {
+                          try {
+                            return new URL(link.url).hostname.replace("www.", "")
+                          } catch {
+                            return link.url || "Invalid URL"
+                          }
+                        })()}
                       </p>
                     </div>
                     

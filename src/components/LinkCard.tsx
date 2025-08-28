@@ -34,7 +34,14 @@ export function LinkCard({
   username,
 }: LinkCardProps) {
   const [showContext, setShowContext] = useState(false)
-  const domain = new URL(url).hostname.replace("www.", "")
+  
+  const domain = (() => {
+    try {
+      return new URL(url).hostname.replace("www.", "")
+    } catch {
+      return url || "Invalid URL"
+    }
+  })()
 
   const handleInfoClick = (e: React.MouseEvent) => {
     e.stopPropagation()
