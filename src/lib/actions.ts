@@ -37,6 +37,7 @@ export async function createLinkylink(data: z.infer<typeof createLinkylinkSchema
     uniqueSlug = `${slug}-${counter}`
   }
 
+  // Create the linkylink first
   const linkylink = await prisma.linkLink.create({
     data: {
       title,
@@ -47,6 +48,89 @@ export async function createLinkylink(data: z.infer<typeof createLinkylinkSchema
     },
     include: {
       user: true
+    }
+  })
+
+  // Auto-generate default emoji and background in the background
+  setImmediate(async () => {
+    try {
+      let defaultEmoji = ''
+      let defaultBackground = ''
+      let headerImages: string[] = []
+      let headerPrompt = ''
+
+      // Fetch first emoji suggestion
+      const emojiResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/suggest-emojis`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title,
+          subtitle,
+        }),
+      })
+
+      if (emojiResponse.ok) {
+        const emojiData = await emojiResponse.json()
+        defaultEmoji = emojiData.emojis?.[0] || ''
+      }
+
+      // Generate background options
+      const headerResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/generate-header`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          linkylinkId: linkylink.id,
+          title,
+          subtitle,
+          selectedEmoji: defaultEmoji,
+        }),
+      })
+
+      if (headerResponse.ok) {
+        const headerData = await headerResponse.json()
+        defaultBackground = headerData.selectedImage || ''
+        headerImages = headerData.images || []
+        headerPrompt = headerData.prompt || ''
+
+        // Update linkylink with defaults, but only if user hasn't set an avatar
+        const updateData: {
+          avatar?: string;
+          headerImage?: string;
+          headerPrompt?: string;
+          headerImages?: string[];
+        } = {}
+        
+        if (!avatar && defaultEmoji) {
+          updateData.avatar = defaultEmoji
+        }
+        
+        if (defaultBackground) {
+          updateData.headerImage = defaultBackground
+        }
+        
+        if (headerPrompt) {
+          updateData.headerPrompt = headerPrompt
+        }
+        
+        if (headerImages.length > 0) {
+          updateData.headerImages = headerImages
+        }
+
+        // Only update if we have something to update
+        if (Object.keys(updateData).length > 0) {
+          await prisma.linkLink.update({
+            where: { id: linkylink.id },
+            data: updateData
+          })
+        }
+      }
+    } catch (error) {
+      console.error('Failed to auto-generate defaults:', error)
+      // Silently fail - linkylink creation should not be blocked
     }
   })
 
