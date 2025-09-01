@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { rateLimitHeaders } from '@/lib/rate-limit'
+import { chatCompletion, parseJsonFromModel } from '@/lib/openai'
 
 interface ColorAnalysis {
   dominantColor: string
@@ -16,21 +18,21 @@ export async function POST(request: NextRequest) {
 
     console.log('🔍 ANALYZING EMOJI COLORS FOR:', emoji)
 
+    // Basic rate limit: 20 req/min per IP for this endpoint
+    const rl = rateLimitHeaders(request, 'analyze-emoji-colors', 20, 60_000)
+    if (!rl.allowed) {
+      return NextResponse.json(rl.body, { status: rl.status, headers: rl.headers })
+    }
+    const rateHeaders = rl.headers
+
     // Create a simple canvas representation of the emoji for GPT-4o-mini to analyze
     // We'll send the emoji as text and ask GPT to analyze its visual colors
     try {
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${process.env.NEXT_OPENAI_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o-mini',
-          messages: [
-            {
-              role: 'system',
-              content: `You are an expert at analyzing emoji colors and mapping them to design themes. 
+      const completion = await chatCompletion({
+        messages: [
+          {
+            role: 'system',
+            content: `You are an expert at analyzing emoji colors and mapping them to design themes. 
 
 When given an emoji, analyze its visual appearance and identify:
 1. The dominant color (most prominent color in the emoji)
@@ -56,27 +58,25 @@ Return your response as JSON:
   "secondaryColors": ["#4ECDC4", "#45B7D1"],
   "suggestedThemes": ["warm sunset", "ocean depths", "professional"]
 }`
-            },
-            {
-              role: 'user',
-              content: `Analyze the colors in this emoji: ${emoji}
+          },
+          {
+            role: 'user',
+            content: `Analyze the colors in this emoji: ${emoji}
 
 Look at its visual appearance and identify the dominant color and secondary colors, then suggest matching themes.`
             }
           ],
           max_tokens: 200,
           temperature: 0.3,
-        }),
       })
 
-      if (response.ok) {
-        const data = await response.json()
-        const aiResponse = data.choices[0]?.message?.content || ''
+      if (completion.ok) {
+        const aiResponse = completion.content || ''
         
         try {
           console.log('🤖 RAW COLOR ANALYSIS:', aiResponse)
           
-          const analysis = JSON.parse(aiResponse) as ColorAnalysis
+          const analysis = parseJsonFromModel(aiResponse) as ColorAnalysis
           
           console.log('🎨 COLOR ANALYSIS RESULTS:')
           console.log(`  Dominant: ${analysis.dominantColor}`)
@@ -89,16 +89,14 @@ Look at its visual appearance and identify the dominant color and secondary colo
             secondaryColors: analysis.secondaryColors || [],
             suggestedThemes: analysis.suggestedThemes || ['warm sunset', 'professional', 'electric blue'],
             source: 'ai'
-          })
+          }, { headers: rateHeaders })
           
         } catch (parseError) {
           console.error('❌ ERROR PARSING COLOR ANALYSIS:', parseError)
           console.log('🤖 RAW RESPONSE:', aiResponse)
         }
       } else {
-        const errorText = await response.text()
-        console.error('❌ OPENAI API ERROR:', response.status, response.statusText)
-        console.error('Error details:', errorText)
+        console.error('❌ OPENAI API ERROR:', completion.error)
       }
     } catch (error) {
       console.error('❌ ERROR CALLING OPENAI:', error)
@@ -112,7 +110,7 @@ Look at its visual appearance and identify the dominant color and secondary colo
       emoji,
       ...fallbackAnalysis,
       source: 'fallback'
-    })
+    }, { headers: rateHeaders })
 
   } catch (error) {
     console.error('Analyze emoji colors error:', error)

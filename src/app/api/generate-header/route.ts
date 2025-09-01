@@ -181,7 +181,7 @@ export async function POST(request: NextRequest) {
       } else {
         // Ultimate fallback - create a simple linear gradient data URI
         const fallbackSvg = `<svg width="1200" height="400" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="fallback" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ff6b6b"/><stop offset="100%" stop-color="#4ecdc4"/></linearGradient></defs><rect width="100%" height="100%" fill="url(#fallback)"/></svg>`
-        const fallbackDataUri = `data:image/svg+xml;base64,${btoa(fallbackSvg)}`
+        const fallbackDataUri = `data:image/svg+xml;base64,${Buffer.from(fallbackSvg).toString('base64')}`
         selectedImages.push(fallbackDataUri)
       }
     }

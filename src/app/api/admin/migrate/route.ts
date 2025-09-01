@@ -7,7 +7,8 @@ async function fetchFavicon(url: string): Promise<string | null> {
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), 10000)
     
-    const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3004'
+    // Use configured host or default to the local dev port 3000 for internal API calls
+    const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000'
     const response = await fetch(`${baseUrl}/api/favicon?url=${encodeURIComponent(url)}`, {
       signal: controller.signal,
       headers: {

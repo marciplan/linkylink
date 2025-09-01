@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { rateLimitHeaders } from '@/lib/rate-limit'
 
 async function tryFaviconUrl(faviconUrl: string, timeout: number = 8000): Promise<boolean> {
   try {
@@ -58,6 +59,13 @@ export async function GET(request: Request) {
   }
 
   try {
+    // Apply a lenient rate limit for favicon lookups: 60 req/min per IP
+    const rl = rateLimitHeaders(request, 'favicon', 60, 60_000)
+    if (!rl.allowed) {
+      return NextResponse.json(rl.body, { status: rl.status, headers: rl.headers })
+    }
+    const rateHeaders = rl.headers
+
     const urlObj = new URL(url)
     const domain = urlObj.hostname.replace(/^www\./, '')
 
@@ -89,12 +97,12 @@ export async function GET(request: Request) {
     for (const faviconUrl of faviconUrls) {
       const isValid = await tryFaviconUrl(faviconUrl, 6000)
       if (isValid) {
-        return NextResponse.json({ favicon: faviconUrl })
+        return NextResponse.json({ favicon: faviconUrl }, { headers: rateHeaders })
       }
     }
 
     // If all fail, return null
-    return NextResponse.json({ favicon: null })
+    return NextResponse.json({ favicon: null }, { headers: rateHeaders })
   } catch {
     return NextResponse.json({ error: "Invalid URL" }, { status: 400 })
   }

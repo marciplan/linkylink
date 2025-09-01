@@ -2,18 +2,41 @@ import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import Link from "next/link"
-import { Plus, Link2 } from "lucide-react"
+import { Plus, Link2, Search } from "lucide-react"
 import { LinkylinkCard } from "@/components/LinkylinkCard"
+import { DashboardSearch } from "@/components/DashboardSearch"
 
-export default async function DashboardPage() {
+export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ search?: string }> }) {
   const session = await auth()
   
   if (!session?.user?.id) {
     redirect("/login")
   }
 
+  const sp = await searchParams
+  const searchQuery = sp.search?.trim()
+  
   const linkylinks = await prisma.linkLink.findMany({
-    where: { userId: session.user.id },
+    where: {
+      userId: session.user.id,
+      ...(searchQuery && {
+        OR: [
+          { title: { contains: searchQuery, mode: 'insensitive' } },
+          { subtitle: { contains: searchQuery, mode: 'insensitive' } },
+          { 
+            links: {
+              some: {
+                OR: [
+                  { title: { contains: searchQuery, mode: 'insensitive' } },
+                  { url: { contains: searchQuery, mode: 'insensitive' } },
+                  { context: { contains: searchQuery, mode: 'insensitive' } }
+                ]
+              }
+            }
+          }
+        ]
+      })
+    },
     orderBy: { createdAt: "desc" },
     select: {
       id: true,
@@ -61,12 +84,27 @@ export default async function DashboardPage() {
             <p className="text-gray-600 mt-2">Manage and share your link collections</p>
           </div>
 
+          {/* Search */}
+          <div className="mb-6">
+            <DashboardSearch initialValue={searchQuery} />
+          </div>
+
           {/* LinkyLinks grid */}
           {linkylinks.length === 0 ? (
             <div className="text-center py-20 bg-gray-50 rounded-lg border border-gray-200">
-              <Link2 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h2 className="text-xl font-medium text-gray-900 mb-2">No LinkyLinks yet</h2>
-              <p className="text-gray-600 mb-6">Create your first LinkyLink to get started</p>
+              {searchQuery ? (
+                <>
+                  <Search className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <h2 className="text-xl font-medium text-gray-900 mb-2">No results found</h2>
+                  <p className="text-gray-600 mb-6">Try adjusting your search terms or create a new LinkyLink</p>
+                </>
+              ) : (
+                <>
+                  <Link2 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <h2 className="text-xl font-medium text-gray-900 mb-2">No LinkyLinks yet</h2>
+                  <p className="text-gray-600 mb-6">Create your first LinkyLink to get started</p>
+                </>
+              )}
               <Link
                 href="/create"
                 className="inline-flex items-center gap-2 bg-gray-900 text-white px-6 py-2.5 rounded-lg hover:bg-gray-800"

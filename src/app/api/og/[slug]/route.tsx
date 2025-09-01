@@ -1,10 +1,12 @@
 import { ImageResponse } from "@vercel/og"
+import type { NextRequest } from 'next/server'
 import { prisma } from "@/lib/prisma"
 
-export const runtime = "edge"
+// Prisma is not supported in Edge runtime; use Node.js runtime here
+export const runtime = "nodejs"
 
 export async function GET(
-  request: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
 ) {
   try {

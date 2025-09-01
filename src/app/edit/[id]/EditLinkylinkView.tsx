@@ -1,13 +1,13 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { motion, Reorder } from "framer-motion"
 import { ExternalLink, Trash2, Copy, Check, Link2, ArrowLeft, Image as ImageIcon, Loader2 } from "lucide-react"
-import { LinkInput } from "@/components/LinkInput"
 import { VisualHeader } from "@/components/VisualHeader"
-import { addLink, deleteLink, updateLinkOrder, updateLinkylink } from "@/lib/actions"
+import { QuickNavSearch } from "@/components/QuickNavSearch"
+import { deleteLink, updateLinkOrder, updateLinkylink } from "@/lib/actions"
 
 interface EditLinkylinkViewProps {
   linkylink: {
@@ -37,24 +37,20 @@ export default function EditLinkylinkView({ linkylink, username }: EditLinkylink
   const [subtitle, setSubtitle] = useState(linkylink.subtitle || "")
   const [isSaving, setIsSaving] = useState(false)
   const [isGeneratingHeader, setIsGeneratingHeader] = useState(false)
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+
+  // Track unsaved changes
+  useEffect(() => {
+    const titleChanged = title !== linkylink.title
+    const subtitleChanged = subtitle !== (linkylink.subtitle || "")
+    const linksChanged = JSON.stringify(links) !== JSON.stringify(linkylink.links)
+    
+    setHasUnsavedChanges(titleChanged || subtitleChanged || linksChanged)
+  }, [title, subtitle, links, linkylink])
   
   const linkylinkUrl = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/${username}/${linkylink.slug}`
 
-  const handleAddLink = async (title: string, url: string, context?: string) => {
-    try {
-      const newLink = await addLink({
-        linkylinkId: linkylink.id,
-        title,
-        url,
-        context,
-      })
-      
-      setLinks([...links, newLink])
-    } catch (error) {
-      console.error('Failed to add link:', error)
-      throw error // Re-throw to let LinkInput component handle the error display
-    }
-  }
+  // Adding links is now done on the public view for owners
 
   const handleDeleteLink = async (linkId: string) => {
     await deleteLink(linkId)
@@ -203,6 +199,14 @@ export default function EditLinkylinkView({ linkylink, username }: EditLinkylink
             )}
           </div>
           
+          {/* Quick Navigation Search */}
+          <QuickNavSearch 
+            username={username}
+            currentSlug={linkylink.slug}
+            hasUnsavedChanges={hasUnsavedChanges}
+            className="w-[55vw] sm:w-[420px]"
+          />
+          
           <Link
             href={`/${username}/${linkylink.slug}`}
             target="_blank"
@@ -216,16 +220,13 @@ export default function EditLinkylinkView({ linkylink, username }: EditLinkylink
 
       {/* Main content with padding for fixed header */}
       <div className="max-w-2xl mx-auto px-4 pt-8 pb-12">
-
-        {/* Add Link */}
-        <LinkInput onAdd={handleAddLink} className="mb-6" />
-
+        
         {/* Links List */}
         {links.length === 0 ? (
           <div className="text-center py-16 bg-white rounded-lg border border-gray-200">
             <Link2 className="w-12 h-12 text-gray-300 mx-auto mb-4" />
             <p className="text-gray-600 mb-2 font-medium">No links yet</p>
-            <p className="text-sm text-gray-500">Add your first link above</p>
+            <p className="text-sm text-gray-500">Use the Add Link on your LinkyLink page</p>
           </div>
         ) : (
           <div className="space-y-2">

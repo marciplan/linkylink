@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { rateLimitHeaders } from '@/lib/rate-limit'
+import { chatCompletion, parseJsonFromModel, getOpenAIKey } from '@/lib/openai'
 
 interface EmojiSuggestion {
   emoji: string
@@ -22,20 +24,24 @@ export async function POST(request: NextRequest) {
     console.log('Subtitle:', subtitle || 'None')
     console.log('---')
 
+    // Rate limit public endpoint: 30 req/min per IP
+    const rl = rateLimitHeaders(request, 'suggest-emojis', 30, 60_000)
+    if (!rl.allowed) {
+      return NextResponse.json(rl.body, { status: rl.status, headers: rl.headers })
+    }
+    const rateHeaders = rl.headers
+
     // Generate emoji suggestions with confidence scoring using OpenAI
     try {
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${process.env.NEXT_OPENAI_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o-mini',
-          messages: [
-            {
-              role: 'system',
-              content: `You are an expert at suggesting relevant emojis with confidence scoring. Based on the given title and subtitle (which may be in Dutch or English), suggest exactly 5 relevant emojis that would work well as an icon/avatar.
+      if (!getOpenAIKey()) {
+        console.warn('⚠️  No OpenAI API key configured. Using fallback emojis.')
+        throw new Error('Missing OpenAI API key')
+      }
+      const completion = await chatCompletion({
+        messages: [
+          {
+            role: 'system',
+            content: `You are an expert at suggesting relevant emojis with confidence scoring. Based on the given title and subtitle (which may be in Dutch or English), suggest exactly 5 relevant emojis that would work well as an icon/avatar.
 
 Return your response as a JSON object with this exact format:
 {
@@ -56,26 +62,24 @@ Confidence scoring:
 - 0-29: Weak relevance, generic connection
 
 Focus on emojis that represent the theme, mood, or content type. The first emoji should be the most relevant with highest confidence. You understand both Dutch and English words and can suggest appropriate emojis for either language.`
-            },
-            {
-              role: 'user',
-              content: `Title: "${title}"${subtitle ? `\nSubtitle: "${subtitle}"` : ''}`
-            }
-          ],
-          max_tokens: 200,
-          temperature: 0.3,
-        }),
+          },
+          {
+            role: 'user',
+            content: `Title: "${title}"${subtitle ? `\nSubtitle: "${subtitle}"` : ''}`
+          }
+        ],
+        max_tokens: 200,
+        temperature: 0.3,
       })
 
-      if (response.ok) {
-        const data = await response.json()
-        const aiResponse = data.choices[0]?.message?.content || ''
+      if (completion.ok) {
+        const aiResponse = completion.content || ''
         
         try {
           // Try to parse the JSON response from GPT
           console.log('🤖 RAW AI RESPONSE:', aiResponse)
           
-          const parsedResponse = JSON.parse(aiResponse) as AIResponse
+          const parsedResponse = parseJsonFromModel(aiResponse) as AIResponse
           const suggestions = parsedResponse.suggestions || []
           
           console.log('📊 PARSED SUGGESTIONS:')
@@ -112,7 +116,7 @@ Focus on emojis that represent the theme, mood, or content type. The first emoji
               emojis: emojis.slice(0, 5),
               source: 'ai',
               confidence: firstConfidence 
-            })
+            }, { headers: rateHeaders })
           } else {
             console.log('❌ AI CONFIDENCE TOO LOW - Will use fallback')
           }
@@ -122,9 +126,7 @@ Focus on emojis that represent the theme, mood, or content type. The first emoji
           console.log('📝 Expected JSON format: {"suggestions": [{"emoji": "🎯", "confidence": 85}]}')
         }
       } else {
-        const errorText = await response.text()
-        console.error('❌ OPENAI API ERROR:', response.status, response.statusText)
-        console.error('Error details:', errorText)
+        console.error('❌ OPENAI API ERROR:', completion.error)
       }
     } catch (error) {
       console.error('❌ ERROR CALLING OPENAI:', error)
@@ -142,7 +144,7 @@ Focus on emojis that represent the theme, mood, or content type. The first emoji
       emojis: popularFallbackEmojis,
       source: 'fallback',
       confidence: 0 
-    })
+    }, { headers: rateHeaders })
 
   } catch (error) {
     console.error('Suggest emojis error:', error)

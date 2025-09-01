@@ -12,6 +12,7 @@ import { LinkInput } from "@/components/LinkInput"
 import { DeleteModal } from "@/components/DeleteModal"
 import { VisualHeader } from "@/components/VisualHeader"
 import { TweakModal } from "@/components/TweakModal"
+import { QuickNavSearch } from "@/components/QuickNavSearch"
 import { incrementClicks, updateLinkylink, addLink, deleteLink, updateLinkOrder, deleteLinkylink } from "@/lib/actions"
 
 interface PublicLinkViewProps {
@@ -126,6 +127,7 @@ export default function PublicLinkView({ linkylink, isOwner = false }: PublicLin
   const router = useRouter()
   const searchParams = useSearchParams()
   const [isEditing, setIsEditing] = useState(false)
+  const currentSlug = typeof window !== 'undefined' ? window.location.pathname.split('/').pop() || '' : ''
   const [title, setTitle] = useState(linkylink.title)
   const [subtitle, setSubtitle] = useState(linkylink.subtitle || "")
   const [links, setLinks] = useState(linkylink.links)
@@ -373,15 +375,21 @@ export default function PublicLinkView({ linkylink, isOwner = false }: PublicLin
         </div>
       )}
 
+      {/* Quick Navigation Search - only visible to owner */}
+      {isOwner && (
+        <div className="fixed top-14 sm:top-4 left-1/2 -translate-x-1/2 z-40">
+          <QuickNavSearch 
+            username={linkylink.user.username}
+            currentSlug={currentSlug}
+            className="w-[65vw] sm:w-[420px]"
+          />
+        </div>
+      )}
+
       <div className="max-w-2xl mx-auto px-4 py-8">
 
         {/* Links section */}
         <div className="space-y-3 mb-6">
-          {/* Add link button when editing */}
-          {isEditing && (
-            <LinkInput onAdd={handleAddLink} className="mb-4" />
-          )}
-
           {/* Links */}
           {links.length === 0 && !isEditing ? (
             <div className="text-center py-12 text-gray-400">
@@ -436,6 +444,11 @@ export default function PublicLinkView({ linkylink, isOwner = false }: PublicLin
                 </motion.div>
               ))}
             </motion.div>
+          )}
+
+          {/* Add link input below the current URLs (owner only) */}
+          {isOwner && (
+            <LinkInput onAdd={handleAddLink} className="mt-4" />
           )}
         </div>
 

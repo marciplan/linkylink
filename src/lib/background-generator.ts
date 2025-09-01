@@ -1,5 +1,6 @@
 import { generateGradientSet, COLOR_PALETTES } from '@/lib/gradient-generator'
 import { generateAdvancedGradientSet } from '@/lib/advanced-gradient-generator'
+import { chatCompletion, parseJsonFromModel, getOpenAIKey } from '@/lib/openai'
 
 interface BackgroundGenerationResult {
   images: string[]
@@ -11,19 +12,14 @@ interface BackgroundGenerationResult {
 // Function to get AI-analyzed emoji color themes
 const getEmojiColorThemes = async (emoji: string): Promise<string[]> => {
   try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.NEXT_OPENAI_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'system',
-            content: `You are a color theme expert. Based on an emoji, suggest 3 color theme names from this exact list:
-            
+    if (!getOpenAIKey()) throw new Error('Missing OpenAI API key')
+    const completion = await chatCompletion({
+      model: 'gpt-4o-mini',
+      messages: [
+        {
+          role: 'system',
+          content: `You are a color theme expert. Based on an emoji, suggest 3 color theme names from this exact list:
+          
 Available themes: warm sunset, professional, electric blue, cosmic purple, pink dawn, forest morning, earth tones, ocean depths, neon lights, golden hour, deep ocean
 
 Return your response as a JSON object with this exact format:
@@ -36,28 +32,18 @@ Choose themes that match the emoji's colors, mood, or associations. For example:
 - 💼 might suggest: professional, electric blue, ocean depths
 - 🌳 might suggest: forest morning, earth tones, ocean depths
 - 🚀 might suggest: electric blue, cosmic purple, neon lights`
-          },
-          {
-            role: 'user',
-            content: `Emoji: ${emoji}`
-          }
-        ],
-        max_tokens: 100,
-        temperature: 0.3,
-      }),
+        },
+        { role: 'user', content: `Emoji: ${emoji}` },
+      ],
+      max_tokens: 100,
+      temperature: 0.3,
     })
-
-    if (response.ok) {
-      const data = await response.json()
-      const aiResponse = data.choices[0]?.message?.content || ''
-      
-      try {
-        const parsed = JSON.parse(aiResponse)
-        console.log('🎨 AI Color Analysis Result:', parsed)
-        return parsed.suggestedThemes || ['warm sunset', 'professional', 'electric blue']
-      } catch (parseError) {
-        console.error('Error parsing emoji color analysis:', parseError)
-      }
+    if (completion.ok) {
+      const parsed = parseJsonFromModel<{ suggestedThemes?: string[] }>(completion.content || '{}')
+      console.log('🎨 AI Color Analysis Result:', parsed)
+      return parsed.suggestedThemes || ['warm sunset', 'professional', 'electric blue']
+    } else {
+      console.error('OpenAI error:', completion.error)
     }
   } catch (error) {
     console.error('Error analyzing emoji colors:', error)
@@ -208,7 +194,7 @@ export async function generateBackgroundOptions(
       } else {
         // Ultimate fallback - create a simple linear gradient data URI
         const fallbackSvg = `<svg width="1200" height="400" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="fallback" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ff6b6b"/><stop offset="100%" stop-color="#4ecdc4"/></linearGradient></defs><rect width="100%" height="100%" fill="url(#fallback)"/></svg>`
-        const fallbackDataUri = `data:image/svg+xml;base64,${btoa(fallbackSvg)}`
+        const fallbackDataUri = `data:image/svg+xml;base64,${Buffer.from(fallbackSvg).toString('base64')}`
         selectedImages.push(fallbackDataUri)
       }
     }
@@ -236,7 +222,7 @@ export async function generateBackgroundOptions(
     
     // Ultimate fallback
     const fallbackSvg = `<svg width="1200" height="400" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="fallback" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ff6b6b"/><stop offset="100%" stop-color="#4ecdc4"/></linearGradient></defs><rect width="100%" height="100%" fill="url(#fallback)"/></svg>`
-    const fallbackDataUri = `data:image/svg+xml;base64,${btoa(fallbackSvg)}`
+    const fallbackDataUri = `data:image/svg+xml;base64,${Buffer.from(fallbackSvg).toString('base64')}`
     
     return {
       images: [fallbackDataUri],
