@@ -28,7 +28,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const ogImageUrl = `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/api/og/${slug}`
 
   return {
-    title: `${linkylink.title} - LinkyLink`,
+    title: `${linkylink.title} - Bundel`,
     description: linkylink.subtitle || `Check out ${linkylink.title} by @${linkylink.user.username}`,
     openGraph: {
       title: linkylink.title,

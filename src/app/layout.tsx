@@ -14,18 +14,18 @@ const outfit = Outfit({
 })
 
 export const metadata: Metadata = {
-  title: "LinkyLink - Share Multiple Links Beautifully",
+  title: "Bundel - Share Multiple Links Beautifully",
   description: "Create beautiful link pages to share multiple URLs at once. Perfect for social media, portfolios, and resource collections.",
   keywords: ["links", "share", "social", "linktree", "bio link"],
-  authors: [{ name: "LinkyLink" }],
+  authors: [{ name: "Bundel" }],
   openGraph: {
-    title: "LinkyLink - Share Multiple Links Beautifully",
+    title: "Bundel - Share Multiple Links Beautifully",
     description: "Create beautiful link pages to share multiple URLs at once.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "LinkyLink - Share Multiple Links Beautifully",
+    title: "Bundel - Share Multiple Links Beautifully",
     description: "Create beautiful link pages to share multiple URLs at once.",
   },
 }

@@ -203,7 +203,7 @@ export async function GET(
                 fontWeight: "600",
               }}
             >
-              LinkyLink
+              Bundel
             </span>
           </div>
         </div>

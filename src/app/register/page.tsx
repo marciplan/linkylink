@@ -64,7 +64,7 @@ export default function RegisterPage() {
           <div className="flex justify-between items-center h-16">
             <Link href="/" className="flex items-center gap-2">
               <Link2 className="w-5 h-5" />
-              <span className="font-medium">LinkyLink</span>
+              <span className="font-medium">Bundel</span>
             </Link>
           </div>
         </div>

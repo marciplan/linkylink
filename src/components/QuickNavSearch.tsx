@@ -136,7 +136,7 @@ export function QuickNavSearch({ username, currentSlug, hasUnsavedChanges = fals
             <input
               ref={inputRef}
               type="text"
-              placeholder="Search your LinkyLinks..."
+              placeholder="Search your Bundels..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               onKeyDown={handleKeyDown}
@@ -155,7 +155,7 @@ export function QuickNavSearch({ username, currentSlug, hasUnsavedChanges = fals
               <div className="p-4 text-center text-gray-500">Searching...</div>
             ) : filteredResults.length === 0 ? (
               <div className="p-4 text-center text-gray-500">
-                {search.trim() ? "No LinkyLinks found" : "Start typing to search your LinkyLinks"}
+                {search.trim() ? "No Bundels found" : "Start typing to search your Bundels"}
               </div>
             ) : (
               filteredResults.map((result, index) => (

@@ -32,7 +32,7 @@ export function DashboardSearch({ initialValue = "" }: DashboardSearchProps) {
       <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
       <input
         type="text"
-        placeholder="Search your LinkyLinks..."
+        placeholder="Search your Bundels..."
         value={search}
         onChange={(e) => handleSearch(e.target.value)}
         className="h-10 w-full rounded-lg border border-gray-200 bg-white pl-10 pr-4 text-sm outline-none focus:border-gray-300 focus:ring-2 focus:ring-gray-100"

@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
     })
 
     if (!linkylink) {
-      return NextResponse.json({ error: 'LinkyLink not found or access denied' }, { status: 404 })
+      return NextResponse.json({ error: 'Bundel not found or access denied' }, { status: 404 })
     }
 
     // Function to get AI-analyzed emoji color themes

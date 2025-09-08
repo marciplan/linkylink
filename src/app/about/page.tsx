@@ -10,7 +10,7 @@ export default function AboutPage() {
           <div className="flex justify-between items-center h-16">
             <Link href="/" className="flex items-center gap-2">
               <Link2 className="w-5 h-5" />
-              <span className="font-medium">LinkyLink</span>
+              <span className="font-medium">Bundel</span>
             </Link>
             <nav>
               <div className="flex items-center gap-6">
@@ -35,12 +35,12 @@ export default function AboutPage() {
       <main className="flex-1 px-4 py-16">
         <div className="max-w-3xl mx-auto">
           <h1 className="text-4xl font-medium text-gray-900 mb-8">
-            About LinkyLink
+            About Bundel
           </h1>
 
           <div className="space-y-8 text-lg text-gray-700">
             <p>
-              LinkyLink lets you share multiple links through one URL. Instead of sending five different links, you send one.
+              Bundel lets you share multiple links through one URL. Instead of sending five different links, you send one.
             </p>
 
             <div>
@@ -58,7 +58,7 @@ export default function AboutPage() {
             <div>
               <h2 className="text-xl font-medium text-gray-900 mb-4">No account needed</h2>
               <p>
-                You can create and share a LinkyLink page without signing up. Just add your links and go. 
+                You can create and share a Bundel page without signing up. Just add your links and go. 
                 Only create an account when you want to edit your links later.
               </p>
             </div>
@@ -66,7 +66,7 @@ export default function AboutPage() {
             <div>
               <h2 className="text-xl font-medium text-gray-900 mb-4">Always free</h2>
               <p>
-                LinkyLink will always be free. No premium tiers, no feature gates, no ads. 
+                Bundel will always be free. No premium tiers, no feature gates, no ads. 
                 We built this because link sharing shouldn&apos;t be complicated or expensive.
               </p>
             </div>
@@ -89,7 +89,7 @@ export default function AboutPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex justify-between items-center">
             <div className="text-sm text-gray-500">
-              © 2024 LinkyLink
+              © 2024 Bundel
             </div>
             <div className="flex gap-6">
               <Link href="/directory" className="text-sm text-gray-500 hover:text-gray-700">

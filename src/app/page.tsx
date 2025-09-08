@@ -19,7 +19,7 @@ export default async function HomePage() {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-2">
               <Link2 className="w-5 h-5" />
-              <span className="font-medium">LinkyLink</span>
+              <span className="font-medium">Bundel</span>
             </div>
             <nav>
               {session ? (
@@ -98,7 +98,7 @@ export default async function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex justify-between items-center">
             <div className="text-sm text-gray-500">
-              © 2024 LinkyLink
+              © 2024 Bundel
             </div>
             <div className="flex gap-6">
               <Link href="/directory" className="text-sm text-gray-500 hover:text-gray-700">

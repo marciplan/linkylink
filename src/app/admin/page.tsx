@@ -99,10 +99,10 @@ export default function AdminPage() {
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            LinkyLink Admin
+            Bundel Admin
           </h1>
           <p className="text-gray-600">
-            Manage and migrate your LinkyLink data
+            Manage and migrate your Bundel data
           </p>
         </div>
 

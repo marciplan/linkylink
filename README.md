@@ -1,11 +1,11 @@
-# LinkyLink - Beautiful Link Sharing
+# Bundel - Beautiful Link Sharing
 
 A mobile-first web app for creating and sharing beautiful link collections. Perfect for social media bios, portfolios, and resource collections.
 
 ## Features
 
 - 🎨 Beautiful mobile-first design with stunning gradients
-- 🔗 Create multiple link collections (LinkyLinks)
+- 🔗 Create multiple link collections (Bundels)
 - 📱 Fully responsive and optimized for mobile
 - 🖼️ Dynamic social media cards (OG images)
 - 🔒 Secure authentication with Auth.js
@@ -95,12 +95,12 @@ A mobile-first web app for creating and sharing beautiful link collections. Perf
 ```
 src/
 ├── app/                  # Next.js app router pages
-│   ├── [username]/      # Public LinkyLink pages
+│   ├── [username]/      # Public Bundel pages
 │   ├── api/             # API routes
-│   ├── create/          # Create new LinkyLink
+│   ├── create/          # Create new Bundel
 │   ├── dashboard/       # User dashboard
-│   ├── directory/       # Browse public LinkyLinks
-│   ├── edit/           # Edit LinkyLink
+│   ├── directory/       # Browse public Bundels
+│   ├── edit/           # Edit Bundel
 │   ├── login/          # Login page
 │   └── register/       # Registration page
 ├── components/          # React components
@@ -115,9 +115,9 @@ src/
 ## Usage
 
 1. **Create an account** - Sign up with your email
-2. **Create a LinkyLink** - Give it a title and optional subtitle
+2. **Create a Bundel** - Give it a title and optional subtitle
 3. **Add links** - Add as many links as you want
-4. **Share** - Share your LinkyLink URL anywhere
+4. **Share** - Share your Bundel URL anywhere
 5. **Track views** - See how many people view your links
 
 ## Contributing
@@ -126,4 +126,4 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-MIT# linkylink
+MIT

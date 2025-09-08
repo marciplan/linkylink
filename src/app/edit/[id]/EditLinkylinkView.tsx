@@ -145,7 +145,7 @@ export default function EditLinkylinkView({ linkylink, username }: EditLinkylink
             onChange={(e) => setTitle(e.target.value)}
             onBlur={handleUpdateTitle}
             className="w-full text-3xl font-bold text-center bg-white/90 backdrop-blur-sm border border-white/30 rounded-lg px-4 py-3 focus:outline-none focus:border-white text-gray-900 mb-3 drop-shadow-lg"
-            placeholder="LinkyLink Title"
+            placeholder="Bundel Title"
             disabled={isSaving}
           />
           <input
@@ -226,7 +226,7 @@ export default function EditLinkylinkView({ linkylink, username }: EditLinkylink
           <div className="text-center py-16 bg-white rounded-lg border border-gray-200">
             <Link2 className="w-12 h-12 text-gray-300 mx-auto mb-4" />
             <p className="text-gray-600 mb-2 font-medium">No links yet</p>
-            <p className="text-sm text-gray-500">Use the Add Link on your LinkyLink page</p>
+            <p className="text-sm text-gray-500">Use the Add Link on your Bundel page</p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -309,7 +309,7 @@ export default function EditLinkylinkView({ linkylink, username }: EditLinkylink
           transition={{ delay: 0.3 }}
           className="mt-6 bg-white rounded-lg border border-gray-200 p-4"
         >
-          <p className="text-xs text-gray-500 mb-1">Your LinkyLink URL</p>
+          <p className="text-xs text-gray-500 mb-1">Your Bundel URL</p>
           <div className="flex items-center justify-between gap-2">
             <p className="text-sm font-mono text-gray-700 truncate">{linkylinkUrl}</p>
             <button

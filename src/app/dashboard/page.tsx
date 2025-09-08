@@ -61,14 +61,14 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
           <div className="flex justify-between items-center h-16">
             <Link href="/" className="flex items-center gap-2">
               <Link2 className="w-5 h-5" />
-              <span className="font-medium">LinkyLink</span>
+              <span className="font-medium">Bundel</span>
             </Link>
             <nav className="flex items-center gap-6">
               <Link href="/directory" className="text-sm text-gray-600 hover:text-gray-900">
                 Browse
               </Link>
               <Link href="/create" className="text-sm bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800">
-                New LinkyLink
+                New Bundel
               </Link>
             </nav>
           </div>
@@ -80,7 +80,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Page header */}
           <div className="mb-8">
-            <h1 className="text-3xl font-semibold text-gray-900">Your LinkyLinks</h1>
+            <h1 className="text-3xl font-semibold text-gray-900">Your Bundels</h1>
             <p className="text-gray-600 mt-2">Manage and share your link collections</p>
           </div>
 
@@ -89,20 +89,20 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
             <DashboardSearch initialValue={searchQuery} />
           </div>
 
-          {/* LinkyLinks grid */}
+          {/* Bundels grid */}
           {linkylinks.length === 0 ? (
             <div className="text-center py-20 bg-gray-50 rounded-lg border border-gray-200">
               {searchQuery ? (
                 <>
                   <Search className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                   <h2 className="text-xl font-medium text-gray-900 mb-2">No results found</h2>
-                  <p className="text-gray-600 mb-6">Try adjusting your search terms or create a new LinkyLink</p>
+                  <p className="text-gray-600 mb-6">Try adjusting your search terms or create a new Bundel</p>
                 </>
               ) : (
                 <>
                   <Link2 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <h2 className="text-xl font-medium text-gray-900 mb-2">No LinkyLinks yet</h2>
-                  <p className="text-gray-600 mb-6">Create your first LinkyLink to get started</p>
+                  <h2 className="text-xl font-medium text-gray-900 mb-2">No Bundels yet</h2>
+                  <p className="text-gray-600 mb-6">Create your first Bundel to get started</p>
                 </>
               )}
               <Link
@@ -110,7 +110,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
                 className="inline-flex items-center gap-2 bg-gray-900 text-white px-6 py-2.5 rounded-lg hover:bg-gray-800"
               >
                 <Plus className="w-4 h-4" />
-                Create LinkyLink
+                Create Bundel
               </Link>
             </div>
           ) : (

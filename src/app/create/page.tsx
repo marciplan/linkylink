@@ -129,7 +129,7 @@ export default function CreatePage() {
       setCreatedLinkylink(linkylink)
       setStep('links')
     } catch {
-      setError("Failed to create LinkyLink. Please try again.")
+      setError("Failed to create Bundel. Please try again.")
     } finally {
       setIsLoading(false)
     }
@@ -166,7 +166,7 @@ export default function CreatePage() {
           <div className="flex justify-between items-center h-16">
             <Link href="/" className="flex items-center gap-2 text-gray-900 dark:text-white">
               <Link2 className="w-5 h-5" />
-              <span className="font-medium">LinkyLink</span>
+              <span className="font-medium">Bundel</span>
             </Link>
             <div className="flex items-center gap-3">
               <ThemeToggle />
@@ -192,13 +192,13 @@ export default function CreatePage() {
             <div className="mb-8">
               {step === 'info' ? (
                 <>
-                  <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Create LinkyLink</h1>
+                  <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Create Bundel</h1>
                   <p className="text-gray-600 dark:text-gray-400 mt-2">Start by giving your collection a name and subtitle</p>
                 </>
               ) : (
                 <>
                   <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Add Your First Link</h1>
-                  <p className="text-gray-600 dark:text-gray-400 mt-2">Your LinkyLink is ready! Add your first link to get started</p>
+                  <p className="text-gray-600 dark:text-gray-400 mt-2">Your Bundel is ready! Add your first link to get started</p>
                 </>
               )}
             </div>
@@ -253,7 +253,7 @@ export default function CreatePage() {
                     {isLoading ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin" />
-                        Creating LinkyLink...
+                        Creating Bundel...
                       </>
                     ) : (
                       "Continue →"
@@ -269,7 +269,7 @@ export default function CreatePage() {
               </form>
             ) : (
               <div className="space-y-6">
-                {/* LinkyLink Preview */}
+                {/* Bundel Preview */}
                 {createdLinkylink && (
                   <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-xl p-6 border border-gray-200 dark:border-gray-600">
                     <div className="text-center">
@@ -281,7 +281,7 @@ export default function CreatePage() {
                       )}
                       <div className="inline-flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600">
                         <Link2 className="w-4 h-4" />
-                        linkylink.co/{createdLinkylink.user.username}/{createdLinkylink.slug}
+                        bundel.link/{createdLinkylink.user.username}/{createdLinkylink.slug}
                       </div>
                     </div>
                   </div>
@@ -396,7 +396,7 @@ export default function CreatePage() {
                     className="w-full px-6 py-3 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                     disabled={isLoading}
                   >
-                    Skip for now - Go to LinkyLink
+                    Skip for now - Go to Bundel
                   </button>
                 </div>
               </div>
@@ -409,7 +409,7 @@ export default function CreatePage() {
                 <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
                   <li className="flex items-start gap-2">
                     <span className="text-gray-400 dark:text-gray-500 mt-0.5">•</span>
-                    <span>After creating your LinkyLink, you&apos;ll see a preview of how it looks</span>
+                    <span>After creating your Bundel, you&apos;ll see a preview of how it looks</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-gray-400 dark:text-gray-500 mt-0.5">•</span>

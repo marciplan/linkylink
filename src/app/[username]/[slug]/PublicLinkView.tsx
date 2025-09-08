@@ -293,7 +293,7 @@ export default function PublicLinkView({ linkylink, isOwner = false }: PublicLin
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 className="w-full text-2xl font-semibold text-center bg-white/60 backdrop-blur-sm border border-white/40 rounded-lg px-4 py-2 focus:border-white/70 focus:bg-white/70 focus:outline-none text-gray-900 placeholder-gray-500"
-                placeholder="LinkyLink Title"
+                placeholder="Bundel Title"
                 disabled={isSaving}
               />
               <input
@@ -359,7 +359,7 @@ export default function PublicLinkView({ linkylink, isOwner = false }: PublicLin
           className="px-4 py-2 bg-white text-gray-600 rounded-lg text-sm font-medium flex items-center gap-2 border border-gray-200 hover:border-gray-300 transition-colors"
         >
           <Link2 className="w-4 h-4" />
-          LinkyLink
+          Bundel
         </Link>
       </div>
       
@@ -520,7 +520,7 @@ export default function PublicLinkView({ linkylink, isOwner = false }: PublicLin
               className="w-full bg-red-50 text-red-600 rounded-lg p-4 font-medium flex items-center justify-center gap-2 hover:bg-red-100 transition-colors"
             >
               <Trash2 className="w-5 h-5" />
-              Delete LinkyLink
+              Delete Bundel
             </button>
           </div>
         )}
@@ -533,14 +533,14 @@ export default function PublicLinkView({ linkylink, isOwner = false }: PublicLin
               className="w-full bg-gray-50 text-gray-600 rounded-lg p-4 font-medium flex items-center justify-center gap-2 hover:bg-gray-100 transition-colors border border-gray-200"
             >
               <Edit2 className="w-5 h-5" />
-              Edit LinkyLink
+              Edit Bundel
             </button>
             <button
               onClick={handleShare}
               className="w-full bg-blue-50 text-blue-600 rounded-lg p-4 font-medium flex items-center justify-center gap-2 hover:bg-blue-100 transition-colors"
             >
               <Share className="w-5 h-5" />
-              Share LinkyLink
+              Share Bundel
             </button>
           </div>
         )}
@@ -563,8 +563,8 @@ export default function PublicLinkView({ linkylink, isOwner = false }: PublicLin
         isOpen={showDeleteModal}
         onClose={() => setShowDeleteModal(false)}
         onConfirm={handleDelete}
-        title="Delete LinkyLink"
-        message={`Are you sure you want to delete "${linkylink.title}"? This action cannot be undone and will permanently remove this LinkyLink and all its links.`}
+        title="Delete Bundel"
+        message={`Are you sure you want to delete "${linkylink.title}"? This action cannot be undone and will permanently remove this Bundel and all its links.`}
       />
 
       {/* Tweak Modal */}

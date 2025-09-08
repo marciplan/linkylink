@@ -10,7 +10,7 @@ export default function PrivacyPage() {
           <div className="flex justify-between items-center h-16">
             <Link href="/" className="flex items-center gap-2">
               <Link2 className="w-5 h-5" />
-              <span className="font-medium">LinkyLink</span>
+              <span className="font-medium">Bundel</span>
             </Link>
             <nav>
               <div className="flex items-center gap-6">
@@ -42,11 +42,11 @@ export default function PrivacyPage() {
             <div>
               <h2 className="text-xl font-medium text-gray-900 mb-4">What we collect</h2>
               <p className="mb-4">
-                We collect minimal information to make LinkyLink work:
+                We collect minimal information to make Bundel work:
               </p>
               <ul className="space-y-2">
                 <li>• Email address and username when you create an account</li>
-                <li>• Links and titles you add to your LinkyLink pages</li>
+                <li>• Links and titles you add to your Bundel pages</li>
                 <li>• Basic usage analytics to improve the service</li>
               </ul>
             </div>
@@ -64,7 +64,7 @@ export default function PrivacyPage() {
             <div>
               <h2 className="text-xl font-medium text-gray-900 mb-4">Public information</h2>
               <p>
-                LinkyLink pages are public by default. Anyone with your LinkyLink URL can see your links and titles. 
+                Bundel pages are public by default. Anyone with your Bundel URL can see your links and titles. 
                 Don&apos;t include sensitive information in your public links.
               </p>
             </div>
@@ -81,7 +81,7 @@ export default function PrivacyPage() {
               <h2 className="text-xl font-medium text-gray-900 mb-4">Account deletion</h2>
               <p>
                 You can delete your account anytime. This removes all your data from our servers. 
-                Your LinkyLink pages will no longer be accessible.
+                Your Bundel pages will no longer be accessible.
               </p>
             </div>
 
@@ -95,7 +95,7 @@ export default function PrivacyPage() {
             <div className="pt-8 border-t text-sm text-gray-500">
               <p>Last updated: August 26, 2024</p>
               <p className="mt-2">
-                Questions? Contact us at privacy@linkylink.com
+                Questions? Contact us at privacy@bundel.link
               </p>
             </div>
           </div>
@@ -107,7 +107,7 @@ export default function PrivacyPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex justify-between items-center">
             <div className="text-sm text-gray-500">
-              © 2024 LinkyLink
+              © 2024 Bundel
             </div>
             <div className="flex gap-6">
               <Link href="/directory" className="text-sm text-gray-500 hover:text-gray-700">

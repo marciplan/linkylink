@@ -14,7 +14,7 @@ async function tryFaviconUrl(faviconUrl: string, timeout: number = 8000): Promis
         method: 'HEAD',
         signal: controller.signal,
         headers: {
-          'User-Agent': 'Mozilla/5.0 (compatible; Linkylink/1.0; +https://linkylink.com)'
+          'User-Agent': 'Mozilla/5.0 (compatible; Bundel/1.0; +https://bundel.link)'
         }
       })
     } catch {
@@ -24,7 +24,7 @@ async function tryFaviconUrl(faviconUrl: string, timeout: number = 8000): Promis
           method: 'GET',
           signal: controller.signal,
           headers: {
-            'User-Agent': 'Mozilla/5.0 (compatible; Linkylink/1.0; +https://linkylink.com)',
+            'User-Agent': 'Mozilla/5.0 (compatible; Bundel/1.0; +https://bundel.link)',
             'Range': 'bytes=0-1023' // Only fetch first 1KB to check if valid
           }
         })

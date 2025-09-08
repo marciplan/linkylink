@@ -158,7 +158,7 @@ export async function addLink(data: z.infer<typeof addLinkSchema>) {
   })
 
   if (!linkylink) {
-    throw new Error("LinkyLink not found")
+    throw new Error("Bundel not found")
   }
 
   // Fetch favicon BEFORE creating the link - users get instant visual feedback
@@ -218,7 +218,7 @@ export async function addLinkToLinkylink(linkylinkId: string, linkData: { title:
   })
 
   if (!linkylink) {
-    throw new Error("LinkyLink not found")
+    throw new Error("Bundel not found")
   }
 
   // Fetch favicon BEFORE creating the link - users get instant visual feedback
@@ -317,7 +317,7 @@ export async function updateLinkOrder(linkylinkId: string, linkIds: string[]) {
   })
 
   if (!linkylink) {
-    throw new Error("LinkyLink not found")
+    throw new Error("Bundel not found")
   }
 
   // Update each link's order
@@ -348,7 +348,7 @@ export async function updateLinkylink(linkylinkId: string, data: { title?: strin
   })
 
   if (!linkylink) {
-    throw new Error("LinkyLink not found")
+    throw new Error("Bundel not found")
   }
 
   const updated = await prisma.linkLink.update({
@@ -391,7 +391,7 @@ export async function deleteLinkylink(linkylinkId: string) {
   })
 
   if (!linkylink) {
-    throw new Error("LinkyLink not found")
+    throw new Error("Bundel not found")
   }
 
   await prisma.linkLink.delete({
