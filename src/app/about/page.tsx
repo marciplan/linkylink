@@ -15,12 +15,6 @@ export default function AboutPage() {
             <nav>
               <div className="flex items-center gap-6">
                 <Link
-                  href="/directory"
-                  className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
-                >
-                  Directory
-                </Link>
-                <Link
                   href="/register"
                   className="text-sm bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors"
                 >
@@ -56,17 +50,16 @@ export default function AboutPage() {
             </div>
 
             <div>
-              <h2 className="text-xl font-medium text-gray-900 mb-4">No account needed</h2>
+              <h2 className="text-xl font-medium text-gray-900 mb-4">Account required</h2>
               <p>
-                You can create and share a Bundel page without signing up. Just add your links and go. 
-                Only create an account when you want to edit your links later.
+                To create and share a Bundel page, you need an account. Sign up to add your links, edit them later, and keep everything in one place.
               </p>
             </div>
 
             <div>
               <h2 className="text-xl font-medium text-gray-900 mb-4">Always free</h2>
               <p>
-                Bundel will always be free. No premium tiers, no feature gates, no ads. 
+                Bundel will always be free. No premium tiers, no feature gates, no ads.
                 We built this because link sharing shouldn&apos;t be complicated or expensive.
               </p>
             </div>
@@ -92,9 +85,6 @@ export default function AboutPage() {
               © 2024 Bundel
             </div>
             <div className="flex gap-6">
-              <Link href="/directory" className="text-sm text-gray-500 hover:text-gray-700">
-                Directory
-              </Link>
               <Link href="/about" className="text-sm text-gray-500 hover:text-gray-700">
                 About
               </Link>

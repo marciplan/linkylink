@@ -54,9 +54,7 @@ export default async function RecommendationsPage() {
               <Link href="/dashboard" className="text-sm text-gray-600 hover:text-gray-900">
                 Dashboard
               </Link>
-              <Link href="/directory" className="text-sm text-gray-600 hover:text-gray-900">
-                Browse
-              </Link>
+              
               <Link href="/create" className="text-sm bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800">
                 New Bundel
               </Link>

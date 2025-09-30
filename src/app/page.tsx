@@ -78,12 +78,6 @@ export default async function HomePage() {
                   Start now
                   <ArrowRight className="w-4 h-4" />
                 </Link>
-                <Link
-                  href="/directory"
-                  className="text-gray-600 hover:text-gray-900 transition-colors"
-                >
-                  See examples
-                </Link>
               </>
             )}
           </div>
@@ -101,9 +95,7 @@ export default async function HomePage() {
               © 2024 Bundel
             </div>
             <div className="flex gap-6">
-              <Link href="/directory" className="text-sm text-gray-500 hover:text-gray-700">
-                Directory
-              </Link>
+              
               <Link href="/about" className="text-sm text-gray-500 hover:text-gray-700">
                 About
               </Link>

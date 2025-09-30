@@ -15,12 +15,6 @@ export default function PrivacyPage() {
             <nav>
               <div className="flex items-center gap-6">
                 <Link
-                  href="/directory"
-                  className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
-                >
-                  Directory
-                </Link>
-                <Link
                   href="/register"
                   className="text-sm bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors"
                 >
@@ -110,9 +104,6 @@ export default function PrivacyPage() {
               © 2024 Bundel
             </div>
             <div className="flex gap-6">
-              <Link href="/directory" className="text-sm text-gray-500 hover:text-gray-700">
-                Directory
-              </Link>
               <Link href="/about" className="text-sm text-gray-500 hover:text-gray-700">
                 About
               </Link>

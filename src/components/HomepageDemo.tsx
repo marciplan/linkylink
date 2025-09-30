@@ -5,28 +5,28 @@ import { ExternalLink, User, Eye, Calendar } from "lucide-react"
 import Image from "next/image"
 
 const demoLinks = [
-  { 
-    title: "Fred Again - Boiler Room", 
+  {
+    title: "Fred Again - Boiler Room",
     favicon: "https://www.google.com/s2/favicons?domain=youtube.com&sz=64",
     platform: "YouTube"
   },
-  { 
-    title: "Bon Iver at AIR Studios", 
+  {
+    title: "Bon Iver at AIR Studios",
     favicon: "https://www.google.com/s2/favicons?domain=youtube.com&sz=64",
     platform: "YouTube"
   },
-  { 
-    title: "The Beatles - Rooftop Concert", 
+  {
+    title: "The Beatles - Rooftop Concert",
     favicon: "https://www.google.com/s2/favicons?domain=vimeo.com&sz=64",
     platform: "Vimeo"
   },
-  { 
-    title: "Eric Prydz at Tomorrowland [2023]", 
+  {
+    title: "Eric Prydz at Tomorrowland [2023]",
     favicon: "https://www.google.com/s2/favicons?domain=soundcloud.com&sz=64",
     platform: "SoundCloud"
   },
-  { 
-    title: "Taylor Swift - Reputation", 
+  {
+    title: "Taylor Swift - Reputation",
     favicon: "https://www.google.com/s2/favicons?domain=netflix.com&sz=64",
     platform: "Netflix"
   },
@@ -34,7 +34,7 @@ const demoLinks = [
 
 export function HomepageDemo() {
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, delay: 0.2 }}
@@ -44,7 +44,7 @@ export function HomepageDemo() {
       <div className="relative max-w-sm mx-auto">
         {/* Phone frame */}
         <div className="relative mx-auto w-full">
-          <motion.div 
+          <motion.div
             className="bg-gray-900 rounded-[2.5rem] p-3 shadow-2xl"
             initial={{ scale: 0.9 }}
             animate={{ scale: 1 }}
@@ -63,15 +63,15 @@ export function HomepageDemo() {
               </div>
 
               {/* Profile section */}
-              <motion.div 
+              <motion.div
                 className="text-center mb-8"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.5 }}
               >
-                <motion.div 
+                <motion.div
                   className="w-20 h-20 bg-gradient-to-br from-gray-200 to-gray-300 rounded-full mx-auto mb-4"
-                  animate={{ 
+                  animate={{
                     background: [
                       "linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%)",
                       "linear-gradient(135deg, #d1d5db 0%, #9ca3af 100%)",
@@ -80,15 +80,15 @@ export function HomepageDemo() {
                   }}
                   transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
                 />
-                <motion.h3 
+                <motion.h3
                   className="font-semibold text-lg text-gray-900"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.6 }}
                 >
-                  My favorite web videos
+                  My favorite music videos
                 </motion.h3>
-                <motion.div 
+                <motion.div
                   className="flex items-center justify-center gap-4 text-xs text-gray-500 mt-2"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -124,7 +124,7 @@ export function HomepageDemo() {
                     >
                       <div className="flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 rounded-xl border border-gray-200 hover:border-gray-300 transition-all cursor-pointer">
                         <div className="flex items-center gap-3">
-                          <motion.div 
+                          <motion.div
                             className="w-10 h-10 bg-white rounded-lg flex items-center justify-center overflow-hidden border border-gray-100"
                             whileHover={{ rotate: 5 }}
                           >
@@ -155,34 +155,19 @@ export function HomepageDemo() {
               </div>
 
               {/* Floating badge */}
-              <motion.div
+              <motion.a
+                href="https://www.bundel.link/marciplan/best-distant-1"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="absolute top-4 right-4 bg-black text-white text-xs px-3 py-1.5 rounded-full font-medium"
                 initial={{ opacity: 0, scale: 0 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 1.5, type: "spring", stiffness: 200 }}
               >
-                Live Preview
-              </motion.div>
+                Preview
+              </motion.a>
             </div>
           </motion.div>
-
-          {/* Decorative elements */}
-          <motion.div
-            className="absolute -top-10 -right-10 w-20 h-20 bg-gray-100 rounded-full"
-            animate={{ 
-              scale: [1, 1.2, 1],
-              opacity: [0.3, 0.5, 0.3]
-            }}
-            transition={{ duration: 4, repeat: Infinity }}
-          />
-          <motion.div
-            className="absolute -bottom-10 -left-10 w-32 h-32 bg-gray-50 rounded-full"
-            animate={{ 
-              scale: [1, 1.1, 1],
-              opacity: [0.2, 0.3, 0.2]
-            }}
-            transition={{ duration: 5, repeat: Infinity }}
-          />
         </div>
       </div>
 

@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import Script from "next/script"
 import { Inter, Outfit } from "next/font/google"
 import "./globals.css"
 import { Providers } from "@/components/providers"
@@ -43,6 +44,16 @@ export default function RootLayout({
         <Providers>
           {children}
         </Providers>
+        {/* Rybbit Analytics */}
+        {process.env.NEXT_PUBLIC_RYBBIT_WEBSITE_ID && (
+          <Script
+            id="rybbit-analytics"
+            src={process.env.NEXT_PUBLIC_RYBBIT_SCRIPT_URL || "https://demo.rybbit.io/api/script.js"}
+            strategy="afterInteractive"
+            data-website-id={process.env.NEXT_PUBLIC_RYBBIT_WEBSITE_ID}
+            data-domains={process.env.NEXT_PUBLIC_RYBBIT_DOMAINS}
+          />
+        )}
       </body>
     </html>
   )

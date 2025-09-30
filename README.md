@@ -90,6 +90,14 @@ A mobile-first web app for creating and sharing beautiful link collections. Perf
    - `NEXT_PUBLIC_APP_URL` - Same as NEXTAUTH_URL
 4. Deploy!
 
+## Analytics (Rybbit)
+
+- Add your site ID to `.env.local`:
+  - `NEXT_PUBLIC_RYBBIT_WEBSITE_ID` – the Website ID from your Rybbit dashboard
+  - Optional: `NEXT_PUBLIC_RYBBIT_SCRIPT_URL` – custom script URL if self-hosting (defaults to `https://demo.rybbit.io/api/script.js`)
+- The tracking script is injected in `src/app/layout.tsx` via `next/script` and loads on the client after hydration.
+- No code changes needed beyond setting the env vars; deployment will start reporting page views automatically.
+
 ## Project Structure
 
 ```

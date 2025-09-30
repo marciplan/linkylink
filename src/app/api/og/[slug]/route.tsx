@@ -29,6 +29,19 @@ export async function GET(
       return new Response("Not found", { status: 404 })
     }
 
+    // Extract background style from headerImage (SVG data URI)
+    // If headerImage exists, extract the gradient/background from it
+    let backgroundStyle = "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" // fallback
+
+    if (linkylink.headerImage) {
+      // headerImage is a data URI like "data:image/svg+xml;base64,..."
+      // We'll use it as a background image for proper rendering
+      backgroundStyle = linkylink.headerImage
+    }
+
+    // Get emoji (avatar field)
+    const emoji = linkylink.avatar || '🔗'
+
     return new ImageResponse(
       (
         <div
@@ -39,20 +52,22 @@ export async function GET(
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
-            background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+            background: linkylink.headerImage
+              ? `url(${linkylink.headerImage})`
+              : backgroundStyle,
+            backgroundSize: "cover",
             position: "relative",
           }}
         >
-          {/* Background pattern */}
+          {/* Semi-transparent overlay for better text readability */}
           <div
             style={{
               position: "absolute",
               inset: 0,
-              backgroundImage: `radial-gradient(circle at 25px 25px, rgba(255,255,255,0.2) 2%, transparent 0%)`,
-              backgroundSize: "50px 50px",
+              background: "rgba(0, 0, 0, 0.2)",
             }}
           />
-          
+
           {/* Content */}
           <div
             style={{
@@ -62,8 +77,24 @@ export async function GET(
               justifyContent: "center",
               padding: "60px",
               maxWidth: "1000px",
+              position: "relative",
+              zIndex: 1,
             }}
           >
+            {/* Emoji Avatar */}
+            <div
+              style={{
+                fontSize: "120px",
+                marginBottom: "30px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                textShadow: "0 4px 20px rgba(0,0,0,0.3)",
+              }}
+            >
+              {emoji}
+            </div>
+
             {/* Title */}
             <h1
               style={{
@@ -73,82 +104,47 @@ export async function GET(
                 marginBottom: "20px",
                 textAlign: "center",
                 lineHeight: 1.2,
+                textShadow: "0 2px 20px rgba(0,0,0,0.5)",
               }}
             >
               {linkylink.title}
             </h1>
-            
+
             {/* Subtitle */}
             {linkylink.subtitle && (
               <p
                 style={{
                   fontSize: "32px",
-                  color: "rgba(255,255,255,0.9)",
+                  color: "rgba(255,255,255,0.95)",
                   marginBottom: "40px",
                   textAlign: "center",
+                  textShadow: "0 2px 15px rgba(0,0,0,0.4)",
                 }}
               >
                 {linkylink.subtitle}
               </p>
             )}
-            
-            {/* Links preview */}
-            {linkylink.links.length > 0 && (
+
+            {/* Link count badge */}
+            {linkylink._count?.links > 0 && (
               <div
                 style={{
                   display: "flex",
-                  flexDirection: "column",
-                  gap: "16px",
-                  width: "100%",
-                  marginTop: "20px",
+                  alignItems: "center",
+                  gap: "8px",
+                  background: "rgba(255,255,255,0.25)",
+                  borderRadius: "100px",
+                  padding: "12px 24px",
+                  fontSize: "24px",
+                  color: "white",
+                  fontWeight: "600",
+                  backdropFilter: "blur(10px)",
                 }}
               >
-                {linkylink.links.map((link, i) => (
-                  <div
-                    key={i}
-                    style={{
-                      background: "rgba(255,255,255,0.2)",
-                      borderRadius: "16px",
-                      padding: "20px 30px",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "16px",
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: "40px",
-                        height: "40px",
-                        borderRadius: "8px",
-                        background: "rgba(255,255,255,0.3)",
-                      }}
-                    />
-                    <span
-                      style={{
-                        fontSize: "24px",
-                        color: "white",
-                        flex: 1,
-                      }}
-                    >
-                      {link.title}
-                    </span>
-                  </div>
-                ))}
-                
-                {linkylink.links.length < linkylink._count?.links && (
-                  <div
-                    style={{
-                      fontSize: "20px",
-                      color: "rgba(255,255,255,0.7)",
-                      textAlign: "center",
-                    }}
-                  >
-                    +{linkylink._count.links - 3} more links
-                  </div>
-                )}
+                {linkylink._count.links} {linkylink._count.links === 1 ? 'link' : 'links'}
               </div>
             )}
-            
+
             {/* User info */}
             <div
               style={{
@@ -158,25 +154,18 @@ export async function GET(
                 marginTop: "40px",
               }}
             >
-              <div
-                style={{
-                  width: "40px",
-                  height: "40px",
-                  borderRadius: "50%",
-                  background: "rgba(255,255,255,0.3)",
-                }}
-              />
               <span
                 style={{
                   fontSize: "24px",
                   color: "rgba(255,255,255,0.9)",
+                  textShadow: "0 2px 10px rgba(0,0,0,0.3)",
                 }}
               >
                 @{linkylink.user.username}
               </span>
             </div>
           </div>
-          
+
           {/* Logo */}
           <div
             style={{
@@ -186,21 +175,15 @@ export async function GET(
               display: "flex",
               alignItems: "center",
               gap: "8px",
+              zIndex: 1,
             }}
           >
-            <div
-              style={{
-                width: "32px",
-                height: "32px",
-                borderRadius: "8px",
-                background: "rgba(255,255,255,0.2)",
-              }}
-            />
             <span
               style={{
-                fontSize: "20px",
-                color: "rgba(255,255,255,0.7)",
+                fontSize: "24px",
+                color: "rgba(255,255,255,0.8)",
                 fontWeight: "600",
+                textShadow: "0 2px 10px rgba(0,0,0,0.3)",
               }}
             >
               Bundel
@@ -213,7 +196,8 @@ export async function GET(
         height: 630,
       }
     )
-  } catch {
+  } catch (error) {
+    console.error('OG image generation error:', error)
     return new Response("Failed to generate image", { status: 500 })
   }
 }
