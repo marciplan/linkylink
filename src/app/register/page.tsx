@@ -1,45 +1,64 @@
 "use client"
 
-import { useState } from "react"
+import { useState, FormEvent } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import { Link2, Loader2 } from "lucide-react"
-import { z } from "zod"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
 
-const registerSchema = z.object({
-  username: z.string().min(3, "Username must be at least 3 characters").regex(/^[a-zA-Z0-9_-]+$/, "Username can only contain letters, numbers, - and _"),
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-  name: z.string().min(1, "Name is required"),
-})
-
-type RegisterFormData = z.infer<typeof registerSchema>
+type FieldErrors = {
+  name?: string
+  username?: string
+  email?: string
+  password?: string
+}
 
 export default function RegisterPage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<RegisterFormData>({
-    resolver: zodResolver(registerSchema),
-  })
-
-  const onSubmit = async (data: RegisterFormData) => {
+  const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
     setIsLoading(true)
     setError("")
+    setFieldErrors({})
+
+    const formData = new FormData(e.currentTarget)
+    const name = formData.get("name") as string
+    const username = formData.get("username") as string
+    const email = formData.get("email") as string
+    const password = formData.get("password") as string
+
+    // Client-side validation
+    const errors: FieldErrors = {}
+    if (!name || name.length < 1) {
+      errors.name = "Name is required"
+    }
+    if (!username || username.length < 3) {
+      errors.username = "Username must be at least 3 characters"
+    } else if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
+      errors.username = "Username can only contain letters, numbers, - and _"
+    }
+    if (!email || !email.includes("@")) {
+      errors.email = "Invalid email address"
+    }
+    if (!password || password.length < 6) {
+      errors.password = "Password must be at least 6 characters"
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors)
+      setIsLoading(false)
+      return
+    }
 
     try {
       const res = await fetch("/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ name, username, email, password }),
       })
 
       const result = await res.json()
@@ -82,20 +101,20 @@ export default function RegisterPage() {
             <p className="text-gray-600 mt-2">Start sharing your links</p>
           </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={onSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Name
               </label>
               <input
-                {...register("name")}
+                name="name"
                 type="text"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-gray-900 focus:ring-1 focus:ring-gray-900 outline-none transition-colors"
                 placeholder="John Doe"
                 disabled={isLoading}
               />
-              {errors.name && (
-                <p className="text-red-600 text-sm mt-1">{errors.name.message}</p>
+              {fieldErrors.name && (
+                <p className="text-red-600 text-sm mt-1">{fieldErrors.name}</p>
               )}
             </div>
 
@@ -106,15 +125,15 @@ export default function RegisterPage() {
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">@</span>
                 <input
-                  {...register("username")}
+                  name="username"
                   type="text"
                   className="w-full pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:border-gray-900 focus:ring-1 focus:ring-gray-900 outline-none transition-colors"
                   placeholder="johndoe"
                   disabled={isLoading}
                 />
               </div>
-              {errors.username && (
-                <p className="text-red-600 text-sm mt-1">{errors.username.message}</p>
+              {fieldErrors.username && (
+                <p className="text-red-600 text-sm mt-1">{fieldErrors.username}</p>
               )}
             </div>
 
@@ -123,14 +142,14 @@ export default function RegisterPage() {
                 Email
               </label>
               <input
-                {...register("email")}
+                name="email"
                 type="email"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-gray-900 focus:ring-1 focus:ring-gray-900 outline-none transition-colors"
                 placeholder="you@example.com"
                 disabled={isLoading}
               />
-              {errors.email && (
-                <p className="text-red-600 text-sm mt-1">{errors.email.message}</p>
+              {fieldErrors.email && (
+                <p className="text-red-600 text-sm mt-1">{fieldErrors.email}</p>
               )}
             </div>
 
@@ -139,14 +158,14 @@ export default function RegisterPage() {
                 Password
               </label>
               <input
-                {...register("password")}
+                name="password"
                 type="password"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-gray-900 focus:ring-1 focus:ring-gray-900 outline-none transition-colors"
                 placeholder="••••••••"
                 disabled={isLoading}
               />
-              {errors.password && (
-                <p className="text-red-600 text-sm mt-1">{errors.password.message}</p>
+              {fieldErrors.password && (
+                <p className="text-red-600 text-sm mt-1">{fieldErrors.password}</p>
               )}
             </div>
 

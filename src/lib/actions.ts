@@ -51,67 +51,20 @@ export async function createLinkylink(data: z.infer<typeof createLinkylinkSchema
     }
   })
 
-  // Auto-generate default emoji and background immediately after creation
-  try {
-    // Import the generator functions
-    const { generateEmojiSuggestions } = await import('@/lib/emoji-generator')
-    const { generateBackgroundOptions } = await import('@/lib/background-generator')
-    
-    console.log('🚀 Starting auto-generation of defaults for linkylink:', linkylink.id)
-    
-    // Generate emoji suggestions
-    const emojiSuggestions = await generateEmojiSuggestions(title, subtitle)
-    const defaultEmoji = emojiSuggestions[0] || ''
-    console.log('Generated default emoji:', defaultEmoji)
-    
-    // Generate background options using the emoji
-    const backgroundData = await generateBackgroundOptions(title, subtitle, defaultEmoji)
-    console.log('Generated default background and images:', { 
-      selectedImage: backgroundData.selectedImage?.substring(0, 50) + '...', 
-      imagesCount: backgroundData.images.length 
+  // Trigger background generation (non-blocking)
+  // The API route will handle emoji and background generation asynchronously
+  if (!avatar) {
+    fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/generate-defaults`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        linkylinkId: linkylink.id,
+        title,
+        subtitle
+      }),
+    }).catch(err => {
+      console.error('Failed to trigger background generation:', err)
     })
-
-    // Update linkylink with defaults, but only if user hasn't set an avatar
-    const updateData: {
-      avatar?: string;
-      headerImage?: string;
-      headerPrompt?: string;
-      headerImages?: string[];
-    } = {}
-    
-    if (!avatar && defaultEmoji) {
-      updateData.avatar = defaultEmoji
-    }
-    
-    if (backgroundData.selectedImage) {
-      updateData.headerImage = backgroundData.selectedImage
-    }
-    
-    if (backgroundData.prompt) {
-      updateData.headerPrompt = backgroundData.prompt
-    }
-    
-    if (backgroundData.images.length > 0) {
-      updateData.headerImages = backgroundData.images
-    }
-
-    // Only update if we have something to update
-    if (Object.keys(updateData).length > 0) {
-      const updatedLinkylink = await prisma.linkLink.update({
-        where: { id: linkylink.id },
-        data: updateData,
-        include: {
-          user: true
-        }
-      })
-      console.log('✅ Updated linkylink with defaults:', Object.keys(updateData))
-      
-      revalidatePath("/dashboard")
-      return updatedLinkylink
-    }
-  } catch (error) {
-    console.error('❌ Failed to auto-generate defaults:', error)
-    // Continue with original linkylink if auto-generation fails
   }
 
   revalidatePath("/dashboard")

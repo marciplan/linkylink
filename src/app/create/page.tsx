@@ -1,24 +1,19 @@
 "use client"
 
-import { useState } from "react"
+import { useState, FormEvent } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { motion } from "framer-motion"
 import { Loader2, Link2, Plus, ArrowLeft } from "lucide-react"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { z } from "zod"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
 import { createLinkylink, addLinkToLinkylink } from "@/lib/actions"
 import { useSession } from "next-auth/react"
 
-const createSchema = z.object({
-  title: z.string().min(1, "Title is required").max(100, "Title is too long"),
-  subtitle: z.string().max(200, "Subtitle is too long").optional(),
-  avatar: z.string().url("Please enter a valid image URL").optional().or(z.literal("")),
-})
-
-type CreateFormData = z.infer<typeof createSchema>
+type CreateFormData = {
+  title: string
+  subtitle?: string
+  avatar?: string
+}
 
 interface CreatedLinkyLink {
   id: string
@@ -35,24 +30,12 @@ export default function CreatePage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
+  const [fieldErrors, setFieldErrors] = useState<{ title?: string; subtitle?: string; avatar?: string }>({})
   const [step, setStep] = useState<'info' | 'links'>('info')
   const [createdLinkylink, setCreatedLinkylink] = useState<CreatedLinkyLink | null>(null)
   const [linkTitle, setLinkTitle] = useState("")
   const [linkUrl, setLinkUrl] = useState("")
   const [linkContext, setLinkContext] = useState("")
-
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<CreateFormData>({
-    resolver: zodResolver(createSchema),
-    defaultValues: {
-      title: "",
-      subtitle: "",
-      avatar: "",
-    },
-  })
 
   // Redirect to login if not authenticated
   if (status === "loading") {
@@ -115,15 +98,42 @@ export default function CreatePage() {
   }
 
 
-  const onInfoSubmit = async (data: CreateFormData) => {
+  const onInfoSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
     setIsLoading(true)
     setError("")
+    setFieldErrors({})
+
+    const formData = new FormData(e.currentTarget)
+    const title = formData.get("title") as string
+    const subtitle = formData.get("subtitle") as string
+    const avatar = formData.get("avatar") as string
+
+    // Client-side validation
+    const errors: { title?: string; subtitle?: string; avatar?: string } = {}
+    if (!title || title.length < 1) {
+      errors.title = "Title is required"
+    } else if (title.length > 100) {
+      errors.title = "Title is too long"
+    }
+    if (subtitle && subtitle.length > 200) {
+      errors.subtitle = "Subtitle is too long"
+    }
+    if (avatar && avatar.trim() && !avatar.startsWith("http")) {
+      errors.avatar = "Please enter a valid image URL"
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors)
+      setIsLoading(false)
+      return
+    }
 
     try {
-      // Clean up avatar field - convert empty string to undefined
-      const cleanedData = {
-        ...data,
-        avatar: data.avatar?.trim() || undefined
+      const cleanedData: CreateFormData = {
+        title: title.trim(),
+        subtitle: subtitle?.trim() || undefined,
+        avatar: avatar?.trim() || undefined,
       }
       const linkylink = await createLinkylink(cleanedData)
       setCreatedLinkylink(linkylink)
@@ -204,21 +214,21 @@ export default function CreatePage() {
             </div>
 
             {step === 'info' ? (
-              <form onSubmit={handleSubmit(onInfoSubmit)} className="space-y-6">
+              <form onSubmit={onInfoSubmit} className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Title *
                   </label>
                   <input
-                    {...register("title")}
+                    name="title"
                     type="text"
                     className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:border-gray-900 dark:focus:border-gray-400 focus:ring-1 focus:ring-gray-900 dark:focus:ring-gray-400 outline-none transition-colors text-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                     placeholder="My Awesome Links"
                     disabled={isLoading}
                     autoFocus
                   />
-                  {errors.title && (
-                    <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.title.message}</p>
+                  {fieldErrors.title && (
+                    <p className="text-red-600 dark:text-red-400 text-sm mt-1">{fieldErrors.title}</p>
                   )}
                 </div>
 
@@ -227,14 +237,14 @@ export default function CreatePage() {
                     Subtitle (optional)
                   </label>
                   <textarea
-                    {...register("subtitle")}
+                    name="subtitle"
                     className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:border-gray-900 dark:focus:border-gray-400 focus:ring-1 focus:ring-gray-900 dark:focus:ring-gray-400 outline-none transition-colors resize-none bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                     placeholder="A collection of my favorite resources"
                     rows={3}
                     disabled={isLoading}
                   />
-                  {errors.subtitle && (
-                    <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.subtitle.message}</p>
+                  {fieldErrors.subtitle && (
+                    <p className="text-red-600 dark:text-red-400 text-sm mt-1">{fieldErrors.subtitle}</p>
                   )}
                 </div>
 
