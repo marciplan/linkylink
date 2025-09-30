@@ -98,7 +98,7 @@ export default async function KoboPage({ params }: PageProps) {
               <a
                 href={`/${username}/kobo/${slug}/${index + 1}`}
                 style={{
-                  color: '#0066cc',
+                  color: '#000',
                   textDecoration: 'none',
                   fontSize: '16px'
                 }}

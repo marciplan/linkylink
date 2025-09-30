@@ -100,7 +100,7 @@ export default async function UserKoboIndexPage({ params }: PageProps) {
               <a
                 href={`/${username}/kobo/${bundel.slug}`}
                 style={{
-                  color: '#0066cc',
+                  color: '#000',
                   textDecoration: 'none',
                   fontSize: '16px',
                   fontWeight: '500',
