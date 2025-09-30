@@ -64,6 +64,9 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
               <span className="font-medium">Bundel</span>
             </Link>
             <nav className="flex items-center gap-6">
+              <Link href="/recommendations" className="text-sm text-gray-600 hover:text-gray-900">
+                Recommendations
+              </Link>
               <Link href="/directory" className="text-sm text-gray-600 hover:text-gray-900">
                 Browse
               </Link>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { motion, Reorder, useDragControls } from "framer-motion"
-import { Eye, Edit2, Save, Trash2, Copy, Check, ExternalLink, GripVertical, Share, AtSign, Calendar, Settings, Link2 } from "lucide-react"
+import { Eye, Edit2, Save, Trash2, Copy, Check, ExternalLink, GripVertical, Share, AtSign, Calendar, Settings, Link2, FileText } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
@@ -542,6 +542,13 @@ export default function PublicLinkView({ linkylink, isOwner = false }: PublicLin
               <Share className="w-5 h-5" />
               Share Bundel
             </button>
+            <Link
+              href={`/${linkylink.user.username}/${currentSlug}/kobo`}
+              className="w-full bg-gray-50 text-gray-600 rounded-lg p-4 font-medium flex items-center justify-center gap-2 hover:bg-gray-100 transition-colors border border-gray-200"
+            >
+              <FileText className="w-5 h-5" />
+              Kobo View
+            </Link>
           </div>
         )}
 
