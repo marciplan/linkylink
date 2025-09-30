@@ -5,6 +5,46 @@ import { prisma } from "@/lib/prisma"
 // Prisma is not supported in Edge runtime; use Node.js runtime here
 export const runtime = "nodejs"
 
+// Extract gradient colors from SVG data URI (simplified approach)
+function extractGradientFromSVG(svgDataUri: string | null): string {
+  if (!svgDataUri) {
+    return "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+  }
+
+  try {
+    // Decode base64 SVG
+    const base64Data = svgDataUri.split(',')[1]
+    if (!base64Data) return "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+
+    const svgContent = Buffer.from(base64Data, 'base64').toString('utf-8')
+
+    // Extract colors from stop-color attributes
+    const colorMatches = svgContent.match(/stop-color="([^"]+)"/g)
+    if (!colorMatches || colorMatches.length < 2) {
+      return "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+    }
+
+    const colors = colorMatches
+      .map(match => match.match(/stop-color="([^"]+)"/)?.[1])
+      .filter(Boolean)
+      .slice(0, 3) // Take first 3 colors
+
+    if (colors.length < 2) {
+      return "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+    }
+
+    // Create CSS gradient
+    if (colors.length === 2) {
+      return `linear-gradient(135deg, ${colors[0]} 0%, ${colors[1]} 100%)`
+    } else {
+      return `linear-gradient(135deg, ${colors[0]} 0%, ${colors[1]} 50%, ${colors[2]} 100%)`
+    }
+  } catch (error) {
+    console.error('Failed to extract gradient from SVG:', error)
+    return "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+  }
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
@@ -29,15 +69,8 @@ export async function GET(
       return new Response("Not found", { status: 404 })
     }
 
-    // Extract background style from headerImage (SVG data URI)
-    // If headerImage exists, extract the gradient/background from it
-    let backgroundStyle = "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" // fallback
-
-    if (linkylink.headerImage) {
-      // headerImage is a data URI like "data:image/svg+xml;base64,..."
-      // We'll use it as a background image for proper rendering
-      backgroundStyle = linkylink.headerImage
-    }
+    // Extract CSS gradient from SVG headerImage
+    const background = extractGradientFromSVG(linkylink.headerImage)
 
     // Get emoji (avatar field)
     const emoji = linkylink.avatar || '🔗'
@@ -52,10 +85,7 @@ export async function GET(
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
-            background: linkylink.headerImage
-              ? `url(${linkylink.headerImage})`
-              : backgroundStyle,
-            backgroundSize: "cover",
+            background,
             position: "relative",
           }}
         >
@@ -64,7 +94,7 @@ export async function GET(
             style={{
               position: "absolute",
               inset: 0,
-              background: "rgba(0, 0, 0, 0.2)",
+              background: "rgba(0, 0, 0, 0.15)",
             }}
           />
 
@@ -89,7 +119,12 @@ export async function GET(
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                textShadow: "0 4px 20px rgba(0,0,0,0.3)",
+                width: "180px",
+                height: "180px",
+                borderRadius: "50%",
+                background: "white",
+                border: "8px solid white",
+                boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
               }}
             >
               {emoji}
@@ -138,7 +173,6 @@ export async function GET(
                   fontSize: "24px",
                   color: "white",
                   fontWeight: "600",
-                  backdropFilter: "blur(10px)",
                 }}
               >
                 {linkylink._count.links} {linkylink._count.links === 1 ? 'link' : 'links'}
