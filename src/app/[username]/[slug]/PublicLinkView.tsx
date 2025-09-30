@@ -543,7 +543,7 @@ export default function PublicLinkView({ linkylink, isOwner = false }: PublicLin
               Share Bundel
             </button>
             <Link
-              href={`/${linkylink.user.username}/${currentSlug}/kobo`}
+              href={`/${linkylink.user.username}/kobo/${currentSlug}`}
               className="w-full bg-gray-50 text-gray-600 rounded-lg p-4 font-medium flex items-center justify-center gap-2 hover:bg-gray-100 transition-colors border border-gray-200"
             >
               <FileText className="w-5 h-5" />
