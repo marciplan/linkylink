@@ -19,6 +19,13 @@ export const metadata: Metadata = {
   description: "Create beautiful link pages to share multiple URLs at once. Perfect for social media, portfolios, and resource collections.",
   keywords: ["links", "share", "social", "linktree", "bio link"],
   authors: [{ name: "Bundel" }],
+  // Ensure all relative URLs in metadata resolve to absolute URLs
+  // so social crawlers can fetch images correctly in production.
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_APP_URL ||
+      process.env.NEXTAUTH_URL ||
+      "http://localhost:3000"
+  ),
   openGraph: {
     title: "Bundel - Share Multiple Links Beautifully",
     description: "Create beautiful link pages to share multiple URLs at once.",

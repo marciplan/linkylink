@@ -25,7 +25,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     return {}
   }
 
-  const ogImageUrl = `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/api/og/${slug}`
+  // Use a relative path; Next.js will resolve against metadataBase
+  // to emit an absolute URL for social crawlers.
+  const ogImageUrl = `/api/og/${slug}`
 
   return {
     title: `${linkylink.title} - Bundel`,
