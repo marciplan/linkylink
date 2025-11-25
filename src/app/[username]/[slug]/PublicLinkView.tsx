@@ -44,10 +44,10 @@ interface PublicLinkViewProps {
 }
 
 // Create a component for the draggable item
-function DraggableLink({ 
-  link, 
-  onDelete 
-}: { 
+function DraggableLink({
+  link,
+  onDelete
+}: {
   link: {
     id: string
     title: string
@@ -56,7 +56,7 @@ function DraggableLink({
     context: string | null
     order?: number
   }
-  onDelete: (id: string) => void 
+  onDelete: (id: string) => void
 }) {
   const controls = useDragControls()
 
@@ -70,22 +70,23 @@ function DraggableLink({
     >
       <div className="bg-white rounded-lg p-4 border-2 border-gray-200 hover:border-gray-400 transition-all flex items-center gap-3 group">
         {/* Drag handle */}
-        <div 
+        <div
           onPointerDown={(e) => controls.start(e)}
           className="text-gray-500 hover:text-gray-700 cursor-grab active:cursor-grabbing touch-none"
         >
           <GripVertical className="w-5 h-5" />
         </div>
-        
+
         {/* Favicon */}
         <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-gray-50 flex items-center justify-center overflow-hidden border border-gray-100">
           {link.favicon ? (
             <Image
-              src={link.favicon} 
-              alt="" 
+              src={link.favicon}
+              alt=""
               width={24}
               height={24}
               className="w-6 h-6 object-contain"
+              unoptimized
               onError={(e) => {
                 e.currentTarget.style.display = 'none'
               }}
@@ -94,7 +95,7 @@ function DraggableLink({
             <ExternalLink className="w-5 h-5 text-gray-400" />
           )}
         </div>
-        
+
         {/* Link info */}
         <div className="flex-1 min-w-0">
           <h3 className="font-medium text-gray-900 truncate">
@@ -110,7 +111,7 @@ function DraggableLink({
             })()}
           </p>
         </div>
-        
+
         {/* Delete button */}
         <button
           onClick={() => onDelete(link.id)}
@@ -137,11 +138,11 @@ export default function PublicLinkView({ linkylink, isOwner = false }: PublicLin
 
   const [currentUrl, setCurrentUrl] = useState('')
   const [showTweakModal, setShowTweakModal] = useState(false)
-  
+
   // Set URL on client side only and check for edit mode
   useEffect(() => {
     setCurrentUrl(window.location.href)
-    
+
     // Check if we should start in edit mode
     if (isOwner && searchParams.get('edit') === 'true') {
       setIsEditing(true)
@@ -189,9 +190,9 @@ export default function PublicLinkView({ linkylink, isOwner = false }: PublicLin
   const handleSave = async () => {
     setIsSaving(true)
     try {
-      await updateLinkylink(linkylink.id, { 
-        title: title.trim(), 
-        subtitle: subtitle.trim() || undefined 
+      await updateLinkylink(linkylink.id, {
+        title: title.trim(),
+        subtitle: subtitle.trim() || undefined
       })
       linkylink.title = title.trim()
       linkylink.subtitle = subtitle.trim() || null
@@ -226,7 +227,7 @@ export default function PublicLinkView({ linkylink, isOwner = false }: PublicLin
   const handleReorder = (newOrder: typeof links) => {
     // Update local state immediately for smooth UX
     setLinks(newOrder)
-    
+
     // Update order in database
     updateLinkOrder(
       linkylink.id,
@@ -246,12 +247,12 @@ export default function PublicLinkView({ linkylink, isOwner = false }: PublicLin
   const handleTweakSave = async (updates: { avatar?: string | null, headerImage?: string | null }) => {
     // Handle avatar update
     if (updates.avatar !== undefined) {
-      await updateLinkylink(linkylink.id, { 
+      await updateLinkylink(linkylink.id, {
         avatar: updates.avatar || undefined // Convert null to undefined
       })
       linkylink.avatar = updates.avatar
     }
-    
+
     // Handle header image update (this might need a separate API endpoint)
     if (updates.headerImage !== undefined) {
       linkylink.headerImage = updates.headerImage
@@ -263,8 +264,8 @@ export default function PublicLinkView({ linkylink, isOwner = false }: PublicLin
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Visual Header with Profile Content Overlay */}
-      <VisualHeader 
-        linkylink={linkylink} 
+      <VisualHeader
+        linkylink={linkylink}
         isOwner={isOwner}
         isEditMode={isEditing}
       >
@@ -317,34 +318,34 @@ export default function PublicLinkView({ linkylink, isOwner = false }: PublicLin
           {/* User info and stats - only show when not editing */}
           {!isEditing && (
             <div className="flex items-center justify-center gap-4 mt-6 text-sm text-white/90 drop-shadow-md">
-              <span 
+              <span
                 className="flex items-center gap-1 bg-black/20 px-3 py-1 rounded-full backdrop-blur-sm"
                 title={`Created by @${linkylink.user.username}`}
               >
                 <AtSign className="w-3.5 h-3.5" />
                 {linkylink.user.username}
               </span>
-              <span 
+              <span
                 className="flex items-center gap-1 bg-black/20 px-3 py-1 rounded-full backdrop-blur-sm"
                 title={`${linkylink.views.toLocaleString()} total views`}
               >
                 <Eye className="w-3.5 h-3.5" />
                 {linkylink.views.toLocaleString()}
               </span>
-              <span 
+              <span
                 className="flex items-center gap-1 bg-black/20 px-3 py-1 rounded-full backdrop-blur-sm"
-                title={`Created on ${new Date(linkylink.createdAt).toLocaleDateString('en-US', { 
-                  weekday: 'long', 
-                  year: 'numeric', 
-                  month: 'long', 
-                  day: 'numeric' 
+                title={`Created on ${new Date(linkylink.createdAt).toLocaleDateString('en-US', {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
                 })}`}
               >
                 <Calendar className="w-3.5 h-3.5" />
-                {new Date(linkylink.createdAt).toLocaleDateString('en-US', { 
-                  month: 'numeric', 
-                  day: 'numeric', 
-                  year: 'numeric' 
+                {new Date(linkylink.createdAt).toLocaleDateString('en-US', {
+                  month: 'numeric',
+                  day: 'numeric',
+                  year: 'numeric'
                 })}
               </span>
             </div>
@@ -354,7 +355,7 @@ export default function PublicLinkView({ linkylink, isOwner = false }: PublicLin
 
       {/* Header with controls */}
       <div className="fixed top-4 left-4 z-50">
-        <Link 
+        <Link
           href={isOwner ? "/dashboard" : "/"}
           className="px-4 py-2 bg-white text-gray-600 rounded-lg text-sm font-medium flex items-center gap-2 border border-gray-200 hover:border-gray-300 transition-colors"
         >
@@ -362,7 +363,7 @@ export default function PublicLinkView({ linkylink, isOwner = false }: PublicLin
           Bundel
         </Link>
       </div>
-      
+
       {isOwner && isEditing && (
         <div className="fixed top-4 right-4 z-50">
           <button
@@ -378,7 +379,7 @@ export default function PublicLinkView({ linkylink, isOwner = false }: PublicLin
       {/* Quick Navigation Search - only visible to owner */}
       {isOwner && (
         <div className="fixed top-14 sm:top-4 left-1/2 -translate-x-1/2 z-40">
-          <QuickNavSearch 
+          <QuickNavSearch
             username={linkylink.user.username}
             currentSlug={currentSlug}
             className="w-[65vw] sm:w-[420px]"
@@ -482,7 +483,7 @@ export default function PublicLinkView({ linkylink, isOwner = false }: PublicLin
               </button>
             </div>
             {copied && (
-              <motion.p 
+              <motion.p
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="text-xs text-gray-600 mt-2 text-center"
@@ -511,10 +512,10 @@ export default function PublicLinkView({ linkylink, isOwner = false }: PublicLin
             >
               Cancel
             </button>
-            
+
             {/* Divider */}
             <div className="border-t border-gray-200"></div>
-            
+
             <button
               onClick={() => setShowDeleteModal(true)}
               className="w-full bg-red-50 text-red-600 rounded-lg p-4 font-medium flex items-center justify-center gap-2 hover:bg-red-100 transition-colors"

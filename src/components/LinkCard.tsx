@@ -34,7 +34,7 @@ export function LinkCard({
   username,
 }: LinkCardProps) {
   const [showContext, setShowContext] = useState(false)
-  
+
   const domain = (() => {
     try {
       return new URL(url).hostname.replace("www.", "")
@@ -50,7 +50,7 @@ export function LinkCard({
 
   return (
     <motion.div
-      animate={{ 
+      animate={{
         scale: showContext ? 1.02 : 1,
       }}
       className={cn(
@@ -68,15 +68,16 @@ export function LinkCard({
               <GripVertical className="w-4 h-4 text-gray-400" />
             </div>
           )}
-          
+
           <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-gray-50 flex items-center justify-center overflow-hidden border border-gray-200">
             {favicon ? (
-              <Image 
-                src={favicon} 
-                alt={`${title} favicon`} 
+              <Image
+                src={favicon}
+                alt={`${title} favicon`}
                 width={24}
                 height={24}
                 className="object-contain"
+                unoptimized
                 onError={(e) => {
                   const target = e.currentTarget
                   target.style.display = 'none'
@@ -94,7 +95,7 @@ export function LinkCard({
               <ExternalLink className="w-5 h-5 text-gray-400" />
             )}
           </div>
-          
+
           <div className="flex-1 min-w-0">
             <h3 className="font-medium text-gray-900 truncate">
               {title}
@@ -103,15 +104,15 @@ export function LinkCard({
               {domain}
             </p>
           </div>
-          
+
           <div className="flex items-center gap-2">
             {context && (
               <button
                 onClick={handleInfoClick}
                 className={cn(
                   "p-1.5 rounded-full transition-all flex-shrink-0",
-                  showContext 
-                    ? "bg-blue-100 text-blue-600" 
+                  showContext
+                    ? "bg-blue-100 text-blue-600"
                     : "text-gray-400 hover:text-blue-600 hover:bg-blue-50"
                 )}
                 title={showContext ? "Hide context" : "Show context"}
@@ -119,7 +120,7 @@ export function LinkCard({
                 <Info className="w-4 h-4" />
               </button>
             )}
-            
+
             <button
               onClick={onClick}
               className="px-3 py-1.5 text-xs font-medium text-gray-600 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 rounded-md transition-all flex items-center gap-1"
@@ -142,7 +143,7 @@ export function LinkCard({
             transition={{ duration: 0.2, ease: "easeOut" }}
             className="overflow-hidden"
           >
-            <div className="px-4 pb-4">              
+            <div className="px-4 pb-4">
               {/* iOS message-like context bubble */}
               <div className="bg-blue-500 text-white rounded-2xl rounded-bl-sm px-4 py-3 max-w-[85%] ml-auto relative mb-2">
                 <p className="text-sm leading-relaxed whitespace-pre-wrap">
@@ -157,10 +158,10 @@ export function LinkCard({
                 <span className="text-xs text-gray-500 font-medium">
                   {username || "Link creator"}
                 </span>
-                <Avatar 
-                  src={userAvatar} 
-                  username={username || "User"} 
-                  size={24} 
+                <Avatar
+                  src={userAvatar}
+                  username={username || "User"}
+                  size={24}
                   className="flex-shrink-0"
                 />
               </div>
