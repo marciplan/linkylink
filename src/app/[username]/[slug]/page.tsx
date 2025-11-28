@@ -35,14 +35,28 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     openGraph: {
       title: linkylink.title,
       description: linkylink.subtitle || `Check out ${linkylink.title} by @${linkylink.user.username}`,
-      images: [ogImageUrl],
+      images: [
+        {
+          url: ogImageUrl,
+          width: 1200,
+          height: 630,
+          alt: linkylink.title,
+        },
+      ],
       type: "website",
     },
     twitter: {
       card: "summary_large_image",
       title: linkylink.title,
       description: linkylink.subtitle || `Check out ${linkylink.title} by @${linkylink.user.username}`,
-      images: [ogImageUrl],
+      images: [
+        {
+          url: ogImageUrl,
+          width: 1200,
+          height: 630,
+          alt: linkylink.title,
+        },
+      ],
     },
   }
 }

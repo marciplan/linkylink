@@ -5,23 +5,121 @@ import { prisma } from "@/lib/prisma"
 // Prisma is not supported in Edge runtime; use Node.js runtime here
 export const runtime = "nodejs"
 
+const DEFAULT_GRADIENT = "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+const TIMEOUT_MS = 4000 // 4 seconds to stay under social platform limits
+
+// Generic fallback image for timeouts/errors
+function createFallbackImage() {
+  return new ImageResponse(
+    (
+      <div
+        style={{
+          height: "100%",
+          width: "100%",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          background: DEFAULT_GRADIENT,
+          position: "relative",
+        }}
+      >
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(0, 0, 0, 0.15)",
+          }}
+        />
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            position: "relative",
+            zIndex: 1,
+          }}
+        >
+          <div
+            style={{
+              fontSize: "120px",
+              marginBottom: "30px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: "180px",
+              height: "180px",
+              borderRadius: "50%",
+              background: "white",
+              boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
+            }}
+          >
+            📦
+          </div>
+          <div
+            style={{
+              fontSize: "72px",
+              fontWeight: "bold",
+              color: "white",
+              marginBottom: "20px",
+              textShadow: "0 2px 20px rgba(0,0,0,0.5)",
+            }}
+          >
+            Bundel
+          </div>
+          <div
+            style={{
+              fontSize: "36px",
+              color: "rgba(255,255,255,0.95)",
+              textShadow: "0 2px 15px rgba(0,0,0,0.4)",
+            }}
+          >
+            All your links, one place
+          </div>
+        </div>
+      </div>
+    ),
+    {
+      width: 1200,
+      height: 630,
+      headers: {
+        "Cache-Control": "public, max-age=3600, stale-while-revalidate=86400",
+      },
+    }
+  )
+}
+
+// Timeout helper
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) =>
+      setTimeout(() => reject(new Error("Timeout")), ms)
+    ),
+  ])
+}
+
 // Extract gradient colors from SVG data URI (simplified approach)
 function extractGradientFromSVG(svgDataUri: string | null): string {
   if (!svgDataUri) {
-    return "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+    return DEFAULT_GRADIENT
   }
 
   try {
     // Decode base64 SVG
     const base64Data = svgDataUri.split(',')[1]
-    if (!base64Data) return "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+    if (!base64Data) return DEFAULT_GRADIENT
 
     const svgContent = Buffer.from(base64Data, 'base64').toString('utf-8')
 
     // Extract colors from stop-color attributes
     const colorMatches = svgContent.match(/stop-color="([^"]+)"/g)
     if (!colorMatches || colorMatches.length < 2) {
-      return "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+      return DEFAULT_GRADIENT
     }
 
     const colors = colorMatches
@@ -30,7 +128,7 @@ function extractGradientFromSVG(svgDataUri: string | null): string {
       .slice(0, 3) // Take first 3 colors
 
     if (colors.length < 2) {
-      return "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+      return DEFAULT_GRADIENT
     }
 
     // Create CSS gradient
@@ -41,7 +139,7 @@ function extractGradientFromSVG(svgDataUri: string | null): string {
     }
   } catch (error) {
     console.error('Failed to extract gradient from SVG:', error)
-    return "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+    return DEFAULT_GRADIENT
   }
 }
 
@@ -51,22 +149,30 @@ export async function GET(
 ) {
   try {
     const { slug } = await params
-    const linkylink = await prisma.linkLink.findUnique({
-      where: { slug },
-      include: {
-        user: true,
-        links: {
-          take: 3,
-          orderBy: { order: "asc" },
+
+    // Fetch with timeout to stay under social platform limits
+    const linkylink = await withTimeout(
+      prisma.linkLink.findUnique({
+        where: { slug },
+        select: {
+          title: true,
+          subtitle: true,
+          avatar: true,
+          headerImage: true,
+          user: {
+            select: { username: true }
+          },
+          _count: {
+            select: { links: true }
+          }
         },
-        _count: {
-          select: { links: true }
-        }
-      },
-    })
+      }),
+      TIMEOUT_MS
+    )
 
     if (!linkylink) {
-      return new Response("Not found", { status: 404 })
+      // Return fallback for not found (still shows branded image)
+      return createFallbackImage()
     }
 
     // Extract CSS gradient from SVG headerImage
@@ -93,7 +199,10 @@ export async function GET(
           <div
             style={{
               position: "absolute",
-              inset: 0,
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
               background: "rgba(0, 0, 0, 0.15)",
             }}
           />
@@ -131,7 +240,7 @@ export async function GET(
             </div>
 
             {/* Title */}
-            <h1
+            <div
               style={{
                 fontSize: "72px",
                 fontWeight: "bold",
@@ -143,11 +252,11 @@ export async function GET(
               }}
             >
               {linkylink.title}
-            </h1>
+            </div>
 
             {/* Subtitle */}
             {linkylink.subtitle && (
-              <p
+              <div
                 style={{
                   fontSize: "32px",
                   color: "rgba(255,255,255,0.95)",
@@ -157,7 +266,7 @@ export async function GET(
                 }}
               >
                 {linkylink.subtitle}
-              </p>
+              </div>
             )}
 
             {/* Link count badge */}
@@ -228,10 +337,14 @@ export async function GET(
       {
         width: 1200,
         height: 630,
+        headers: {
+          "Cache-Control": "public, max-age=3600, stale-while-revalidate=86400",
+        },
       }
     )
   } catch (error) {
     console.error('OG image generation error:', error)
-    return new Response("Failed to generate image", { status: 500 })
+    // Return fallback image instead of error for better UX on social platforms
+    return createFallbackImage()
   }
 }

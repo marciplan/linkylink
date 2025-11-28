@@ -543,6 +543,7 @@ export default function PublicLinkView({ linkylink, isOwner = false }: PublicLin
               <Share className="w-5 h-5" />
               Share Bundel
             </button>
+{/* Kobo button hidden for now - uncomment to restore
             <Link
               href={`/${linkylink.user.username}/kobo/${currentSlug}`}
               className="w-full bg-gray-50 text-gray-600 rounded-lg p-4 font-medium flex items-center justify-center gap-2 hover:bg-gray-100 transition-colors border border-gray-200"
@@ -550,6 +551,7 @@ export default function PublicLinkView({ linkylink, isOwner = false }: PublicLin
               <FileText className="w-5 h-5" />
               Kobo View
             </Link>
+*/}
           </div>
         )}
 

@@ -30,11 +30,20 @@ export const metadata: Metadata = {
     title: "Bundel - Share Multiple Links Beautifully",
     description: "Create beautiful link pages to share multiple URLs at once.",
     type: "website",
+    images: [
+      {
+        url: "/api/og/default",
+        width: 1200,
+        height: 630,
+        alt: "Bundel - All your links, one place",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Bundel - Share Multiple Links Beautifully",
     description: "Create beautiful link pages to share multiple URLs at once.",
+    images: ["/api/og/default"],
   },
 }
 
