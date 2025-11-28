@@ -52,15 +52,11 @@ export default function RootLayout({
           {children}
         </Providers>
         {/* Rybbit Analytics */}
-        {process.env.NEXT_PUBLIC_RYBBIT_WEBSITE_ID && (
-          <Script
-            id="rybbit-analytics"
-            src={process.env.NEXT_PUBLIC_RYBBIT_SCRIPT_URL || "https://demo.rybbit.io/api/script.js"}
-            strategy="afterInteractive"
-            data-website-id={process.env.NEXT_PUBLIC_RYBBIT_WEBSITE_ID}
-            data-domains={process.env.NEXT_PUBLIC_RYBBIT_DOMAINS}
-          />
-        )}
+        <Script
+          src="https://app.rybbit.io/api/script.js"
+          data-site-id="f67ba44934d8"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   )

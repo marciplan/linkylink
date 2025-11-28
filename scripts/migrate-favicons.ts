@@ -9,7 +9,7 @@ async function fetchFavicon(url: string): Promise<string | null> {
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), 10000)
     
-    const response = await fetch(`http://localhost:3002/api/favicon?url=${encodeURIComponent(url)}`, {
+    const response = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/favicon?url=${encodeURIComponent(url)}`, {
       signal: controller.signal,
       headers: {
         'Content-Type': 'application/json',

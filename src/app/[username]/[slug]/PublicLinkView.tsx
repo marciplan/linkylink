@@ -79,21 +79,22 @@ function DraggableLink({
 
         {/* Favicon */}
         <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-gray-50 flex items-center justify-center overflow-hidden border border-gray-100">
-          {link.favicon ? (
-            <Image
-              src={link.favicon}
-              alt=""
-              width={24}
-              height={24}
-              className="w-6 h-6 object-contain"
-              unoptimized
-              onError={(e) => {
-                e.currentTarget.style.display = 'none'
-              }}
-            />
-          ) : (
-            <ExternalLink className="w-5 h-5 text-gray-400" />
-          )}
+          {(() => {
+            const domain = (() => {
+              try { return new URL(link.url).hostname.replace('www.', '') } catch { return '' }
+            })()
+            const src = link.favicon || `https://www.google.com/s2/favicons?domain=${domain}&sz=64`
+            return (
+              <Image
+                src={src}
+                alt=""
+                width={24}
+                height={24}
+                className="w-6 h-6 object-contain"
+                unoptimized
+              />
+            )
+          })()}
         </div>
 
         {/* Link info */}
@@ -378,11 +379,10 @@ export default function PublicLinkView({ linkylink, isOwner = false }: PublicLin
 
       {/* Quick Navigation Search - only visible to owner */}
       {isOwner && (
-        <div className="fixed top-14 sm:top-4 left-1/2 -translate-x-1/2 z-40">
+        <div className="fixed top-4 right-4 sm:right-auto sm:left-1/2 sm:-translate-x-1/2 z-40">
           <QuickNavSearch
             username={linkylink.user.username}
             currentSlug={currentSlug}
-            className="w-[65vw] sm:w-[420px]"
           />
         </div>
       )}

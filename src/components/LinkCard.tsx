@@ -92,7 +92,14 @@ export function LinkCard({
                 }}
               />
             ) : (
-              <ExternalLink className="w-5 h-5 text-gray-400" />
+              <Image
+                src={`https://www.google.com/s2/favicons?domain=${domain}&sz=64`}
+                alt=""
+                width={24}
+                height={24}
+                className="object-contain"
+                unoptimized
+              />
             )}
           </div>
 
