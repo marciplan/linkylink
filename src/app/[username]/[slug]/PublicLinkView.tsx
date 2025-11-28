@@ -13,7 +13,7 @@ import { DeleteModal } from "@/components/DeleteModal"
 import { VisualHeader } from "@/components/VisualHeader"
 import { TweakModal } from "@/components/TweakModal"
 import { QuickNavSearch } from "@/components/QuickNavSearch"
-import { incrementClicks, updateLinkylink, addLink, deleteLink, updateLinkOrder, deleteLinkylink } from "@/lib/actions"
+import { incrementClicks, incrementLikes, updateLinkylink, addLink, deleteLink, updateLink, updateLinkOrder, deleteLinkylink } from "@/lib/actions"
 
 interface PublicLinkViewProps {
   linkylink: {
@@ -38,6 +38,7 @@ interface PublicLinkViewProps {
       favicon: string | null
       context: string | null
       order?: number
+      likes?: number
     }[]
   }
   isOwner?: boolean
@@ -46,7 +47,8 @@ interface PublicLinkViewProps {
 // Create a component for the draggable item
 function DraggableLink({
   link,
-  onDelete
+  onDelete,
+  onTitleUpdate
 }: {
   link: {
     id: string
@@ -57,8 +59,18 @@ function DraggableLink({
     order?: number
   }
   onDelete: (id: string) => void
+  onTitleUpdate: (id: string, newTitle: string) => void
 }) {
   const controls = useDragControls()
+  const [isEditingTitle, setIsEditingTitle] = useState(false)
+  const [editedTitle, setEditedTitle] = useState(link.title)
+
+  const handleSaveTitle = async () => {
+    if (editedTitle.trim() && editedTitle !== link.title) {
+      onTitleUpdate(link.id, editedTitle.trim())
+    }
+    setIsEditingTitle(false)
+  }
 
   return (
     <Reorder.Item
@@ -99,9 +111,27 @@ function DraggableLink({
 
         {/* Link info */}
         <div className="flex-1 min-w-0">
-          <h3 className="font-medium text-gray-900 truncate">
-            {link.title}
-          </h3>
+          {isEditingTitle ? (
+            <input
+              type="text"
+              value={editedTitle}
+              onChange={(e) => setEditedTitle(e.target.value)}
+              onBlur={handleSaveTitle}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleSaveTitle()
+                if (e.key === 'Escape') {
+                  setEditedTitle(link.title)
+                  setIsEditingTitle(false)
+                }
+              }}
+              autoFocus
+              className="w-full font-medium text-gray-900 bg-white border border-blue-500 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          ) : (
+            <h3 className="font-medium text-gray-900 truncate">
+              {link.title}
+            </h3>
+          )}
           <p className="text-sm text-gray-500 truncate">
             {(() => {
               try {
@@ -113,10 +143,18 @@ function DraggableLink({
           </p>
         </div>
 
+        {/* Edit button */}
+        <button
+          onClick={() => setIsEditingTitle(true)}
+          className="p-2 rounded-lg hover:bg-blue-50 transition-colors"
+        >
+          <Edit2 className="w-4 h-4 text-gray-400 hover:text-blue-500" />
+        </button>
+
         {/* Delete button */}
         <button
           onClick={() => onDelete(link.id)}
-          className="p-2 rounded-lg hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100"
+          className="p-2 rounded-lg hover:bg-red-50 transition-colors"
         >
           <Trash2 className="w-4 h-4 text-gray-400 hover:text-red-500" />
         </button>
@@ -225,6 +263,13 @@ export default function PublicLinkView({ linkylink, isOwner = false }: PublicLin
     setLinks(links.filter(l => l.id !== linkId))
   }
 
+  const handleUpdateLinkTitle = async (linkId: string, newTitle: string) => {
+    // Update local state immediately
+    setLinks(links.map(l => l.id === linkId ? { ...l, title: newTitle } : l))
+    // Update in database
+    await updateLink(linkId, { title: newTitle })
+  }
+
   const handleReorder = (newOrder: typeof links) => {
     // Update local state immediately for smooth UX
     setLinks(newOrder)
@@ -282,6 +327,7 @@ export default function PublicLinkView({ linkylink, isOwner = false }: PublicLin
               <Avatar
                 src={linkylink.avatar || linkylink.user.image}
                 username={linkylink.user.username}
+                title={linkylink.title}
                 size={80}
               />
             </div>
@@ -377,9 +423,9 @@ export default function PublicLinkView({ linkylink, isOwner = false }: PublicLin
         </div>
       )}
 
-      {/* Quick Navigation Search - only visible to owner */}
-      {isOwner && (
-        <div className="fixed top-4 right-4 sm:right-auto sm:left-1/2 sm:-translate-x-1/2 z-40">
+      {/* Quick Navigation Search - only visible to owner, hidden in edit mode */}
+      {isOwner && !isEditing && (
+        <div className="fixed top-4 right-4 z-40">
           <QuickNavSearch
             username={linkylink.user.username}
             currentSlug={currentSlug}
@@ -415,6 +461,7 @@ export default function PublicLinkView({ linkylink, isOwner = false }: PublicLin
                     key={link.id}
                     link={link}
                     onDelete={handleDeleteLink}
+                    onTitleUpdate={handleUpdateLinkTitle}
                   />
                 ))}
               </Reorder.Group>
@@ -441,6 +488,8 @@ export default function PublicLinkView({ linkylink, isOwner = false }: PublicLin
                     userAvatar={linkylink.avatar || linkylink.user.image}
                     username={linkylink.user.username}
                     onClick={() => handleLinkClick(link.id, link.url)}
+                    likes={link.likes ?? 0}
+                    onLike={() => incrementLikes(link.id)}
                   />
                 </motion.div>
               ))}
@@ -561,7 +610,7 @@ export default function PublicLinkView({ linkylink, isOwner = false }: PublicLin
             <p className="text-sm text-gray-400">
               Create your own at{" "}
               <Link href="/" className="text-gray-600 hover:text-gray-900 transition-colors">
-                linklink.app
+                bundel.link
               </Link>
             </p>
           </div>

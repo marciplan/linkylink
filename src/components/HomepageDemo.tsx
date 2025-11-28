@@ -280,6 +280,58 @@ function DemoContent({ example, radius = "2rem" }: { example: DemoExample; radiu
   )
 }
 
+// Skeleton component for loading state
+function DemoSkeleton() {
+  return (
+    <div className="h-[600px] flex flex-col">
+      {/* Skeleton header */}
+      <div className="bg-gradient-to-br from-gray-200 via-gray-300 to-gray-200 px-4 pt-4 pb-6 rounded-t-[2rem]">
+        {/* Top bar */}
+        <div className="flex justify-between items-center mb-6">
+          <div className="bg-white/50 rounded-lg w-14 h-6" />
+          <div className="bg-white/50 rounded-lg w-6 h-6" />
+        </div>
+        {/* Emoji placeholder */}
+        <div className="flex justify-center mb-3">
+          <div className="w-16 h-16 bg-white/30 rounded-full" />
+        </div>
+        {/* Title placeholder */}
+        <div className="flex justify-center mb-3">
+          <div className="bg-white/40 rounded h-5 w-48" />
+        </div>
+        {/* Badges placeholder */}
+        <div className="flex items-center justify-center gap-2">
+          <div className="bg-white/20 rounded-full h-4 w-20" />
+          <div className="bg-white/20 rounded-full h-4 w-12" />
+          <div className="bg-white/20 rounded-full h-4 w-20" />
+        </div>
+      </div>
+      {/* Skeleton links */}
+      <div className="flex-1 bg-gray-50 px-4 py-3 flex flex-col">
+        <div className="space-y-2 flex-1">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="flex items-center justify-between p-2.5 bg-white rounded-xl border border-gray-200">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 bg-gray-100 rounded-lg" />
+                <div>
+                  <div className="bg-gray-200 rounded h-3 w-32 mb-1" />
+                  <div className="bg-gray-100 rounded h-2 w-20" />
+                </div>
+              </div>
+              <div className="bg-gray-100 rounded h-3 w-10" />
+            </div>
+          ))}
+        </div>
+        {/* Skeleton buttons */}
+        <div className="mt-3 space-y-2">
+          <div className="w-full bg-gray-300 h-8 rounded-lg" />
+          <div className="w-full bg-gray-100 h-8 rounded-lg" />
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // Card component for side items (no phone frame)
 function SideCard({ example }: { example: DemoExample }) {
   return (
@@ -287,19 +339,6 @@ function SideCard({ example }: { example: DemoExample }) {
       <div className="bg-gray-200 rounded-[2rem] p-1 shadow-xl">
         <div className="bg-white rounded-[1.75rem] overflow-hidden h-[600px]">
           <DemoContent example={example} radius="1.75rem" />
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// Static phone frame overlay (always in center)
-function PhoneFrameOverlay({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="relative w-[320px]">
-      <div className="bg-gray-900 rounded-[2.5rem] p-3 shadow-2xl">
-        <div className="bg-white rounded-[2rem] overflow-hidden relative h-[600px]">
-          {children}
         </div>
       </div>
     </div>
@@ -322,6 +361,21 @@ export function HomepageDemo() {
     return ((index % demoExamples.length) + demoExamples.length) % demoExamples.length
   }
 
+  // Get properties for each position in the carousel
+  const getPositionProps = (position: number) => {
+    const absPos = Math.abs(position)
+    if (position === 0) {
+      return { scale: 1, opacity: 1, zIndex: 10, xOffset: 0 }
+    } else if (absPos === 1) {
+      return { scale: 0.75, opacity: 0.6, zIndex: 5, xOffset: position * 55 }
+    } else {
+      return { scale: 0.55, opacity: 0.35, zIndex: 1, xOffset: position * 55 }
+    }
+  }
+
+  // Positions to render: -2, -1, 0, 1, 2
+  const positions = [-2, -1, 0, 1, 2]
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -330,27 +384,17 @@ export function HomepageDemo() {
       className="mt-20 relative w-full"
     >
       {/* Carousel Container */}
-      <div className="relative h-[700px] flex items-center justify-center">
-        {/* Side cards - 2 left, 2 right (animate) */}
-        {[-2, -1, 1, 2].map((offset) => {
-          const index = getWrappedIndex(currentIndex + offset)
-          const example = demoExamples[index]
-          const isInner = Math.abs(offset) === 1
-
-          // Graduated scaling: inner 0.75, outer 0.55
-          const scale = isInner ? 0.75 : 0.55
-          // Graduated opacity: inner 0.6, outer 0.35
-          const opacity = isInner ? 0.6 : 0.35
-          // Z-index layering (below center phone frame)
-          const zIndex = isInner ? 5 : 1
-          // Tighter spacing so all 5 cards fit
-          const xOffset = offset * 55
+      <div className="relative h-[700px] flex items-center justify-center overflow-hidden md:overflow-visible">
+        {positions.map((position) => {
+          const dataIndex = getWrappedIndex(currentIndex + position)
+          const example = demoExamples[dataIndex]
+          const { scale, opacity, zIndex, xOffset } = getPositionProps(position)
+          const isCenter = position === 0
 
           return (
             <motion.div
-              key={index}
+              key={`pos-${position}`}
               className="absolute"
-              initial={false}
               animate={{
                 x: `${xOffset}%`,
                 scale,
@@ -363,31 +407,39 @@ export function HomepageDemo() {
               }}
               style={{
                 width: "320px",
-                pointerEvents: "none"
+                pointerEvents: isCenter ? "auto" : "none"
               }}
             >
-              <SideCard example={example} />
+              {isCenter ? (
+                <div className="relative">
+                  <div className="bg-gray-900 rounded-[2.5rem] p-3 shadow-2xl">
+                    <div className="bg-white rounded-[2rem] overflow-hidden relative h-[600px]">
+                      {/* Skeleton background - always visible behind content */}
+                      <div className="absolute inset-0">
+                        <DemoSkeleton />
+                      </div>
+                      {/* Animated content on top */}
+                      <AnimatePresence mode="popLayout" initial={false}>
+                        <motion.div
+                          key={dataIndex}
+                          className="absolute inset-0"
+                          initial={{ x: "100%", opacity: 0 }}
+                          animate={{ x: 0, opacity: 1 }}
+                          exit={{ x: "-100%", opacity: 0 }}
+                          transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
+                        >
+                          <DemoContent example={example} radius="2rem" />
+                        </motion.div>
+                      </AnimatePresence>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <SideCard example={example} />
+              )}
             </motion.div>
           )
         })}
-
-        {/* Fixed phone frame in center with animated content inside */}
-        <div className="relative z-10">
-          <PhoneFrameOverlay>
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.div
-                key={currentIndex}
-                className="h-[600px]"
-                initial={{ x: 100, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                exit={{ x: -100, opacity: 0 }}
-                transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
-              >
-                <DemoContent example={demoExamples[currentIndex]} radius="2rem" />
-              </motion.div>
-            </AnimatePresence>
-          </PhoneFrameOverlay>
-        </div>
       </div>
 
       {/* Carousel Indicators */}

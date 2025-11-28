@@ -57,7 +57,8 @@ export default async function HomePage() {
             All your links, one place
           </h1>
           <p className="text-xl text-gray-600 mb-10 max-w-xl mx-auto">
-            Stop sending multiple links. Create one page that works.
+            <span className="sm:hidden">Stop sending multiple links.</span>
+            <span className="hidden sm:inline">Stop sending multiple links. Create one page that works.</span>
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">

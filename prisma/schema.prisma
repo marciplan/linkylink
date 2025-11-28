@@ -51,6 +51,7 @@ model Link {
   context                   String?
   order                     Int
   clicks                    Int                       @default(0)
+  likes                     Int                       @default(0)
   createdAt                 DateTime                  @default(now())
   dismissedRecommendations  DismissedRecommendation[]
 }

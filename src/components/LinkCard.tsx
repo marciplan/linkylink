@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import Image from "next/image"
-import { ExternalLink, GripVertical, Info } from "lucide-react"
+import { ExternalLink, GripVertical, Info, ThumbsUp } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Avatar } from "./Avatar"
 
@@ -19,6 +19,9 @@ interface LinkCardProps {
   // User info for context messages
   userAvatar?: string | null
   username?: string
+  // Likes
+  likes?: number
+  onLike?: () => void
 }
 
 export function LinkCard({
@@ -32,8 +35,13 @@ export function LinkCard({
   className,
   userAvatar,
   username,
+  likes = 0,
+  onLike,
 }: LinkCardProps) {
   const [showContext, setShowContext] = useState(false)
+  const [localLikes, setLocalLikes] = useState(likes)
+  const [isLiking, setIsLiking] = useState(false)
+  const [shouldAnimate, setShouldAnimate] = useState(false)
 
   const domain = (() => {
     try {
@@ -46,6 +54,26 @@ export function LinkCard({
   const handleInfoClick = (e: React.MouseEvent) => {
     e.stopPropagation()
     setShowContext(!showContext)
+  }
+
+  const handleLikeClick = async (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (isLiking) return
+
+    setIsLiking(true)
+    setShouldAnimate(true)
+
+    // Reset animation state after animation completes
+    setTimeout(() => {
+      setShouldAnimate(false)
+      setLocalLikes(prev => prev + 1)
+    }, 400)
+
+    if (onLike) {
+      await onLike()
+    }
+
+    setIsLiking(false)
   }
 
   return (
@@ -113,6 +141,27 @@ export function LinkCard({
           </div>
 
           <div className="flex items-center gap-2">
+            <button
+              onClick={handleLikeClick}
+              disabled={isLiking}
+              className="p-1.5 rounded-full text-gray-400 hover:text-amber-500 hover:bg-amber-50 transition-all flex-shrink-0 flex items-center gap-1"
+              title="Like this link"
+            >
+              <motion.span
+                animate={shouldAnimate ? {
+                  scale: [1, 1.3, 1],
+                  rotate: [0, -15, 15, -10, 10, 0],
+                } : {}}
+                transition={{ duration: 0.4, ease: "easeInOut" }}
+                className="inline-flex"
+              >
+                <ThumbsUp className="w-4 h-4" />
+              </motion.span>
+              {localLikes > 0 && (
+                <span className="text-xs font-medium">{localLikes}</span>
+              )}
+            </button>
+
             {context && (
               <button
                 onClick={handleInfoClick}

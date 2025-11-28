@@ -7,11 +7,24 @@ import generateGradient from "gradient-avatar"
 interface AvatarProps {
   src?: string | null
   username: string
+  title?: string
   size?: number
   className?: string
 }
 
-export function Avatar({ src, username, size = 80, className = "" }: AvatarProps) {
+const FALLBACK_EMOJIS = ['🎯', '🚀', '💡', '🌟', '📚', '🎨', '🎵', '💻', '🌈', '🔥']
+
+// Simple hash function for deterministic selection
+const hashString = (str: string) => {
+  let hash = 0
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) - hash) + str.charCodeAt(i)
+    hash |= 0
+  }
+  return Math.abs(hash)
+}
+
+export function Avatar({ src, username, title, size = 80, className = "" }: AvatarProps) {
   const [gradientSvg, setGradientSvg] = useState<string>("")
   const initial = username?.charAt(0)?.toUpperCase() || "?"
 
@@ -64,6 +77,23 @@ export function Avatar({ src, username, size = 80, className = "" }: AvatarProps
     )
   }
 
+  // Fallback to deterministic emoji when title is provided but no avatar
+  if (!src && title) {
+    const index = hashString(title) % FALLBACK_EMOJIS.length
+    const fallbackEmoji = FALLBACK_EMOJIS[index]
+
+    return (
+      <div
+        className={`relative flex items-center justify-center rounded-full bg-gray-100 ${className}`}
+        style={{ width: size, height: size }}
+      >
+        <span style={{ fontSize: size * 0.6 }}>
+          {fallbackEmoji}
+        </span>
+      </div>
+    )
+  }
+
   if (gradientSvg) {
     return (
       <div
@@ -71,7 +101,7 @@ export function Avatar({ src, username, size = 80, className = "" }: AvatarProps
         style={{ width: size, height: size }}
       >
         <div dangerouslySetInnerHTML={{ __html: gradientSvg }} />
-        <div 
+        <div
           className="absolute inset-0 flex items-center justify-center text-white font-semibold"
           style={{ fontSize: size * 0.4, textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)' }}
         >

@@ -289,6 +289,33 @@ export async function updateLinkOrder(linkylinkId: string, linkIds: string[]) {
   revalidatePath(`/${linkylink.user.username}/${linkylink.slug}`)
 }
 
+export async function updateLink(linkId: string, data: { title: string }) {
+  const session = await auth()
+  if (!session?.user?.id) {
+    throw new Error("Unauthorized")
+  }
+
+  // Verify ownership through linkylink
+  const link = await prisma.link.findUnique({
+    where: { id: linkId },
+    include: { linkylink: { include: { user: true } } },
+  })
+
+  if (!link || link.linkylink.userId !== session.user.id) {
+    throw new Error("Link not found")
+  }
+
+  const updated = await prisma.link.update({
+    where: { id: linkId },
+    data: { title: data.title.trim() },
+  })
+
+  revalidatePath(`/dashboard`)
+  revalidatePath(`/edit/${link.linkylinkId}`)
+  revalidatePath(`/${link.linkylink.user.username}/${link.linkylink.slug}`)
+  return updated
+}
+
 export async function updateLinkylink(linkylinkId: string, data: { title?: string, subtitle?: string, avatar?: string }) {
   const session = await auth()
   if (!session?.user?.id) {
@@ -330,6 +357,14 @@ export async function incrementClicks(linkId: string) {
     where: { id: linkId },
     data: { clicks: { increment: 1 } },
   })
+}
+
+export async function incrementLikes(linkId: string) {
+  const link = await prisma.link.update({
+    where: { id: linkId },
+    data: { likes: { increment: 1 } },
+  })
+  return link.likes
 }
 
 export async function deleteLinkylink(linkylinkId: string) {

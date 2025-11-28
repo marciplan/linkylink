@@ -4,10 +4,10 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { motion, Reorder } from "framer-motion"
-import { ExternalLink, Trash2, Copy, Check, Link2, ArrowLeft, Image as ImageIcon, Loader2 } from "lucide-react"
+import { ExternalLink, Trash2, Copy, Check, Link2, ArrowLeft, Image as ImageIcon, Loader2, Pencil } from "lucide-react"
 import { VisualHeader } from "@/components/VisualHeader"
 import { QuickNavSearch } from "@/components/QuickNavSearch"
-import { deleteLink, updateLinkOrder, updateLinkylink } from "@/lib/actions"
+import { deleteLink, updateLink, updateLinkOrder, updateLinkylink } from "@/lib/actions"
 
 interface EditLinkylinkViewProps {
   linkylink: {
@@ -38,6 +38,7 @@ export default function EditLinkylinkView({ linkylink, username }: EditLinkylink
   const [isSaving, setIsSaving] = useState(false)
   const [isGeneratingHeader, setIsGeneratingHeader] = useState(false)
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+  const [editingLinkId, setEditingLinkId] = useState<string | null>(null)
 
   // Track unsaved changes
   useEffect(() => {
@@ -63,6 +64,23 @@ export default function EditLinkylinkView({ linkylink, username }: EditLinkylink
       linkylink.id,
       newOrder.map(l => l.id)
     )
+  }
+
+  const handleUpdateLinkTitle = async (linkId: string, newTitle: string) => {
+    const link = links.find(l => l.id === linkId)
+    if (!link || !newTitle.trim()) {
+      setEditingLinkId(null)
+      return
+    }
+
+    if (newTitle.trim() !== link.title) {
+      await updateLink(linkId, { title: newTitle.trim() })
+    }
+    setEditingLinkId(null)
+  }
+
+  const handleLinkTitleChange = (linkId: string, newTitle: string) => {
+    setLinks(links.map(l => l.id === linkId ? { ...l, title: newTitle } : l))
   }
 
   const handleCopyUrl = async () => {
@@ -274,9 +292,29 @@ export default function EditLinkylinkView({ linkylink, username }: EditLinkylink
                     
                     {/* Link info */}
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-gray-900 truncate">
-                        {link.title}
-                      </h3>
+                      {editingLinkId === link.id ? (
+                        <input
+                          type="text"
+                          value={link.title}
+                          onChange={(e) => handleLinkTitleChange(link.id, e.target.value)}
+                          onBlur={(e) => handleUpdateLinkTitle(link.id, e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              handleUpdateLinkTitle(link.id, link.title)
+                            } else if (e.key === 'Escape') {
+                              setEditingLinkId(null)
+                            }
+                          }}
+                          onPointerDown={(e) => e.stopPropagation()}
+                          autoFocus
+                          className="w-full font-medium text-gray-900 bg-white border border-blue-500 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder="Link title"
+                        />
+                      ) : (
+                        <h3 className="font-medium text-gray-900 truncate">
+                          {link.title}
+                        </h3>
+                      )}
                       <p className="text-sm text-gray-500 truncate">
                         {(() => {
                           try {
@@ -287,11 +325,19 @@ export default function EditLinkylinkView({ linkylink, username }: EditLinkylink
                         })()}
                       </p>
                     </div>
-                    
+
+                    {/* Edit button */}
+                    <button
+                      onClick={() => setEditingLinkId(link.id)}
+                      className="p-2 rounded-lg hover:bg-blue-50 transition-all"
+                    >
+                      <Pencil className="w-4 h-4 text-gray-400 hover:text-blue-500" />
+                    </button>
+
                     {/* Delete button */}
                     <button
                       onClick={() => handleDeleteLink(link.id)}
-                      className="p-2 rounded-lg hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100"
+                      className="p-2 rounded-lg hover:bg-red-50 transition-all"
                     >
                       <Trash2 className="w-4 h-4 text-gray-400 hover:text-red-500" />
                     </button>
