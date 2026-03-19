@@ -240,7 +240,7 @@ export default function PocketImportPage() {
             ) : (
               <div className="text-center py-12">
                 <motion.div
-                  initial={{ scale: 0 }}
+                  initial={{ scale: 0.9, opacity: 0 }}
                   animate={{ scale: 1 }}
                   className="inline-flex items-center justify-center w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full mb-6"
                 >

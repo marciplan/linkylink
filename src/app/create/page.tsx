@@ -4,7 +4,7 @@ import { useState, FormEvent } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { motion } from "framer-motion"
-import { Loader2, Link2, Plus, ArrowLeft } from "lucide-react"
+import { Loader2, Link2, Plus, ArrowLeft, Calendar, LinkIcon } from "lucide-react"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { createLinkylink, addLinkToLinkylink } from "@/lib/actions"
 import { useSession } from "next-auth/react"
@@ -31,7 +31,7 @@ export default function CreatePage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
   const [fieldErrors, setFieldErrors] = useState<{ title?: string; subtitle?: string; avatar?: string }>({})
-  const [step, setStep] = useState<'info' | 'links'>('info')
+  const [step, setStep] = useState<'type' | 'info' | 'links'>('type')
   const [createdLinkylink, setCreatedLinkylink] = useState<CreatedLinkyLink | null>(null)
   const [linkTitle, setLinkTitle] = useState("")
   const [linkUrl, setLinkUrl] = useState("")
@@ -198,14 +198,22 @@ export default function CreatePage() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
           >
             <div className="mb-8">
-              {step === 'info' ? (
+              {step === 'type' && (
+                <>
+                  <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Create Bundel</h1>
+                  <p className="text-gray-600 dark:text-gray-400 mt-2">Choose what type of Bundel you want to create</p>
+                </>
+              )}
+              {step === 'info' && (
                 <>
                   <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Create Bundel</h1>
                   <p className="text-gray-600 dark:text-gray-400 mt-2">Start by giving your collection a name and subtitle</p>
                 </>
-              ) : (
+              )}
+              {step === 'links' && (
                 <>
                   <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Add Your First Link</h1>
                   <p className="text-gray-600 dark:text-gray-400 mt-2">Your Bundel is ready! Add your first link to get started</p>
@@ -213,7 +221,54 @@ export default function CreatePage() {
               )}
             </div>
 
-            {step === 'info' ? (
+            {step === 'type' && (
+              <div className="space-y-4">
+                <button
+                  type="button"
+                  onClick={() => setStep('info')}
+                  className="w-full p-6 rounded-xl border-2 border-gray-200 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-500 transition-colors text-left group"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg group-hover:bg-gray-200 dark:group-hover:bg-gray-700 transition-colors">
+                      <LinkIcon className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-medium text-gray-900 dark:text-white">Normal Bundel</h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                        A simple collection of links. Perfect for sharing resources, portfolios, or link-in-bio pages.
+                      </p>
+                    </div>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => router.push('/create/year-review')}
+                  className="w-full p-6 rounded-xl border-2 border-gray-200 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-500 transition-colors text-left group"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg group-hover:bg-gray-200 dark:group-hover:bg-gray-700 transition-colors">
+                      <Calendar className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-medium text-gray-900 dark:text-white">Year Review</h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                        Create ranked lists by category. Perfect for sharing your best and worst of the year.
+                      </p>
+                    </div>
+                  </div>
+                </button>
+
+                <Link
+                  href="/dashboard"
+                  className="w-full px-6 py-3 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-center block mt-6"
+                >
+                  Cancel
+                </Link>
+              </div>
+            )}
+
+            {step === 'info' && (
               <form onSubmit={onInfoSubmit} className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -277,7 +332,9 @@ export default function CreatePage() {
                   </Link>
                 </div>
               </form>
-            ) : (
+            )}
+
+            {step === 'links' && (
               <div className="space-y-6">
                 {/* Bundel Preview */}
                 {createdLinkylink && (

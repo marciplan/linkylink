@@ -23,7 +23,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         OR: [
           { title: { contains: searchQuery, mode: 'insensitive' } },
           { subtitle: { contains: searchQuery, mode: 'insensitive' } },
-          { 
+          {
             links: {
               some: {
                 OR: [
@@ -31,6 +31,30 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
                   { url: { contains: searchQuery, mode: 'insensitive' } },
                   { context: { contains: searchQuery, mode: 'insensitive' } }
                 ]
+              }
+            }
+          },
+          // Search in Year Review categories
+          {
+            categories: {
+              some: {
+                name: { contains: searchQuery, mode: 'insensitive' }
+              }
+            }
+          },
+          // Search in Year Review category items
+          {
+            categories: {
+              some: {
+                items: {
+                  some: {
+                    OR: [
+                      { title: { contains: searchQuery, mode: 'insensitive' } },
+                      { url: { contains: searchQuery, mode: 'insensitive' } },
+                      { context: { contains: searchQuery, mode: 'insensitive' } }
+                    ]
+                  }
+                }
               }
             }
           }
@@ -47,8 +71,10 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
       views: true,
       headerImage: true,
       createdAt: true,
+      type: true,
+      year: true,
       _count: {
-        select: { links: true },
+        select: { links: true, categories: true },
       },
     },
   })
@@ -128,6 +154,9 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
                   linkCount={linkylink._count.links}
                   views={linkylink.views}
                   headerImage={linkylink.headerImage}
+                  type={linkylink.type}
+                  year={linkylink.year}
+                  categoryCount={linkylink._count.categories}
                 />
               ))}
             </div>

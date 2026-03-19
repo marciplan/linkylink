@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
 import { AlertTriangle, Loader2 } from "lucide-react"
 
 interface DeleteModalProps {
@@ -13,6 +13,7 @@ interface DeleteModalProps {
 }
 
 export function DeleteModal({ isOpen, onClose, onConfirm, title, message }: DeleteModalProps) {
+  const shouldReduceMotion = useReducedMotion()
   const [isDeleting, setIsDeleting] = useState(false)
 
   const handleConfirm = async () => {
@@ -33,18 +34,20 @@ export function DeleteModal({ isOpen, onClose, onConfirm, title, message }: Dele
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           {/* Backdrop */}
           <motion.div
-            initial={{ opacity: 0 }}
+            initial={shouldReduceMotion ? false : { opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
             onClick={onClose}
             className="absolute inset-0 bg-black bg-opacity-50"
           />
-          
+
           {/* Modal */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
             className="relative bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl"
           >
             <div className="flex items-center gap-3 mb-4">

@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react"
 import Image from "next/image"
 import { X, Check, Settings, Loader2, RefreshCw } from "lucide-react"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
 import { Avatar } from "./Avatar"
 
 interface TweakModalProps {
@@ -22,6 +22,7 @@ interface TweakModalProps {
 }
 
 export function TweakModal({ isOpen, onClose, linkylink, onSave }: TweakModalProps) {
+  const shouldReduceMotion = useReducedMotion()
   const [selectedBackground, setSelectedBackground] = useState(linkylink.headerImage || '')
   const [selectedIcon, setSelectedIcon] = useState(linkylink.avatar || '')
   const [isGeneratingBackgrounds, setIsGeneratingBackgrounds] = useState(false)
@@ -158,11 +159,18 @@ export function TweakModal({ isOpen, onClose, linkylink, onSave }: TweakModalPro
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <motion.div
+        initial={shouldReduceMotion ? false : { opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+      >
         <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 20 }}
+          initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 20 }}
+          exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.95, y: 20 }}
+          transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
           className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden"
         >
           {/* Header */}
@@ -209,9 +217,9 @@ export function TweakModal({ isOpen, onClose, linkylink, onSave }: TweakModalPro
                   {suggestedEmojis.slice(0, 5).map((emoji, index) => (
                     <motion.button
                       key={`${emoji}-${index}`}
-                      initial={{ opacity: 0, scale: 0.8 }}
+                      initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.8 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: index * 0.05 }}
+                      transition={shouldReduceMotion ? undefined : { delay: index * 0.05 }}
                       onClick={() => setSelectedIcon(emoji)}
                       className={`aspect-square rounded-lg text-3xl flex items-center justify-center transition-all hover:scale-110 ${
                         selectedIcon === emoji
@@ -274,9 +282,9 @@ export function TweakModal({ isOpen, onClose, linkylink, onSave }: TweakModalPro
                   {(linkylink.headerImages.slice(0, 3)).map((imageUrl, index) => (
                     <motion.div
                       key={imageUrl}
-                      initial={{ opacity: 0, y: 20 }}
+                      initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.1 }}
+                      transition={shouldReduceMotion ? undefined : { delay: index * 0.1 }}
                       className="relative group cursor-pointer"
                       onClick={() => handleBackgroundSelect(imageUrl)}
                     >
@@ -337,7 +345,7 @@ export function TweakModal({ isOpen, onClose, linkylink, onSave }: TweakModalPro
             </button>
           </div>
         </motion.div>
-      </div>
+      </motion.div>
     </AnimatePresence>
   )
 }

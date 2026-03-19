@@ -2,8 +2,8 @@
 
 import Link from "next/link"
 import Image from "next/image"
-import { motion } from "framer-motion"
-import { Eye, Link2, ExternalLink } from "lucide-react"
+import { motion, useReducedMotion } from "framer-motion"
+import { Eye, Link2, ExternalLink, Layers } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Avatar } from "./Avatar"
 
@@ -18,6 +18,9 @@ interface LinkylinkCardProps {
   views: number
   headerImage?: string | null
   className?: string
+  type?: "NORMAL" | "YEAR_REVIEW"
+  year?: number | null
+  categoryCount?: number
 }
 
 export function LinkylinkCard({
@@ -31,12 +34,17 @@ export function LinkylinkCard({
   views,
   headerImage,
   className,
+  type = "NORMAL",
+  year,
+  categoryCount = 0,
 }: LinkylinkCardProps) {
+  const shouldReduceMotion = useReducedMotion()
+  const isYearReview = type === "YEAR_REVIEW"
   return (
     <Link href={`/${username}/${slug}`}>
       <motion.div
-        whileHover={{ y: -2 }}
-        whileTap={{ scale: 0.98 }}
+        whileHover={shouldReduceMotion ? undefined : { y: -2 }}
+        whileTap={shouldReduceMotion ? undefined : { scale: 0.98 }}
         className={cn(
           "relative block rounded-lg border border-gray-200 hover:border-gray-400 transition-all cursor-pointer overflow-hidden",
           className
@@ -69,7 +77,14 @@ export function LinkylinkCard({
             />
             <div className="flex-1 min-w-0">
               <div className="flex justify-between items-start mb-1">
-                <h3 className="text-lg font-medium text-gray-900 truncate">{title}</h3>
+                <div className="flex items-center gap-2 min-w-0">
+                  <h3 className="text-lg font-medium text-gray-900 truncate">{title}</h3>
+                  {isYearReview && year && (
+                    <span className="flex-shrink-0 px-2 py-0.5 bg-gray-900 text-white text-xs font-medium rounded-full">
+                      {year}
+                    </span>
+                  )}
+                </div>
                 <ExternalLink className="w-4 h-4 text-gray-400 flex-shrink-0 ml-2" />
               </div>
               {subtitle && (
@@ -80,10 +95,17 @@ export function LinkylinkCard({
           </div>
           
           <div className="flex items-center gap-4 text-xs text-gray-500">
-            <span className="flex items-center gap-1">
-              <Link2 className="w-3 h-3" />
-              {linkCount} {linkCount === 1 ? 'link' : 'links'}
-            </span>
+            {isYearReview ? (
+              <span className="flex items-center gap-1">
+                <Layers className="w-3 h-3" />
+                {categoryCount} {categoryCount === 1 ? 'category' : 'categories'}
+              </span>
+            ) : (
+              <span className="flex items-center gap-1">
+                <Link2 className="w-3 h-3" />
+                {linkCount} {linkCount === 1 ? 'link' : 'links'}
+              </span>
+            )}
             <span className="flex items-center gap-1">
               <Eye className="w-3 h-3" />
               {views} {views === 1 ? 'view' : 'views'}

@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { incrementViews } from "@/lib/actions"
 import { auth } from "@/lib/auth"
 import PublicLinkView from "./PublicLinkView"
+import YearReviewView from "./YearReviewView"
 
 interface PageProps {
   params: Promise<{
@@ -65,16 +66,32 @@ export default async function PublicLinkylinkPage({ params }: PageProps) {
   const { username, slug } = await params
   const session = await auth()
   
-  const linkylink = await prisma.linkLink.findUnique({
-    where: { slug },
-    include: {
-      user: true,
-      links: {
-        orderBy: { order: "asc" },
+  // Run main query and session fetch in parallel
+  const [linkylink, sessionUser] = await Promise.all([
+    prisma.linkLink.findUnique({
+      where: { slug },
+      include: {
+        user: true,
+        links: {
+          orderBy: { order: "asc" },
+        },
+        categories: {
+          orderBy: { order: "asc" },
+          include: {
+            items: {
+              orderBy: { rank: "asc" },
+            },
+          },
+        },
       },
-    },
-    // Note: headerImage, headerPrompt, headerImages are included by default
-  })
+    }),
+    session?.user?.id
+      ? prisma.user.findUnique({
+          where: { id: session.user.id },
+          select: { id: true, username: true, image: true },
+        })
+      : null,
+  ])
 
   if (!linkylink || linkylink.user.username !== username) {
     notFound()
@@ -83,8 +100,25 @@ export default async function PublicLinkylinkPage({ params }: PageProps) {
   // Check if current user is the owner
   const isOwner = session?.user?.id === linkylink.userId
 
+  // Fetch comment counts in parallel (non-blocking after notFound check)
+  const linkIds = linkylink.links.map(l => l.id)
+  const commentCounts = linkIds.length > 0 ? await prisma.comment.groupBy({
+    by: ['linkId'],
+    where: { linkId: { in: linkIds } },
+    _count: true,
+  }) : []
+  const commentCountMap: Record<string, number> = {}
+  for (const c of commentCounts) {
+    commentCountMap[c.linkId] = c._count
+  }
+
   // Increment views (don't await to not block rendering)
   incrementViews(slug)
 
-  return <PublicLinkView linkylink={linkylink} isOwner={isOwner} />
+  // Render appropriate view based on type
+  if (linkylink.type === "YEAR_REVIEW") {
+    return <YearReviewView linkylink={linkylink} isOwner={isOwner} />
+  }
+
+  return <PublicLinkView linkylink={linkylink} isOwner={isOwner} currentUser={sessionUser} commentCounts={commentCountMap} />
 }

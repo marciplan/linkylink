@@ -42,6 +42,8 @@ interface PublicLinkViewProps {
     }[]
   }
   isOwner?: boolean
+  currentUser?: { id: string; username: string; image: string | null } | null
+  commentCounts?: Record<string, number>
 }
 
 // Create a component for the draggable item
@@ -163,7 +165,7 @@ function DraggableLink({
   )
 }
 
-export default function PublicLinkView({ linkylink, isOwner = false }: PublicLinkViewProps) {
+export default function PublicLinkView({ linkylink, isOwner = false, currentUser, commentCounts = {} }: PublicLinkViewProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [isEditing, setIsEditing] = useState(false)
@@ -490,6 +492,9 @@ export default function PublicLinkView({ linkylink, isOwner = false }: PublicLin
                     onClick={() => handleLinkClick(link.id, link.url)}
                     likes={link.likes ?? 0}
                     onLike={() => incrementLikes(link.id)}
+                    linkId={link.id}
+                    currentUser={currentUser}
+                    commentCount={commentCounts[link.id] ?? 0}
                   />
                 </motion.div>
               ))}

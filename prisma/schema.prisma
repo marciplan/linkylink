@@ -10,6 +10,16 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum BundelType {
+  NORMAL
+  YEAR_REVIEW
+}
+
+enum CategoryType {
+  BEST
+  WORST
+}
+
 model User {
   id                        String                    @id @default(cuid())
   email                     String                    @unique
@@ -19,6 +29,7 @@ model User {
   image                     String?
   linkylinks                LinkLink[]
   dismissedRecommendations  DismissedRecommendation[]
+  comments                  Comment[]
   createdAt                 DateTime                  @default(now())
   updatedAt                 DateTime                  @updatedAt
 }
@@ -35,6 +46,9 @@ model LinkLink {
   headerPrompt  String?
   headerImages  String[]
   links         Link[]
+  type          BundelType  @default(NORMAL)
+  year          Int?
+  categories    Category[]
   views         Int         @default(0)
   isPublic      Boolean     @default(true)
   createdAt     DateTime    @default(now())
@@ -54,6 +68,7 @@ model Link {
   likes                     Int                       @default(0)
   createdAt                 DateTime                  @default(now())
   dismissedRecommendations  DismissedRecommendation[]
+  comments                  Comment[]
 }
 
 model DismissedRecommendation {
@@ -65,5 +80,49 @@ model DismissedRecommendation {
   createdAt DateTime @default(now())
 
   @@unique([userId, linkId])
+  @@index([userId])
+}
+
+model Category {
+  id            String       @id @default(cuid())
+  linkylinkId   String
+  linkylink     LinkLink     @relation(fields: [linkylinkId], references: [id], onDelete: Cascade)
+  name          String
+  icon          String       @default("Star")
+  categoryType  CategoryType @default(BEST)
+  order         Int
+  rankLimit     Int          @default(5)
+  items         CategoryItem[]
+  createdAt     DateTime     @default(now())
+
+  @@index([linkylinkId])
+}
+
+model CategoryItem {
+  id          String    @id @default(cuid())
+  categoryId  String
+  category    Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  title       String
+  url         String
+  favicon     String?
+  context     String?
+  rank        Int
+  clicks      Int       @default(0)
+  likes       Int       @default(0)
+  createdAt   DateTime  @default(now())
+
+  @@index([categoryId])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  linkId    String
+  link      Link     @relation(fields: [linkId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([linkId])
   @@index([userId])
 }
