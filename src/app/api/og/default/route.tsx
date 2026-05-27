@@ -1,7 +1,5 @@
 import { ImageResponse } from "@vercel/og"
 
-export const runtime = "edge" // Fast, no DB needed
-
 export async function GET() {
   return new ImageResponse(
     (

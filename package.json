@@ -28,27 +28,30 @@
     "gradient-avatar": "^1.0.2",
     "jsdom": "^27.0.0",
     "lucide-react": "^0.541.0",
-    "next": "15.5.7",
-    "next-auth": "^5.0.0-beta.29",
+    "next": "16.2.6",
+    "next-auth": "^5.0.0-beta.31",
     "prisma": "^6.14.0",
-    "react": "19.1.0",
-    "react-dom": "19.1.0",
+    "react": "19.2.6",
+    "react-dom": "19.2.6",
     "react-hook-form": "^7.62.0",
     "tailwind-merge": "^3.3.1",
     "zod": "^4.1.1"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3",
     "@types/bcryptjs": "^3.0.0",
     "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
+    "@types/react": "19.2.15",
+    "@types/react-dom": "19.2.3",
     "autoprefixer": "^10.4.21",
     "eslint": "^9",
-    "eslint-config-next": "15.5.0",
+    "eslint-config-next": "16.2.6",
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.17",
     "tsx": "^4.20.5",
     "typescript": "^5"
+  },
+  "resolutions": {
+    "@types/react": "19.2.15",
+    "@types/react-dom": "19.2.3"
   }
 }

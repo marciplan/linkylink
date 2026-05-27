@@ -87,6 +87,7 @@ function createFallbackImage() {
       width: 1200,
       height: 630,
       headers: {
+        "Content-Type": "image/png",
         "Cache-Control": "public, max-age=3600, stale-while-revalidate=86400",
       },
     }

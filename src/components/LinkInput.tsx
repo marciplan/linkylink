@@ -36,30 +36,52 @@ export function LinkInput({ onAdd, className }: LinkInputProps) {
 
   const extractTitleFromUrl = (url: string): string => {
     if (!url) return ""
-    
-    // Normalize the URL before processing
+
     const normalizedUrl = normalizeUrl(url)
-    
+
     try {
       const urlObj = new URL(normalizedUrl)
-      const pathname = urlObj.pathname
-      
-      // Extract the last segment of the path, remove file extensions, and clean it up
-      const segments = pathname.split('/').filter(Boolean)
-      const lastSegment = segments[segments.length - 1] || urlObj.hostname
-      
-      // Remove common file extensions and clean up
-      const cleanSegment = lastSegment
-        .replace(/\.[a-zA-Z0-9]+$/, '') // Remove file extensions
-        .replace(/[-_]/g, ' ') // Replace hyphens and underscores with spaces
-        .replace(/([a-z])([A-Z])/g, '$1 $2') // Add spaces between camelCase
+      const segments = urlObj.pathname.split('/').filter(Boolean)
+
+      const ROUTING_NOISE = new Set([
+        'p', 'dp', 'gp', 'product', 'products', 'item', 'items',
+        'ref', 'category', 'categories', 'c', 'tag', 'tags',
+        'page', 'pages', 'view', 'detail', 'details', 'www',
+      ])
+      const isJunk = (s: string): boolean => {
+        if (!s) return true
+        if (/^\d+$/.test(s)) return true                       // pure numeric IDs
+        if (/^[0-9a-f]{8,}$/i.test(s) && !/[-_]/.test(s)) return true // hash/sku
+        if (/^[0-9a-f-]{32,}$/i.test(s)) return true           // uuid-ish
+        if (/^[a-z]{2}([_-][a-z]{2,3})?$/i.test(s)) return true // locales: en, nl-NL
+        if (ROUTING_NOISE.has(s.toLowerCase())) return true
+        return false
+      }
+      const hasLetters = (s: string) => /[a-zA-Z]/.test(s)
+
+      let chosen = ''
+      let fallback = ''
+      for (let i = segments.length - 1; i >= 0; i--) {
+        const seg = decodeURIComponent(segments[i]).replace(/\.[a-zA-Z0-9]+$/, '')
+        if (isJunk(seg)) continue
+        if (hasLetters(seg) && (/[-_]/.test(seg) || seg.length > 4)) {
+          chosen = seg
+          break
+        }
+        if (!fallback && hasLetters(seg)) fallback = seg
+      }
+
+      const raw = chosen || fallback || urlObj.hostname.replace(/^www\./, '')
+
+      return raw
+        .replace(/[-_]+/g, ' ')
+        .replace(/([a-z])([A-Z])/g, '$1 $2')
         .toLowerCase()
         .split(' ')
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1)) // Capitalize first letter of each word
+        .filter(Boolean)
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ')
         .trim()
-      
-      return cleanSegment || urlObj.hostname
     } catch {
       return ""
     }

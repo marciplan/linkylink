@@ -30,6 +30,8 @@ export const metadata: Metadata = {
     title: "Bundel - Share Multiple Links Beautifully",
     description: "Create beautiful link pages to share multiple URLs at once.",
     type: "website",
+    siteName: "Bundel",
+    locale: "en_US",
     images: [
       {
         url: "/api/og/default",

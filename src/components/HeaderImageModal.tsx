@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Image from "next/image"
 import { X, Check } from "lucide-react"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
 
 interface HeaderImageModalProps {
   isOpen: boolean
@@ -17,6 +17,7 @@ interface HeaderImageModalProps {
 }
 
 export function HeaderImageModal({ isOpen, onClose, linkylink }: HeaderImageModalProps) {
+  const shouldReduceMotion = useReducedMotion()
   const [selectedImage, setSelectedImage] = useState(linkylink.headerImage || '')
   const [isSelecting, setIsSelecting] = useState(false)
 
@@ -65,18 +66,20 @@ export function HeaderImageModal({ isOpen, onClose, linkylink }: HeaderImageModa
         <>
           {/* Backdrop */}
           <motion.div
-            initial={{ opacity: 0 }}
+            initial={shouldReduceMotion ? false : { opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
             className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
             onClick={onClose}
           />
 
           {/* Modal */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
             className="fixed inset-0 z-50 flex items-center justify-center p-4"
           >
             <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">

@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation"
-import { Metadata } from "next"
+import { Metadata, Viewport } from "next"
 import { prisma } from "@/lib/prisma"
 import { incrementViews } from "@/lib/actions"
 import { auth } from "@/lib/auth"
@@ -13,53 +13,61 @@ interface PageProps {
   }>
 }
 
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#0a0a0a" },
+  ],
+}
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { username, slug } = await params
-  
+
   const linkylink = await prisma.linkLink.findUnique({
     where: { slug },
     include: { user: true },
-    // Note: headerImage, headerPrompt, headerImages are included by default
   })
 
   if (!linkylink || linkylink.user.username !== username) {
     return {}
   }
 
-  // Use a relative path; Next.js will resolve against metadataBase
-  // to emit an absolute URL for social crawlers.
-  const ogImageUrl = `/api/og/${slug}`
+  const pageUrl = `/${username}/${slug}`
+  const description = buildDescription(linkylink)
+  const authorName = linkylink.user.name || linkylink.user.username
+
+  const ogImage = {
+    url: `/api/og/${slug}`,
+    width: 1200,
+    height: 630,
+    alt: linkylink.title,
+    type: "image/png",
+  }
 
   return {
     title: `${linkylink.title} - Bundel`,
-    description: linkylink.subtitle || `Check out ${linkylink.title} by @${linkylink.user.username}`,
+    description,
+    alternates: { canonical: pageUrl },
+    authors: [{ name: authorName, url: `/${username}` }],
+    robots: linkylink.isPublic ? undefined : { index: false, follow: false },
     openGraph: {
       title: linkylink.title,
-      description: linkylink.subtitle || `Check out ${linkylink.title} by @${linkylink.user.username}`,
-      images: [
-        {
-          url: ogImageUrl,
-          width: 1200,
-          height: 630,
-          alt: linkylink.title,
-        },
-      ],
-      type: "website",
+      description,
+      url: pageUrl,
+      type: linkylink.type === "YEAR_REVIEW" ? "article" : "website",
+      images: [ogImage],
     },
     twitter: {
       card: "summary_large_image",
       title: linkylink.title,
-      description: linkylink.subtitle || `Check out ${linkylink.title} by @${linkylink.user.username}`,
-      images: [
-        {
-          url: ogImageUrl,
-          width: 1200,
-          height: 630,
-          alt: linkylink.title,
-        },
-      ],
+      description,
+      images: [ogImage],
     },
   }
+}
+
+function buildDescription(linkylink: { title: string; subtitle: string | null; user: { username: string } }): string {
+  return linkylink.subtitle || `Check out ${linkylink.title} by @${linkylink.user.username}`
 }
 
 export default async function PublicLinkylinkPage({ params }: PageProps) {
@@ -115,10 +123,40 @@ export default async function PublicLinkylinkPage({ params }: PageProps) {
   // Increment views (don't await to not block rendering)
   incrementViews(slug)
 
-  // Render appropriate view based on type
-  if (linkylink.type === "YEAR_REVIEW") {
-    return <YearReviewView linkylink={linkylink} isOwner={isOwner} />
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: linkylink.title,
+    description: buildDescription(linkylink),
+    url: `/${username}/${slug}`,
+    author: {
+      "@type": "Person",
+      name: linkylink.user.name || linkylink.user.username,
+      url: `/${username}`,
+    },
+    mainEntity: {
+      "@type": "ItemList",
+      numberOfItems: linkylink.links.length,
+      itemListElement: linkylink.links.map((link, i) => ({
+        "@type": "ListItem",
+        position: i + 1,
+        name: link.title,
+        url: link.url,
+      })),
+    },
   }
 
-  return <PublicLinkView linkylink={linkylink} isOwner={isOwner} currentUser={sessionUser} commentCounts={commentCountMap} />
+  const view = linkylink.type === "YEAR_REVIEW"
+    ? <YearReviewView linkylink={linkylink} isOwner={isOwner} />
+    : <PublicLinkView linkylink={linkylink} isOwner={isOwner} currentUser={sessionUser} commentCounts={commentCountMap} />
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      {view}
+    </>
+  )
 }
