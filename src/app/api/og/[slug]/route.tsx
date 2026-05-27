@@ -5,6 +5,16 @@ import { prisma } from "@/lib/prisma"
 export const runtime = "nodejs"
 
 const TIMEOUT_MS = 4000
+const WIDTH = 1200
+const HEIGHT = 630
+const RESPONSE_OPTIONS = {
+  width: WIDTH,
+  height: HEIGHT,
+  headers: {
+    'Content-Type': 'image/png',
+    'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400',
+  },
+}
 
 const GRADIENTS = [
   "linear-gradient(135deg, #ff6e7f 0%, #bfe9ff 100%)",
@@ -32,7 +42,7 @@ const THEMES: { keywords: string[]; main: string; decor: string[] }[] = [
   { keywords: ['knit', 'yarn', 'craft', 'sew', 'wool', 'crochet'], main: '🧶', decor: ['✂️', '🧵', '🪡', '🧥', '🌸', '💝'] },
   { keywords: ['travel', 'trip', 'flight', 'destination', 'journey', 'adventure'], main: '✈️', decor: ['🗺️', '🌍', '🏔️', '🎒', '📷', '🧭'] },
   { keywords: ['tech', 'code', 'dev', 'programming', 'software', 'startup'], main: '💻', decor: ['⌨️', '🖥️', '🔧', '⚡', '🚀', '🤖'] },
-  { keywords: ['movie', 'film', 'show', ' tv ', 'series', 'cinema'], main: '🎬', decor: ['🎥', '📺', '🍿', '🎞️', '🎭', '🏆'] },
+  { keywords: ['movie', 'film', 'show', 'tv', 'series', 'cinema'], main: '🎬', decor: ['🎥', '📺', '🍿', '🎞️', '🎭', '🏆'] },
   { keywords: ['fitness', 'gym', 'workout', 'exercise', 'sport', 'run'], main: '💪', decor: ['🏋️', '🏃', '🧘', '⚽', '🥊', '🏆'] },
   { keywords: ['art', 'design', 'paint', 'draw', 'creative'], main: '🎨', decor: ['🖌️', '🖼️', '✏️', '🖍️', '🌈', '✨'] },
   { keywords: ['game', 'gaming', 'play', 'console'], main: '🎮', decor: ['🕹️', '👾', '🎲', '🏆', '⭐', '⚔️'] },
@@ -62,9 +72,9 @@ function pick<T>(arr: T[], seed: number, offset = 0): T {
 }
 
 function detectTheme(text: string): typeof THEMES[number] | null {
-  const lower = ` ${text.toLowerCase()} `
+  const lower = text.toLowerCase()
   for (const theme of THEMES) {
-    if (theme.keywords.some(k => lower.includes(k))) return theme
+    if (theme.keywords.some(k => new RegExp(`\\b${k}\\b`).test(lower))) return theme
   }
   return null
 }
@@ -89,7 +99,7 @@ function buildScene(slug: string, title: string, subtitle: string | null, avatar
 function fallbackImage() {
   return new ImageResponse(
     (
-      <div style={{ height: '100%', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: pick(GRADIENTS, 0) }}>
+      <div style={{ height: '100%', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: GRADIENTS[0] }}>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', color: 'white', textShadow: '0 2px 20px rgba(0,0,0,0.5)' }}>
           <div style={{ fontSize: 140, marginBottom: 20 }}>📦</div>
           <div style={{ fontSize: 72, fontWeight: 'bold' }}>Bundel</div>
@@ -97,22 +107,19 @@ function fallbackImage() {
         </div>
       </div>
     ),
-    {
-      width: 1200,
-      height: 630,
-      headers: {
-        'Content-Type': 'image/png',
-        'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400',
-      },
-    }
+    RESPONSE_OPTIONS
   )
 }
 
 function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
-  return Promise.race([
-    promise,
-    new Promise<T>((_, reject) => setTimeout(() => reject(new Error('Timeout')), ms)),
-  ])
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error('Timeout')), ms)
+    timer.unref?.()
+    promise.then(
+      (value) => { clearTimeout(timer); resolve(value) },
+      (err) => { clearTimeout(timer); reject(err) },
+    )
+  })
 }
 
 export async function GET(
@@ -180,7 +187,7 @@ export async function GET(
                 transform: `rotate(${d.rotate}deg)`,
                 opacity: 0.85,
                 display: 'flex',
-                filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.25))',
+                textShadow: '0 4px 12px rgba(0,0,0,0.25)',
               }}
             >
               {d.e}
@@ -268,14 +275,7 @@ export async function GET(
           </div>
         </div>
       ),
-      {
-        width: 1200,
-        height: 630,
-        headers: {
-          'Content-Type': 'image/png',
-          'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400',
-        },
-      }
+      RESPONSE_OPTIONS
     )
   } catch (error) {
     console.error('OG image generation error:', error)
