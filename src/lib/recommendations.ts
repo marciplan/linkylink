@@ -53,6 +53,8 @@ export function generateRecommendations(bundles: Bundle[]): Recommendation[] {
       // Compare this link with other bundles
       for (const targetBundle of bundles) {
         if (targetBundle.id === currentBundle.id) continue
+        // The same link is already there: moving or copying it would only make a duplicate.
+        if (targetBundle.links.some(t => t.url === link.url)) continue
 
         let totalScore = 0
         let matchCount = 0
@@ -128,4 +130,20 @@ export function generateRecommendations(bundles: Bundle[]): Recommendation[] {
   })
 
   return recommendations
+}
+
+/**
+ * What "Apply all" does: every link goes to its best fit, except that two Bundels never
+ * swap links with each other in the same pass (that would just shuffle them back and forth).
+ */
+export function planBestFitMoves(recommendations: Recommendation[]): Array<{ linkId: string; bundleId: string }> {
+  const planned = new Set<string>()
+  const moves: Array<{ linkId: string; bundleId: string }> = []
+  for (const r of recommendations) {
+    const to = r.suggestedBundles[0].bundle.id
+    if (planned.has(`${to}>${r.currentBundle.id}`)) continue
+    planned.add(`${r.currentBundle.id}>${to}`)
+    moves.push({ linkId: r.link.id, bundleId: to })
+  }
+  return moves
 }

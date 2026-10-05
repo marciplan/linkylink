@@ -3,11 +3,11 @@
 import { useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
-import { ArrowRight, Check, Copy, Move, X } from "lucide-react"
+import { ArrowRight, Check, Copy, Loader2, Move, Sparkles, X } from "lucide-react"
 import { Favicon } from "@/components/bundel/Favicon"
 import { Button } from "@/components/ui/button"
 import { domainOf } from "@/lib/links"
-import { generateRecommendations, type Bundle } from "@/lib/recommendations"
+import { generateRecommendations, planBestFitMoves, type Bundle } from "@/lib/recommendations"
 
 export function RecommendationsClient({
   bundles,
@@ -55,6 +55,48 @@ export function RecommendationsClient({
     }
   }
 
+  const [applyingAll, setApplyingAll] = useState(false)
+  const bestFitCount = useMemo(() => planBestFitMoves(recommendations).length, [recommendations])
+
+  const post = (moves?: unknown[], restore?: unknown[]) =>
+    fetch("/api/recommendations/apply", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(moves ? { moves } : { restore })
+    })
+
+  // Move every link to its best-fit Bundel in one go; Undo puts them all back.
+  const handleApplyAll = async () => {
+    const moves = planBestFitMoves(recommendations)
+    setApplyingAll(true)
+    try {
+      const response = await post(moves)
+      if (!response.ok) throw new Error("Failed to apply suggestions")
+      const { moved, undo } = await response.json()
+      toast(`Tidied ${moved} ${moved === 1 ? "link" : "links"}`, {
+        duration: 8000,
+        action: {
+          label: "Undo",
+          onClick: async () => {
+            try {
+              const res = await post(undefined, undo)
+              if (!res.ok) throw new Error("Undo failed")
+              router.refresh()
+            } catch {
+              toast.error("Couldn't undo that. Please try again.")
+            }
+          }
+        }
+      })
+      router.refresh()
+    } catch (error) {
+      console.error("Error applying suggestions:", error)
+      toast.error("That didn't work. Please try again.")
+    } finally {
+      setApplyingAll(false)
+    }
+  }
+
   const handleDismiss = async (linkId: string) => {
     // Hide immediately; restore if the server disagrees.
     setDismissedLinks(prev => new Set(prev).add(linkId))
@@ -93,6 +135,16 @@ export function RecommendationsClient({
 
   return (
     <div className="space-y-3">
+      <div className="flex items-center gap-3 rounded-3xl bg-tint-soft p-4 text-tint-ink">
+        <Sparkles className="h-5 w-5 shrink-0" />
+        <p className="min-w-0 flex-1 text-[14px] font-medium leading-snug">
+          Move {bestFitCount === recommendations.length ? "all " : ""}{bestFitCount} {bestFitCount === 1 ? "link" : "links"} to the best fit? You can undo it.
+        </p>
+        <Button variant="primary" size="sm" onClick={handleApplyAll} disabled={applyingAll || processingLinks.size > 0}>
+          {applyingAll ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" strokeWidth={2.5} />}
+          Apply all
+        </Button>
+      </div>
       {recommendations.map((recommendation) => {
         const isProcessing = processingLinks.has(recommendation.link.id)
         const best = recommendation.suggestedBundles[0]
