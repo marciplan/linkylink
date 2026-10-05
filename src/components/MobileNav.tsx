@@ -2,39 +2,41 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, Plus, User, Grid3x3 } from "lucide-react"
+import { Home, Plus, CircleUser } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { motion } from "framer-motion"
 
-const navItems = [
-  { href: "/", icon: Home, label: "Home" },
-  { href: "/create", icon: Plus, label: "Create", isPrimary: true },
-  { href: "/dashboard", icon: User, label: "Profile" },
+const items = [
+  { href: "/dashboard", icon: Home, label: "Home", match: ["/dashboard", "/recommendations"] },
+  { href: "/create", icon: Plus, label: "New Bundel", primary: true, match: ["/create"] },
+  { href: "/account", icon: CircleUser, label: "You", match: ["/account"] },
 ]
 
+/**
+ * Floating tab bar for the signed-in app. Sits in the thumb zone on phones and
+ * stays a compact centered pill on larger screens.
+ */
 export function MobileNav() {
   const pathname = usePathname()
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 safe-bottom">
-      <div className="flex items-center justify-around py-2">
-        {navItems.map((item) => {
-          const isActive = pathname === item.href
+    <nav
+      aria-label="Main"
+      className="pointer-events-none fixed inset-x-0 bottom-0 z-50 flex justify-center px-4 pb-safe"
+    >
+      <div className="glass pointer-events-auto mb-1 flex items-center gap-1 rounded-full border border-line/60 p-1.5 shadow-float">
+        {items.map((item) => {
+          const active = item.match.some((m) => pathname === m || pathname.startsWith(m + "/"))
           const Icon = item.icon
 
-          if (item.isPrimary) {
+          if (item.primary) {
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className="relative p-3"
+                aria-label={item.label}
+                className="pressable mx-1 grid h-12 w-16 place-items-center rounded-full bg-ink text-bg"
               >
-                <motion.div
-                  whileTap={{ scale: 0.9 }}
-                  className="bg-gray-900 rounded-full p-3 hover:bg-gray-800 transition-colors"
-                >
-                  <Icon className="w-6 h-6 text-white" />
-                </motion.div>
+                <Icon className="h-6 w-6" strokeWidth={2.5} />
               </Link>
             )
           }
@@ -43,19 +45,14 @@ export function MobileNav() {
             <Link
               key={item.href}
               href={item.href}
+              aria-current={active ? "page" : undefined}
               className={cn(
-                "flex flex-col items-center gap-1 p-3 tap-highlight-transparent transition-colors",
-                isActive ? "text-gray-900" : "text-gray-500"
+                "pressable flex h-12 min-w-[72px] flex-col items-center justify-center gap-0.5 rounded-full px-3 text-[11px] font-semibold",
+                active ? "text-ink" : "text-ink-3 hover:text-ink-2"
               )}
             >
-              <Icon className="w-6 h-6" />
-              <span className="text-xs font-medium">{item.label}</span>
-              {isActive && (
-                <motion.div
-                  layoutId="nav-indicator"
-                  className="absolute -bottom-0.5 w-12 h-0.5 bg-gray-900 rounded-full"
-                />
-              )}
+              <Icon className="h-[22px] w-[22px]" strokeWidth={active ? 2.4 : 2} />
+              {item.label}
             </Link>
           )
         })}

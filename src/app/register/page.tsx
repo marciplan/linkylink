@@ -1,10 +1,13 @@
 "use client"
 
-import { useState, FormEvent } from "react"
+import { Suspense, useState, FormEvent } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { motion } from "framer-motion"
-import { Link2, Loader2 } from "lucide-react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { signIn } from "next-auth/react"
+import { Loader2 } from "lucide-react"
+import { AuthShell, safeCallback } from "@/components/AuthShell"
+import { Button } from "@/components/ui/button"
+import { Field, Input } from "@/components/ui/field"
 
 type FieldErrors = {
   name?: string
@@ -13,11 +16,15 @@ type FieldErrors = {
   password?: string
 }
 
-export default function RegisterPage() {
+function RegisterForm() {
   const router = useRouter()
+  const params = useSearchParams()
+  // New accounts go straight to making their first Bundel unless they came from somewhere.
+  const callbackUrl = safeCallback(params.get("callbackUrl"), "/create")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
+  const [username, setUsername] = useState("")
 
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -27,7 +34,6 @@ export default function RegisterPage() {
 
     const formData = new FormData(e.currentTarget)
     const name = formData.get("name") as string
-    const username = formData.get("username") as string
     const email = formData.get("email") as string
     const password = formData.get("password") as string
 
@@ -37,15 +43,15 @@ export default function RegisterPage() {
       errors.name = "Name is required"
     }
     if (!username || username.length < 3) {
-      errors.username = "Username must be at least 3 characters"
+      errors.username = "At least 3 characters"
     } else if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
-      errors.username = "Username can only contain letters, numbers, - and _"
+      errors.username = "Letters, numbers, - and _ only"
     }
     if (!email || !email.includes("@")) {
-      errors.email = "Invalid email address"
+      errors.email = "Enter a valid email address"
     }
     if (!password || password.length < 6) {
-      errors.password = "Password must be at least 6 characters"
+      errors.password = "At least 6 characters"
     }
 
     if (Object.keys(errors).length > 0) {
@@ -65,8 +71,16 @@ export default function RegisterPage() {
 
       if (!res.ok) {
         setError(result.error || "Something went wrong")
-      } else {
+        return
+      }
+
+      // Sign straight in rather than bouncing through the login form.
+      const login = await signIn("credentials", { email, password, redirect: false })
+      if (login?.error) {
         router.push("/login")
+      } else {
+        router.push(callbackUrl)
+        router.refresh()
       }
     } catch {
       setError("Something went wrong. Please try again.")
@@ -76,133 +90,66 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* Header */}
-      <header className="border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Link href="/" className="flex items-center gap-2">
-              <Link2 className="w-5 h-5" />
-              <span className="font-medium">Bundel</span>
-            </Link>
-          </div>
-        </div>
-      </header>
-
-      {/* Main */}
-      <main className="flex-1 flex items-center justify-center p-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
-          className="w-full max-w-sm"
+    <AuthShell
+      title="Make your Bundel"
+      subtitle="One page for all the links you share."
+      footer={
+        <>
+          Already have an account?{" "}
+          <Link href={`/login${params.get("callbackUrl") ? `?callbackUrl=${encodeURIComponent(callbackUrl)}` : ""}`} className="font-semibold text-ink underline-offset-4 hover:underline">
+            Sign in
+          </Link>
+        </>
+      }
+    >
+      <form onSubmit={onSubmit} className="space-y-4" noValidate>
+        <Field label="Name" htmlFor="name" error={fieldErrors.name}>
+          <Input id="name" name="name" autoComplete="name" placeholder="Your name" disabled={isLoading} autoFocus />
+        </Field>
+        <Field
+          label="Username"
+          htmlFor="username"
+          error={fieldErrors.username}
+          hint={username ? `bundel.link/${username}/…` : "Shown on your Bundels"}
         >
-          <div className="text-center mb-8">
-            <h1 className="text-2xl font-semibold text-gray-900">Create account</h1>
-            <p className="text-gray-600 mt-2">Start sharing your links</p>
-          </div>
+          <Input
+            id="username"
+            name="username"
+            autoComplete="username"
+            autoCapitalize="off"
+            spellCheck={false}
+            value={username}
+            onChange={(e) => setUsername(e.target.value.replace(/\s/g, ""))}
+            placeholder="yourname"
+            disabled={isLoading}
+          />
+        </Field>
+        <Field label="Email" htmlFor="email" error={fieldErrors.email}>
+          <Input id="email" name="email" type="email" autoComplete="email" inputMode="email" placeholder="you@example.com" disabled={isLoading} />
+        </Field>
+        <Field label="Password" htmlFor="password" error={fieldErrors.password}>
+          <Input id="password" name="password" type="password" autoComplete="new-password" placeholder="At least 6 characters" disabled={isLoading} />
+        </Field>
 
-          <form onSubmit={onSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Name
-              </label>
-              <input
-                name="name"
-                type="text"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-gray-900 focus:ring-1 focus:ring-gray-900 outline-none transition-colors"
-                placeholder="John Doe"
-                disabled={isLoading}
-              />
-              {fieldErrors.name && (
-                <p className="text-red-600 text-sm mt-1">{fieldErrors.name}</p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Username
-              </label>
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">@</span>
-                <input
-                  name="username"
-                  type="text"
-                  className="w-full pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:border-gray-900 focus:ring-1 focus:ring-gray-900 outline-none transition-colors"
-                  placeholder="johndoe"
-                  disabled={isLoading}
-                />
-              </div>
-              {fieldErrors.username && (
-                <p className="text-red-600 text-sm mt-1">{fieldErrors.username}</p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Email
-              </label>
-              <input
-                name="email"
-                type="email"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-gray-900 focus:ring-1 focus:ring-gray-900 outline-none transition-colors"
-                placeholder="you@example.com"
-                disabled={isLoading}
-              />
-              {fieldErrors.email && (
-                <p className="text-red-600 text-sm mt-1">{fieldErrors.email}</p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Password
-              </label>
-              <input
-                name="password"
-                type="password"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-gray-900 focus:ring-1 focus:ring-gray-900 outline-none transition-colors"
-                placeholder="••••••••"
-                disabled={isLoading}
-              />
-              {fieldErrors.password && (
-                <p className="text-red-600 text-sm mt-1">{fieldErrors.password}</p>
-              )}
-            </div>
-
-            {error && (
-              <div className="bg-red-50 text-red-600 px-4 py-3 rounded-lg text-sm border border-red-200">
-                {error}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full bg-gray-900 text-white py-2.5 rounded-lg font-medium hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Creating account...
-                </>
-              ) : (
-                "Create account"
-              )}
-            </button>
-          </form>
-
-          <p className="text-center text-sm text-gray-600 mt-6">
-            Already have an account?{" "}
-            <Link
-              href="/login"
-              className="text-gray-900 font-medium hover:underline"
-            >
-              Sign in
-            </Link>
+        {error && (
+          <p role="alert" className="rounded-2xl bg-danger/10 px-4 py-3 text-[15px] font-medium text-danger">
+            {error}
           </p>
-        </motion.div>
-      </main>
-    </div>
+        )}
+
+        <Button type="submit" variant="primary" size="lg" disabled={isLoading} className="!mt-6">
+          {isLoading && <Loader2 className="h-5 w-5 animate-spin" />}
+          {isLoading ? "Creating account…" : "Create account"}
+        </Button>
+      </form>
+    </AuthShell>
+  )
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense>
+      <RegisterForm />
+    </Suspense>
   )
 }

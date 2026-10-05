@@ -1,110 +1,86 @@
 import Link from "next/link"
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
-import { ArrowRight, Link2 } from "lucide-react"
+import { ArrowRight, ClipboardPaste, Link2, Palette, Share } from "lucide-react"
 import { HomepageDemo } from "@/components/HomepageDemo"
+import { buttonStyles } from "@/components/ui/button"
+
+const steps = [
+  { icon: ClipboardPaste, title: "Paste links", body: "Drop in a URL. The title and icon fill themselves in." },
+  { icon: Palette, title: "Looks good by default", body: "Every Bundel gets its own colours. No design work." },
+  { icon: Share, title: "Send one link", body: "One page instead of five messages. Opens fast on any phone." },
+]
 
 export default async function HomePage() {
   const session = await auth()
-  
+
   if (session?.user?.id) {
     redirect("/dashboard")
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* Header */}
-      <header className="border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-2">
-              <Link2 className="w-5 h-5" />
-              <span className="font-medium">Bundel</span>
-            </div>
-            <nav>
-              {session ? (
-                <Link
-                  href="/dashboard"
-                  className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
-                >
-                  Dashboard
-                </Link>
-              ) : (
-                <div className="flex items-center gap-6">
-                  <Link
-                    href="/login"
-                    className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
-                  >
-                    Sign in
-                  </Link>
-                  <Link
-                    href="/register"
-                    className="text-sm bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors"
-                  >
-                    Get started
-                  </Link>
-                </div>
-              )}
-            </nav>
-          </div>
+    <div className="flex min-h-dvh flex-col overflow-x-hidden bg-bg">
+      <header className="pt-safe">
+        <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4">
+          <span className="inline-flex items-center gap-2 font-semibold">
+            <span className="grid h-8 w-8 place-items-center rounded-[10px] bg-ink text-bg">
+              <Link2 className="h-4 w-4" strokeWidth={2.5} />
+            </span>
+            Bundel
+          </span>
+          <Link href="/login" className={buttonStyles({ variant: "ghost", size: "sm" })}>
+            Sign in
+          </Link>
         </div>
       </header>
 
-      {/* Hero */}
-      <main className="flex-1 flex items-center justify-center px-4">
-        <div className="text-center max-w-5xl mx-auto py-20">
-          <h1 className="text-5xl sm:text-6xl font-medium text-gray-900 mb-6">
-            All your links, one place
-          </h1>
-          <p className="text-xl text-gray-600 mb-10 max-w-xl mx-auto">
-            <span className="sm:hidden">Stop sending multiple links.</span>
-            <span className="hidden sm:inline">Stop sending multiple links. Create one page that works.</span>
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            {session ? (
-              <Link
-                href="/dashboard"
-                className="inline-flex items-center gap-2 bg-gray-900 text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-colors"
-              >
-                Go to dashboard
-                <ArrowRight className="w-4 h-4" />
+      <main className="flex-1">
+        <section className="mx-auto grid max-w-5xl items-center gap-12 px-5 pb-16 pt-6 md:grid-cols-[1.1fr_1fr] md:pt-16">
+          <div className="animate-rise text-center md:text-left">
+            <h1 className="text-[clamp(2.5rem,1.6rem+4.5vw,4.5rem)] font-bold leading-[1.02] tracking-[-0.04em] text-balance">
+              All your links, one&nbsp;place.
+            </h1>
+            <p className="mx-auto mt-5 max-w-md text-[18px] leading-relaxed text-ink-2 text-pretty md:mx-0">
+              Stop sending five links in a row. Make one page that looks good and opens fast on any phone.
+            </p>
+            <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row md:justify-start sm:justify-center">
+              <Link href="/register" className={buttonStyles({ size: "md", className: "h-14 w-full px-7 text-base sm:w-auto" })}>
+                Make a Bundel
+                <ArrowRight className="h-5 w-5" />
               </Link>
-            ) : (
-              <>
-                <Link
-                  href="/register"
-                  className="inline-flex items-center gap-2 bg-gray-900 text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-colors"
-                >
-                  Start now
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
-              </>
-            )}
+              <span className="text-sm text-ink-3">Free. Takes about a minute.</span>
+            </div>
           </div>
+          <div className="animate-rise [animation-delay:120ms]">
+            <HomepageDemo />
+          </div>
+        </section>
 
-          {/* Animated Demo */}
-          <HomepageDemo />
-        </div>
+        <section className="mx-auto max-w-5xl px-5 pb-20">
+          <ol className="grid gap-3 md:grid-cols-3">
+            {steps.map(({ icon: Icon, title, body }, i) => (
+              <li key={title} className="rounded-3xl bg-surface p-5 shadow-card ring-1 ring-line/50">
+                <span className="flex items-center gap-3">
+                  <span className="grid h-10 w-10 place-items-center rounded-2xl bg-surface-2 text-ink">
+                    <Icon className="h-5 w-5" />
+                  </span>
+                  <span className="text-sm font-semibold text-ink-3">0{i + 1}</span>
+                </span>
+                <h2 className="mt-4 text-lg font-semibold">{title}</h2>
+                <p className="mt-1 text-[15px] text-ink-2 text-pretty">{body}</p>
+              </li>
+            ))}
+          </ol>
+        </section>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex justify-between items-center">
-            <div className="text-sm text-gray-500">
-              © 2024 Bundel
-            </div>
-            <div className="flex gap-6">
-              
-              <Link href="/about" className="text-sm text-gray-500 hover:text-gray-700">
-                About
-              </Link>
-              <Link href="/privacy" className="text-sm text-gray-500 hover:text-gray-700">
-                Privacy
-              </Link>
-            </div>
-          </div>
+      <footer className="border-t border-line/70 pb-safe">
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-5 py-6 text-sm text-ink-3">
+          <span>© {new Date().getFullYear()} Bundel</span>
+          <nav className="flex gap-5">
+            <Link href="/about" className="hover:text-ink">About</Link>
+            <Link href="/privacy" className="hover:text-ink">Privacy</Link>
+          </nav>
         </div>
       </footer>
     </div>

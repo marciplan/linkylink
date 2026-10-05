@@ -1,6 +1,6 @@
 "use client"
 
-import { Search } from "lucide-react"
+import { Loader2, Search, X } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useState, useTransition } from "react"
 
@@ -23,25 +23,36 @@ export function DashboardSearch({ initialValue = "" }: DashboardSearchProps) {
       } else {
         params.delete("search")
       }
-      router.push(`/dashboard?${params.toString()}`)
+      router.replace(`/dashboard${params.size ? `?${params.toString()}` : ""}`, { scroll: false })
     })
   }
 
   return (
-    <div className="relative max-w-md">
-      <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+    <div className="relative">
+      <Search className="pointer-events-none absolute left-3.5 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-ink-3" />
       <input
-        type="text"
-        placeholder="Search your Bundels..."
+        type="search"
+        enterKeyHint="search"
+        placeholder="Search Bundels and links"
+        aria-label="Search Bundels and links"
         value={search}
         onChange={(e) => handleSearch(e.target.value)}
-        className="h-10 w-full rounded-lg border border-gray-200 bg-white pl-10 pr-4 text-sm outline-none focus:border-gray-300 focus:ring-2 focus:ring-gray-100"
+        className="h-11 w-full rounded-xl bg-ink/[0.06] pl-10 pr-10 text-[16px] outline-none placeholder:text-ink-3 focus:bg-ink/[0.08] focus:ring-2 focus:ring-tint/25 [&::-webkit-search-cancel-button]:hidden"
       />
-      {isPending && (
-        <div className="absolute right-3 top-1/2 -translate-y-1/2">
-          <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600" />
-        </div>
-      )}
+      <span className="absolute right-2 top-1/2 -translate-y-1/2">
+        {isPending ? (
+          <Loader2 className="m-1.5 h-4 w-4 animate-spin text-ink-3" />
+        ) : search ? (
+          <button
+            type="button"
+            onClick={() => handleSearch("")}
+            aria-label="Clear search"
+            className="grid h-7 w-7 place-items-center rounded-full bg-ink-3/30 text-surface"
+          >
+            <X className="h-3.5 w-3.5" strokeWidth={3} />
+          </button>
+        ) : null}
+      </span>
     </div>
   )
 }

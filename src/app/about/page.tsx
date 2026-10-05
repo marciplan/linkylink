@@ -3,7 +3,7 @@ import { Link2, ArrowRight } from "lucide-react"
 
 export default function AboutPage() {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-dvh flex flex-col pt-safe">
       {/* Header */}
       <header className="border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -16,7 +16,7 @@ export default function AboutPage() {
               <div className="flex items-center gap-6">
                 <Link
                   href="/register"
-                  className="text-sm bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors"
+                  className="text-sm bg-ink text-bg font-semibold px-4 py-2 rounded-full hover:bg-ink/90 transition-colors"
                 >
                   Get started
                 </Link>
@@ -28,18 +28,18 @@ export default function AboutPage() {
 
       <main className="flex-1 px-4 py-16">
         <div className="max-w-3xl mx-auto">
-          <h1 className="text-4xl font-medium text-gray-900 mb-8">
+          <h1 className="text-display mb-8">
             About Bundel
           </h1>
 
-          <div className="space-y-8 text-lg text-gray-700">
+          <div className="space-y-8 text-lg text-ink-2 text-pretty">
             <p>
               Bundel lets you share multiple links through one URL. Instead of sending five different links, you send one.
             </p>
 
             <div>
-              <h2 className="text-xl font-medium text-gray-900 mb-4">What people use it for</h2>
-              <ul className="space-y-2 text-gray-700">
+              <h2 className="text-xl font-medium text-ink mb-4">What people use it for</h2>
+              <ul className="space-y-2 text-ink-2">
                 <li>• Musicians sharing their music across platforms</li>
                 <li>• Content creators linking to all their social profiles</li>
                 <li>• Businesses directing customers to multiple resources</li>
@@ -50,14 +50,14 @@ export default function AboutPage() {
             </div>
 
             <div>
-              <h2 className="text-xl font-medium text-gray-900 mb-4">Account required</h2>
+              <h2 className="text-xl font-medium text-ink mb-4">Account required</h2>
               <p>
                 To create and share a Bundel page, you need an account. Sign up to add your links, edit them later, and keep everything in one place.
               </p>
             </div>
 
             <div>
-              <h2 className="text-xl font-medium text-gray-900 mb-4">Always free</h2>
+              <h2 className="text-xl font-medium text-ink mb-4">Always free</h2>
               <p>
                 Bundel will always be free. No premium tiers, no feature gates, no ads.
                 We built this because link sharing shouldn&apos;t be complicated or expensive.
@@ -67,7 +67,7 @@ export default function AboutPage() {
             <div className="pt-8 border-t">
               <Link
                 href="/register"
-                className="inline-flex items-center gap-2 bg-gray-900 text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-colors"
+                className="inline-flex items-center gap-2 bg-ink text-bg font-semibold px-6 py-3 rounded-full hover:bg-ink/90 transition-colors"
               >
                 Start creating
                 <ArrowRight className="w-4 h-4" />
@@ -81,14 +81,14 @@ export default function AboutPage() {
       <footer className="border-t">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex justify-between items-center">
-            <div className="text-sm text-gray-500">
+            <div className="text-sm text-ink-3">
               © 2024 Bundel
             </div>
             <div className="flex gap-6">
-              <Link href="/about" className="text-sm text-gray-500 hover:text-gray-700">
+              <Link href="/about" className="text-sm text-ink-3 hover:text-ink">
                 About
               </Link>
-              <a href="#" className="text-sm text-gray-500 hover:text-gray-700">
+              <a href="#" className="text-sm text-ink-3 hover:text-ink">
                 Privacy
               </a>
             </div>

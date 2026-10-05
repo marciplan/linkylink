@@ -289,11 +289,19 @@ export async function updateLinkOrder(linkylinkId: string, linkIds: string[]) {
   revalidatePath(`/${linkylink.user.username}/${linkylink.slug}`)
 }
 
-export async function updateLink(linkId: string, data: { title: string }) {
+const updateLinkSchema = z.object({
+  title: z.string().trim().min(1).max(100).optional(),
+  url: z.string().url().optional(),
+  context: z.string().max(280).nullable().optional(),
+})
+
+export async function updateLink(linkId: string, data: z.infer<typeof updateLinkSchema>) {
   const session = await auth()
   if (!session?.user?.id) {
     throw new Error("Unauthorized")
   }
+
+  const { title, url, context } = updateLinkSchema.parse(data)
 
   // Verify ownership through linkylink
   const link = await prisma.link.findUnique({
@@ -305,9 +313,14 @@ export async function updateLink(linkId: string, data: { title: string }) {
     throw new Error("Link not found")
   }
 
+  const urlChanged = url !== undefined && url !== link.url
   const updated = await prisma.link.update({
     where: { id: linkId },
-    data: { title: data.title.trim() },
+    data: {
+      ...(title !== undefined && { title }),
+      ...(urlChanged && { url, favicon: await fetchFavicon(url) }),
+      ...(context !== undefined && { context: context?.trim() || null }),
+    },
   })
 
   revalidatePath(`/dashboard`)
@@ -316,7 +329,7 @@ export async function updateLink(linkId: string, data: { title: string }) {
   return updated
 }
 
-export async function updateLinkylink(linkylinkId: string, data: { title?: string, subtitle?: string, avatar?: string }) {
+export async function updateLinkylink(linkylinkId: string, data: { title?: string, subtitle?: string, avatar?: string, headerImage?: string | null }) {
   const session = await auth()
   if (!session?.user?.id) {
     throw new Error("Unauthorized")
@@ -337,11 +350,14 @@ export async function updateLinkylink(linkylinkId: string, data: { title?: strin
       ...(data.title && { title: data.title }),
       ...(data.subtitle !== undefined && { subtitle: data.subtitle }),
       ...(data.avatar !== undefined && { avatar: data.avatar }),
+      ...(data.headerImage !== undefined && { headerImage: data.headerImage }),
     },
+    include: { user: { select: { username: true } } },
   })
 
   revalidatePath(`/dashboard`)
   revalidatePath(`/edit/${linkylinkId}`)
+  revalidatePath(`/${updated.user.username}/${updated.slug}`)
   return updated
 }
 
@@ -388,6 +404,57 @@ export async function deleteLinkylink(linkylinkId: string) {
 
   revalidatePath("/dashboard")
   return { success: true }
+}
+
+/** Copy someone's (or your own) Bundel into the signed-in user's account. */
+export async function duplicateBundel(linkylinkId: string) {
+  const session = await auth()
+  if (!session?.user?.id) {
+    throw new Error("Unauthorized")
+  }
+
+  const source = await prisma.linkLink.findUnique({
+    where: { id: linkylinkId },
+    include: { links: { orderBy: { order: "asc" } } },
+  })
+
+  if (!source || (!source.isPublic && source.userId !== session.user.id)) {
+    throw new Error("Bundel not found")
+  }
+  if (source.type !== "NORMAL") {
+    throw new Error("Only link Bundels can be copied")
+  }
+
+  const base = generateSlug(source.title) || "bundel"
+  let slug = base
+  for (let counter = 1; await prisma.linkLink.findUnique({ where: { slug } }); counter++) {
+    slug = `${base}-${counter}`
+  }
+
+  const copy = await prisma.linkLink.create({
+    data: {
+      userId: session.user.id,
+      slug,
+      title: source.title,
+      subtitle: source.subtitle,
+      avatar: source.avatar,
+      headerImage: source.headerImage,
+      headerImages: source.headerImages,
+      links: {
+        create: source.links.map((l, i) => ({
+          title: l.title,
+          url: l.url,
+          favicon: l.favicon,
+          context: l.context,
+          order: i,
+        })),
+      },
+    },
+    include: { user: { select: { username: true } } },
+  })
+
+  revalidatePath("/dashboard")
+  return { id: copy.id, slug: copy.slug, username: copy.user.username }
 }
 
 // Year Review Actions

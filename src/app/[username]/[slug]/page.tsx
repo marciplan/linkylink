@@ -3,21 +3,31 @@ import { Metadata, Viewport } from "next"
 import { prisma } from "@/lib/prisma"
 import { incrementViews } from "@/lib/actions"
 import { auth } from "@/lib/auth"
-import PublicLinkView from "./PublicLinkView"
-import YearReviewView from "./YearReviewView"
+import { bundelHue, bundelThemeColor } from "@/lib/theme"
+import { BundelVisitorView } from "./BundelVisitorView"
+import { OwnerView, YearReview } from "./views"
 
 interface PageProps {
   params: Promise<{
     username: string
     slug: string
   }>
+  searchParams: Promise<{ view?: string }>
 }
 
-export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#0a0a0a" },
-  ],
+// Browser chrome takes on the Bundel's colour so the hero runs edge to edge.
+export async function generateViewport({ params }: PageProps): Promise<Viewport> {
+  const { slug } = await params
+  const bundel = await prisma.linkLink.findUnique({ where: { slug }, select: { slug: true, type: true } })
+  if (!bundel || bundel.type !== "NORMAL") {
+    return {
+      themeColor: [
+        { media: "(prefers-color-scheme: light)", color: "#fbfbfd" },
+        { media: "(prefers-color-scheme: dark)", color: "#111114" },
+      ],
+    }
+  }
+  return { themeColor: bundelThemeColor(bundelHue(bundel.slug)) }
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -70,8 +80,9 @@ function buildDescription(linkylink: { title: string; subtitle: string | null; u
   return linkylink.subtitle || `Check out ${linkylink.title} by @${linkylink.user.username}`
 }
 
-export default async function PublicLinkylinkPage({ params }: PageProps) {
+export default async function PublicLinkylinkPage({ params, searchParams }: PageProps) {
   const { username, slug } = await params
+  const { view: viewMode } = await searchParams
   const session = await auth()
   
   // Run main query and session fetch in parallel
@@ -146,9 +157,17 @@ export default async function PublicLinkylinkPage({ params }: PageProps) {
     },
   }
 
+  const ownerView = isOwner && viewMode !== "public"
   const view = linkylink.type === "YEAR_REVIEW"
-    ? <YearReviewView linkylink={linkylink} isOwner={isOwner} />
-    : <PublicLinkView linkylink={linkylink} isOwner={isOwner} currentUser={sessionUser} commentCounts={commentCountMap} />
+    ? <YearReview linkylink={linkylink} isOwner={isOwner} />
+    : ownerView
+      ? <OwnerView bundel={linkylink} commentCounts={commentCountMap} />
+      : <BundelVisitorView
+          bundel={linkylink}
+          currentUser={sessionUser}
+          commentCounts={commentCountMap}
+          previewHref={isOwner ? `/${username}/${slug}` : undefined}
+        />
 
   return (
     <>

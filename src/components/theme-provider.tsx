@@ -33,36 +33,40 @@ export function ThemeProvider({
 
   useEffect(() => {
     setMounted(true)
-    const storedTheme = localStorage.getItem(storageKey) as Theme
-    if (storedTheme) {
-      setTheme(storedTheme)
+    try {
+      const storedTheme = localStorage.getItem(storageKey) as Theme | null
+      if (storedTheme) setTheme(storedTheme)
+    } catch {
+      // Storage can be unavailable (private mode, blocked cookies)
     }
   }, [storageKey])
 
   useEffect(() => {
     if (!mounted) return
-    
+
     const root = window.document.documentElement
+    const media = window.matchMedia("(prefers-color-scheme: dark)")
 
-    root.classList.remove("light", "dark")
-
-    if (theme === "system") {
-      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
-        .matches
-        ? "dark"
-        : "light"
-
-      root.classList.add(systemTheme)
-      return
+    const apply = () => {
+      const resolved = theme === "system" ? (media.matches ? "dark" : "light") : theme
+      root.classList.remove("light", "dark")
+      root.classList.add(resolved)
     }
 
-    root.classList.add(theme)
+    apply()
+    if (theme !== "system") return
+    media.addEventListener("change", apply)
+    return () => media.removeEventListener("change", apply)
   }, [theme, mounted])
 
   const value = {
     theme,
     setTheme: (theme: Theme) => {
-      localStorage.setItem(storageKey, theme)
+      try {
+        localStorage.setItem(storageKey, theme)
+      } catch {
+        // Ignore — the choice still applies for this session
+      }
       setTheme(theme)
     },
   }

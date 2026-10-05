@@ -1,6 +1,6 @@
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 import Script from "next/script"
-import { Inter, Outfit } from "next/font/google"
+import { Inter } from "next/font/google"
 import "./globals.css"
 import { Providers } from "@/components/providers"
 
@@ -9,16 +9,17 @@ const inter = Inter({
   subsets: ["latin"],
 })
 
-const outfit = Outfit({
-  variable: "--font-outfit",
-  subsets: ["latin"],
-})
-
 export const metadata: Metadata = {
   title: "Bundel - Share Multiple Links Beautifully",
   description: "Create beautiful link pages to share multiple URLs at once. Perfect for social media, portfolios, and resource collections.",
   keywords: ["links", "share", "social", "linktree", "bio link"],
   authors: [{ name: "Bundel" }],
+  applicationName: "Bundel",
+  appleWebApp: {
+    capable: true,
+    title: "Bundel",
+    statusBarStyle: "default",
+  },
   // Ensure all relative URLs in metadata resolve to absolute URLs
   // so social crawlers can fetch images correctly in production.
   metadataBase: new URL(
@@ -49,16 +50,30 @@ export const metadata: Metadata = {
   },
 }
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#fbfbfd" },
+    { media: "(prefers-color-scheme: dark)", color: "#111114" },
+  ],
+}
+
+// Applies the stored/system theme before first paint so there is no flash.
+const themeScript = `(function(){try{var t=localStorage.getItem('linkylink-theme')||'system';var d=t==='dark'||(t==='system'&&matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.classList.add(d?'dark':'light')}catch(e){}})()`
+
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
-      <body
-        className={`${inter.variable} ${outfit.variable} font-sans antialiased`}
-      >
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
+      <body className={`${inter.variable} font-sans antialiased`}>
         <Providers>
           {children}
         </Providers>

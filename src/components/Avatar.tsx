@@ -50,7 +50,7 @@ export function Avatar({ src, username, title, size = 80, className = "" }: Avat
     
     return (
       <div
-        className={`relative flex items-center justify-center rounded-full bg-gray-100 ${className}`}
+        className={`relative flex items-center justify-center rounded-full bg-surface-2 ${className}`}
         style={{ width: size, height: size }}
       >
         <span style={{ fontSize: size * 0.6 }}>
@@ -84,7 +84,7 @@ export function Avatar({ src, username, title, size = 80, className = "" }: Avat
 
     return (
       <div
-        className={`relative flex items-center justify-center rounded-full bg-gray-100 ${className}`}
+        className={`relative flex items-center justify-center rounded-full bg-surface-2 ${className}`}
         style={{ width: size, height: size }}
       >
         <span style={{ fontSize: size * 0.6 }}>
