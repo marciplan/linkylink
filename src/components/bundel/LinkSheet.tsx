@@ -30,11 +30,13 @@ export interface LinkSheetProps {
   commentCount?: number
   /** Login URL that returns to this page. */
   loginHref: string
+  /** Path to this link inside the Bundel, shared so the note and context come along. */
+  shareUrl?: string
 }
 
 const likedKey = (id: string) => `bundel-liked:${id}`
 
-export function LinkSheet({ open, onOpenChange, link, owner, currentUser, commentCount = 0, loginHref }: LinkSheetProps) {
+export function LinkSheet({ open, onOpenChange, link, owner, currentUser, commentCount = 0, loginHref, shareUrl }: LinkSheetProps) {
   const [likes, setLikes] = useState(link.likes ?? 0)
   const [liked, setLiked] = useState(() => {
     try {
@@ -161,7 +163,13 @@ export function LinkSheet({ open, onOpenChange, link, owner, currentUser, commen
             Copy
           </button>
           <button
-            onClick={() => shareOrCopy({ title: link.title, url: link.url })}
+            onClick={() =>
+              shareOrCopy({
+                title: link.title,
+                text: link.context ? `“${link.context}” — @${owner.username}` : undefined,
+                url: shareUrl ? window.location.origin + shareUrl : link.url,
+              })
+            }
             className="pressable flex h-16 flex-col items-center justify-center gap-1 rounded-2xl bg-surface-2 text-[13px] font-semibold"
           >
             <Share className="h-5 w-5" />

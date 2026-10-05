@@ -6,8 +6,14 @@ import { ChevronRight, Link2, Plus, Search, Sparkles } from "lucide-react"
 import { PageHeader } from "@/components/PageHeader"
 import { buttonStyles } from "@/components/ui/button"
 import { generateRecommendations } from "@/lib/recommendations"
+import { optional } from "@/lib/optional"
+import { ActivityList } from "@/components/ActivityList"
 import { LinkylinkCard } from "@/components/LinkylinkCard"
 import { DashboardSearch } from "@/components/DashboardSearch"
+
+function daysAgo(days: number) {
+  return new Date(Date.now() - days * 86_400_000)
+}
 
 export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ search?: string }> }) {
   const session = await auth()
@@ -97,6 +103,17 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     tidyCount = generateRecommendations(bundles).filter((r) => !hidden.has(r.link.id)).length
   }
 
+  const activity = searchQuery
+    ? []
+    : await optional(
+        prisma.activity.findMany({
+          where: { userId: session.user.id, createdAt: { gt: daysAgo(14) } },
+          orderBy: { createdAt: "desc" },
+          take: 6,
+        }),
+        []
+      )
+
   return (
     <>
       <PageHeader title="Bundels">
@@ -106,6 +123,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
       </PageHeader>
 
       <main className="mx-auto max-w-2xl space-y-4 px-4">
+        {activity.length > 0 && <ActivityList items={activity} />}
         {tidyCount > 0 && (
           <Link
             href="/recommendations"

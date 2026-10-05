@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation"
 import { motion, Reorder, useDragControls, useReducedMotion, type PanInfo } from "framer-motion"
 import { toast } from "sonner"
 import {
-  ChevronLeft, Eye, GripVertical, Link2, MoreHorizontal, Paintbrush, Plus, Share, Trash2,
+  Check, ChevronLeft, Eye, GripVertical, Link2, MoreHorizontal, Paintbrush, Plus, Share, Trash2, Vote, X,
 } from "lucide-react"
 import { BundelHero } from "@/components/bundel/BundelHero"
 import { LinkRowBody, type BundelLink } from "@/components/bundel/LinkRow"
@@ -21,6 +21,14 @@ import { addLink, deleteLink, deleteLinkylink, updateLink, updateLinkOrder, upda
 import { bundelIcon } from "@/lib/bundel-icon"
 import { bundelHue } from "@/lib/theme"
 import { copyText, shareOrCopy } from "@/lib/share"
+import { acceptSuggestion, declineSuggestion } from "@/lib/sharing-actions"
+import { AskProvider, type AskSettings } from "@/components/bundel/ask/AskProvider"
+import { AskCard } from "@/components/bundel/ask/AskCard"
+import { VoteBar } from "@/components/bundel/ask/VoteBar"
+import { AskSettingsSheet } from "@/components/bundel/ask/AskSettingsSheet"
+import { Favicon } from "@/components/bundel/Favicon"
+import { domainOf } from "@/lib/links"
+import type { VoteSummary } from "@/lib/sharing"
 
 interface BundelOwnerViewProps {
   bundel: {
@@ -36,6 +44,10 @@ interface BundelOwnerViewProps {
     links: BundelLink[]
   }
   commentCounts: Record<string, number>
+  ask: AskSettings | null
+  voteSummary: VoteSummary
+  suggestions: { id: string; url: string; title: string; note: string | null; name: string }[]
+  remixedFrom: { title: string; path: string; username: string } | null
 }
 
 /** Text that is edited in place and saved when it loses focus. */
@@ -95,13 +107,15 @@ function InlineText({
 }
 
 function OwnerLinkRow({
-  link, commentCount, onOpen, onDelete, onDragEnd,
+  link, commentCount, onOpen, onDelete, onDragEnd, footer,
 }: {
   link: BundelLink
   commentCount: number
   onOpen: () => void
   onDelete: () => void
   onDragEnd: () => void
+  /** Shown inside the card under the link, e.g. vote results. */
+  footer?: React.ReactNode
 }) {
   const controls = useDragControls()
   const reduceMotion = useReducedMotion()
@@ -133,16 +147,17 @@ function OwnerLinkRow({
         dragElastic={{ left: 0.6, right: 0 }}
         onDragStart={() => (swiped.current = true)}
         onDragEnd={handleSwipeEnd}
-        className="relative"
+        className={footer ? "relative rounded-3xl bg-surface shadow-card ring-1 ring-line/50" : "relative"}
       >
         <button
           type="button"
           onClick={() => !swiped.current && onOpen()}
-          className={linkRowStyles}
+          className={footer ? "pressable block w-full rounded-3xl p-4 pb-3 text-left" : linkRowStyles}
           aria-label={`Edit ${link.title}`}
         >
           <LinkRowBody link={link} commentCount={commentCount} />
         </button>
+        {footer}
         <button
           type="button"
           onPointerDown={(e) => controls.start(e)}
@@ -156,7 +171,17 @@ function OwnerLinkRow({
   )
 }
 
-export default function BundelOwnerView({ bundel, commentCounts }: BundelOwnerViewProps) {
+/** Provides vote results to the owner's rows when the Bundel is in Ask mode. */
+function MaybeAsk({ bundelId, ask, summary, ownerName, children }: { bundelId: string; ask: AskSettings | null; summary: VoteSummary; ownerName: string; children: React.ReactNode }) {
+  if (!ask) return <>{children}</>
+  return (
+    <AskProvider bundelId={bundelId} ask={ask} initialSummary={summary} ownerName={ownerName} signedInAs={ownerName} readOnly>
+      {children}
+    </AskProvider>
+  )
+}
+
+export default function BundelOwnerView({ bundel, commentCounts, ask: initialAsk, voteSummary, suggestions: initialSuggestions, remixedFrom }: BundelOwnerViewProps) {
   const router = useRouter()
   const [title, setTitle] = useState(bundel.title)
   const [subtitle, setSubtitle] = useState(bundel.subtitle ?? "")
@@ -168,6 +193,9 @@ export default function BundelOwnerView({ bundel, commentCounts }: BundelOwnerVi
   const [menuOpen, setMenuOpen] = useState(false)
   const [appearanceOpen, setAppearanceOpen] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [ask, setAsk] = useState(initialAsk)
+  const [askOpen, setAskOpen] = useState(false)
+  const [suggestions, setSuggestions] = useState(initialSuggestions)
   const linksRef = useRef(links)
   useEffect(() => {
     linksRef.current = links
@@ -270,10 +298,34 @@ export default function BundelOwnerView({ bundel, commentCounts }: BundelOwnerVi
     router.push("/dashboard")
   }
 
-  const shareBundel = () => shareOrCopy({ title, text: subtitle || undefined, url: window.location.origin + path })
+  const acceptOne = async (id: string) => {
+    setSuggestions((list) => list.filter((x) => x.id !== id))
+    try {
+      const link = await acceptSuggestion(id)
+      setLinks((l) => [...l, { ...link, likes: 0 }])
+      toast("Added to your Bundel")
+    } catch {
+      setSuggestions(initialSuggestions)
+      toast.error("Couldn't add that suggestion")
+    }
+  }
+
+  const declineOne = async (id: string) => {
+    setSuggestions((list) => list.filter((x) => x.id !== id))
+    declineSuggestion(id).catch(() => toast.error("Couldn't dismiss that suggestion"))
+  }
+
+  const shareBundel = () =>
+    shareOrCopy({
+      title,
+      text: ask ? `Help me pick: ${ask.question || title}` : subtitle || undefined,
+      url: window.location.origin + path,
+    })
 
   return (
     <div data-tint style={{ "--tint-h": hue } as React.CSSProperties} className="min-h-dvh bg-bg">
+      {/* Sheets render in a portal outside this element, so set the hue page-wide too. */}
+      <style>{`:root{--tint-h:${hue}}`}</style>
       <TopBar
         title={title || "Untitled"}
         leading={
@@ -340,13 +392,52 @@ export default function BundelOwnerView({ bundel, commentCounts }: BundelOwnerVi
             <span>{links.length} {links.length === 1 ? "link" : "links"}</span>
             <span aria-hidden>·</span>
             <span>{bundel.views.toLocaleString()} views</span>
+            {remixedFrom && (
+              <>
+                <span aria-hidden>·</span>
+                <Link href={remixedFrom.path} className="underline decoration-white/40 underline-offset-4">
+                  Remixed from @{remixedFrom.username}
+                </Link>
+              </>
+            )}
           </>
         }
       />
       <div id="hero-end" aria-hidden />
 
+      <MaybeAsk bundelId={bundel.id} ask={ask} summary={voteSummary} ownerName={bundel.user.username}>
       <main className="relative -mt-6 rounded-t-4xl bg-bg pb-40 pt-5">
-        <div className="mx-auto max-w-2xl px-4">
+        <div className="mx-auto max-w-2xl space-y-3 px-4">
+          {suggestions.length > 0 && (
+            <section aria-label="Suggestions" className="rounded-3xl bg-surface p-4 shadow-card ring-1 ring-line/50">
+              <h2 className="text-[13px] font-semibold uppercase tracking-wide text-ink-3">
+                {suggestions.length} {suggestions.length === 1 ? "suggestion" : "suggestions"} waiting
+              </h2>
+              <ul className="mt-2 divide-y divide-line/70">
+                {suggestions.map((sug) => (
+                  <li key={sug.id} className="flex items-start gap-3 py-3">
+                    <Favicon url={sug.url} size={40} />
+                    <div className="min-w-0 flex-1">
+                      <a href={sug.url} target="_blank" rel="noopener noreferrer" className="line-clamp-2 font-semibold leading-snug hover:underline">
+                        {sug.title}
+                      </a>
+                      <p className="truncate text-[13px] text-ink-3">{domainOf(sug.url)} · from {sug.name}</p>
+                      {sug.note && <p className="mt-1 text-[14px] text-ink-2 text-pretty">“{sug.note}”</p>}
+                    </div>
+                    <div className="flex shrink-0 gap-1.5">
+                      <button onClick={() => declineOne(sug.id)} aria-label={`Dismiss ${sug.title}`} className="pressable grid h-10 w-10 place-items-center rounded-full bg-surface-2 text-ink-2">
+                        <X className="h-4 w-4" />
+                      </button>
+                      <button onClick={() => acceptOne(sug.id)} aria-label={`Add ${sug.title}`} className="pressable grid h-10 w-10 place-items-center rounded-full bg-ink text-bg">
+                        <Check className="h-4 w-4" strokeWidth={3} />
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+          {ask && <AskCard titles={Object.fromEntries(links.map((l) => [l.id, l.title]))} onEdit={() => setAskOpen(true)} />}
           {links.length === 0 ? (
             <button
               onClick={() => setAdding(true)}
@@ -371,6 +462,7 @@ export default function BundelOwnerView({ bundel, commentCounts }: BundelOwnerVi
                     onOpen={() => !link.id.startsWith("temp-") && setEditing(link)}
                     onDelete={() => handleDelete(link.id)}
                     onDragEnd={persistOrder}
+                    footer={ask ? <VoteBar linkId={link.id} title={link.title} /> : undefined}
                   />
                 ))}
               </Reorder.Group>
@@ -381,6 +473,7 @@ export default function BundelOwnerView({ bundel, commentCounts }: BundelOwnerVi
           )}
         </div>
       </main>
+      </MaybeAsk>
 
       {/* Owner actions in the thumb zone */}
       <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-4 pb-safe">
@@ -403,6 +496,8 @@ export default function BundelOwnerView({ bundel, commentCounts }: BundelOwnerVi
         onSave={handleEdit}
         onDelete={handleDelete}
       />
+
+      <AskSettingsSheet open={askOpen} onOpenChange={setAskOpen} bundelId={bundel.id} ask={ask} onChange={setAsk} />
 
       <AppearanceSheet
         open={appearanceOpen}
@@ -451,6 +546,15 @@ export default function BundelOwnerView({ bundel, commentCounts }: BundelOwnerVi
                 icon={<Link2 className="h-5 w-5" />}
                 label="Copy link"
                 onClick={() => copyText(window.location.origin + path)}
+              />
+              <ListAction
+                icon={<Vote className="h-5 w-5" />}
+                label="Ask for votes"
+                hint={ask ? "On" : "Off"}
+                onClick={() => {
+                  setMenuOpen(false)
+                  setAskOpen(true)
+                }}
               />
               <ListAction
                 icon={<Paintbrush className="h-5 w-5" />}

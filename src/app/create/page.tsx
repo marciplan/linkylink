@@ -63,6 +63,8 @@ function CreateBundel() {
 
   return (
     <div data-tint style={{ "--tint-h": hue } as React.CSSProperties} className="flex min-h-dvh flex-col bg-bg">
+      {/* Sheets render in a portal outside this element, so set the hue page-wide too. */}
+      <style>{`:root{--tint-h:${hue}}`}</style>
       <header className="sticky top-0 z-10 pt-safe">
         <div className="mx-auto flex h-14 max-w-lg items-center justify-between px-3">
           <Link href="/dashboard" aria-label="Cancel" className="pressable grid h-10 w-10 place-items-center rounded-full bg-surface-2 text-ink-2">

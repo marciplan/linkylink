@@ -7,8 +7,12 @@ import { TopBar } from "@/components/bundel/TopBar"
 import { linkRowStyles, topBarButton } from "@/components/bundel/styles"
 import { VisitorBar } from "@/components/bundel/VisitorBar"
 import { ShareButton } from "@/components/bundel/ShareButton"
+import { AskVisitorList, FocusLink } from "@/components/bundel/lazy"
+import type { AskSettings } from "@/components/bundel/ask/AskProvider"
 import { bundelIcon } from "@/lib/bundel-icon"
 import { bundelHue } from "@/lib/theme"
+import { cn } from "@/lib/utils"
+import type { VoteSummary } from "@/lib/sharing"
 
 interface BundelVisitorViewProps {
   bundel: {
@@ -25,6 +29,11 @@ interface BundelVisitorViewProps {
   commentCounts: Record<string, number>
   /** Set when the owner is previewing their own page. */
   previewHref?: string
+  ask?: AskSettings | null
+  voteSummary?: VoteSummary
+  /** Link to highlight when someone shared a single link (?l=). */
+  focusLinkId?: string
+  remixedFrom?: { title: string; path: string; username: string } | null
 }
 
 /**
@@ -32,7 +41,7 @@ interface BundelVisitorViewProps {
  * for click counting), and only small islands — favicons, the per-link sheet
  * and the share bar — hydrate on the client.
  */
-export function BundelVisitorView({ bundel, currentUser, commentCounts, previewHref }: BundelVisitorViewProps) {
+export function BundelVisitorView({ bundel, currentUser, commentCounts, previewHref, ask, voteSummary = {}, focusLinkId, remixedFrom }: BundelVisitorViewProps) {
   const hue = bundelHue(bundel.slug)
   const icon = bundelIcon(bundel.avatar, bundel.user.image, bundel.title)
   const path = `/${bundel.user.username}/${bundel.slug}`
@@ -42,6 +51,8 @@ export function BundelVisitorView({ bundel, currentUser, commentCounts, previewH
 
   return (
     <div data-tint style={{ "--tint-h": hue } as React.CSSProperties} className="min-h-dvh bg-bg">
+      {/* Sheets render in a portal outside this element, so set the hue page-wide too. */}
+      <style>{`:root{--tint-h:${hue}}`}</style>
       <TopBar
         title={bundel.title}
         leading={
@@ -76,6 +87,14 @@ export function BundelVisitorView({ bundel, currentUser, commentCounts, previewH
             <span>
               {count} {count === 1 ? "link" : "links"}
             </span>
+            {remixedFrom && (
+              <>
+                <span aria-hidden>·</span>
+                <Link href={remixedFrom.path} className="underline decoration-white/40 underline-offset-4 hover:decoration-white">
+                  Remixed from @{remixedFrom.username}
+                </Link>
+              </>
+            )}
           </>
         }
       />
@@ -83,12 +102,31 @@ export function BundelVisitorView({ bundel, currentUser, commentCounts, previewH
 
       <main className="relative -mt-6 rounded-t-4xl bg-bg pb-36 pt-5">
         <div className="mx-auto max-w-2xl px-4">
-          {count === 0 ? (
+          {ask ? (
+            <AskVisitorList
+              bundelId={bundel.id}
+              bundelPath={path}
+              ask={ask}
+              summary={voteSummary}
+              links={bundel.links}
+              commentCounts={commentCounts}
+              owner={owner}
+              currentUser={currentUser}
+              loginHref={loginHref}
+              focusLinkId={focusLinkId}
+              readOnly={!!previewHref}
+            />
+          ) : count === 0 ? (
             <p className="py-16 text-center text-ink-3">Nothing here yet.</p>
           ) : (
             <ol className="space-y-2.5">
               {bundel.links.map((link, i) => (
-                <li key={link.id} className="stagger relative" style={{ "--i": i } as React.CSSProperties}>
+                <li
+                  key={link.id}
+                  id={`l-${link.id}`}
+                  className={cn("stagger relative scroll-mt-24 rounded-3xl", focusLinkId === link.id && "ring-2 ring-tint")}
+                  style={{ "--i": i } as React.CSSProperties}
+                >
                   <a
                     href={link.url}
                     target="_blank"
@@ -104,14 +142,20 @@ export function BundelVisitorView({ bundel, currentUser, commentCounts, previewH
                     currentUser={currentUser}
                     commentCount={commentCounts[link.id] ?? 0}
                     loginHref={loginHref}
+                    shareUrl={`${path}?l=${link.id}`}
                   />
                 </li>
               ))}
             </ol>
           )}
+          {focusLinkId && <FocusLink id={focusLinkId} />}
 
           <p className="mt-12 text-center text-sm text-ink-3">
-            Curated by @{bundel.user.username} with{" "}
+            Curated by{" "}
+            <Link href={`/${bundel.user.username}`} className="font-semibold text-ink-2 underline-offset-4 hover:underline">
+              @{bundel.user.username}
+            </Link>{" "}
+            with{" "}
             <Link href="/" className="font-semibold text-ink-2 underline-offset-4 hover:underline">
               Bundel
             </Link>
@@ -123,7 +167,7 @@ export function BundelVisitorView({ bundel, currentUser, commentCounts, previewH
         <VisitorBar
           bundelId={bundel.id}
           title={bundel.title}
-          subtitle={bundel.subtitle}
+          subtitle={ask ? `Help me pick: ${ask.question || bundel.title}` : bundel.subtitle}
           isSignedIn={!!currentUser}
           path={path}
         />

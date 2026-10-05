@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma"
 import { incrementViews } from "@/lib/actions"
 import { auth } from "@/lib/auth"
 import { bundelHue, bundelThemeColor } from "@/lib/theme"
+import { optional } from "@/lib/optional"
+import { summarizeVotes } from "@/lib/sharing"
 import { BundelVisitorView } from "./BundelVisitorView"
 import { OwnerView, YearReview } from "./views"
 
@@ -12,7 +14,7 @@ interface PageProps {
     username: string
     slug: string
   }>
-  searchParams: Promise<{ view?: string }>
+  searchParams: Promise<{ view?: string; l?: string }>
 }
 
 // Browser chrome takes on the Bundel's colour so the hero runs edge to edge.
@@ -30,8 +32,9 @@ export async function generateViewport({ params }: PageProps): Promise<Viewport>
   return { themeColor: bundelThemeColor(bundelHue(bundel.slug)) }
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: PageProps): Promise<Metadata> {
   const { username, slug } = await params
+  const { l: focusId } = await searchParams
 
   const linkylink = await prisma.linkLink.findUnique({
     where: { slug },
@@ -43,25 +46,36 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   const pageUrl = `/${username}/${slug}`
-  const description = buildDescription(linkylink)
   const authorName = linkylink.user.name || linkylink.user.username
+  const [ask, focus] = await Promise.all([
+    optional(prisma.ask.findUnique({ where: { linkylinkId: linkylink.id } }), null),
+    focusId ? prisma.link.findFirst({ where: { id: focusId, linkylinkId: linkylink.id } }) : null,
+  ])
+
+  // A shared single link previews as that link with the curator's note.
+  const title = focus ? `${focus.title} · via @${username}` : linkylink.title
+  const description = focus
+    ? focus.context || `From “${linkylink.title}” by @${username}`
+    : ask
+      ? `Help @${username} pick: ${ask.question || linkylink.title}`
+      : buildDescription(linkylink)
 
   const ogImage = {
-    url: `/api/og/${slug}`,
+    url: focus ? `/api/og/${slug}?l=${focus.id}` : `/api/og/${slug}`,
     width: 1200,
     height: 630,
-    alt: linkylink.title,
+    alt: title,
     type: "image/png",
   }
 
   return {
-    title: `${linkylink.title} - Bundel`,
+    title: `${title} - Bundel`,
     description,
     alternates: { canonical: pageUrl },
     authors: [{ name: authorName, url: `/${username}` }],
     robots: linkylink.isPublic ? undefined : { index: false, follow: false },
     openGraph: {
-      title: linkylink.title,
+      title,
       description,
       url: pageUrl,
       type: linkylink.type === "YEAR_REVIEW" ? "article" : "website",
@@ -69,7 +83,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     },
     twitter: {
       card: "summary_large_image",
-      title: linkylink.title,
+      title,
       description,
       images: [ogImage],
     },
@@ -82,7 +96,7 @@ function buildDescription(linkylink: { title: string; subtitle: string | null; u
 
 export default async function PublicLinkylinkPage({ params, searchParams }: PageProps) {
   const { username, slug } = await params
-  const { view: viewMode } = await searchParams
+  const { view: viewMode, l: focusLinkId } = await searchParams
   const session = await auth()
   
   // Run main query and session fetch in parallel
@@ -131,6 +145,31 @@ export default async function PublicLinkylinkPage({ params, searchParams }: Page
     commentCountMap[c.linkId] = c._count
   }
 
+  // Sharing features (each falls back to "off" if its table isn't there yet)
+  const isNormal = linkylink.type === "NORMAL"
+  const [ask, voteSummary, remix, suggestions] = isNormal
+    ? await Promise.all([
+        optional(prisma.ask.findUnique({ where: { linkylinkId: linkylink.id } }), null),
+        optional(summarizeVotes(linkylink.id), {}),
+        optional(
+          prisma.remix.findUnique({
+            where: { copyId: linkylink.id },
+            select: { source: { select: { title: true, slug: true, user: { select: { username: true } } } } },
+          }),
+          null
+        ),
+        isOwner
+          ? optional(prisma.suggestion.findMany({ where: { linkylinkId: linkylink.id }, orderBy: { createdAt: "asc" } }), [])
+          : [],
+      ])
+    : [null, {}, null, []]
+  const askSettings = ask
+    ? { kind: ask.kind, question: ask.question, allowSuggestions: ask.allowSuggestions, closed: ask.closed }
+    : null
+  const remixedFrom = remix?.source
+    ? { title: remix.source.title, path: `/${remix.source.user.username}/${remix.source.slug}`, username: remix.source.user.username }
+    : null
+
   // Increment views (don't await to not block rendering)
   incrementViews(slug)
 
@@ -161,12 +200,23 @@ export default async function PublicLinkylinkPage({ params, searchParams }: Page
   const view = linkylink.type === "YEAR_REVIEW"
     ? <YearReview linkylink={linkylink} isOwner={isOwner} />
     : ownerView
-      ? <OwnerView bundel={linkylink} commentCounts={commentCountMap} />
+      ? <OwnerView
+          bundel={linkylink}
+          commentCounts={commentCountMap}
+          ask={askSettings}
+          voteSummary={voteSummary}
+          suggestions={suggestions.map((x) => ({ id: x.id, url: x.url, title: x.title, note: x.note, name: x.name }))}
+          remixedFrom={remixedFrom}
+        />
       : <BundelVisitorView
           bundel={linkylink}
           currentUser={sessionUser}
           commentCounts={commentCountMap}
           previewHref={isOwner ? `/${username}/${slug}` : undefined}
+          ask={askSettings}
+          voteSummary={voteSummary}
+          focusLinkId={focusLinkId}
+          remixedFrom={remixedFrom}
         />
 
   return (

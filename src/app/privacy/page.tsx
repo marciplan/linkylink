@@ -51,7 +51,7 @@ export default function PrivacyPage() {
                 <li>• We don&apos;t sell your data to anyone</li>
                 <li>• We don&apos;t track you across other websites</li>
                 <li>• We don&apos;t send marketing emails unless you opt in</li>
-                <li>• We don&apos;t share your information with third parties</li>
+                <li>• We don&apos;t share your information with third parties, apart from the email provider described below</li>
               </ul>
             </div>
 
@@ -61,6 +61,16 @@ export default function PrivacyPage() {
                 Bundel pages are public by default. Anyone with your Bundel URL can see your links and titles. 
                 Don&apos;t include sensitive information in your public links.
               </p>
+            </div>
+
+            <div>
+              <h2 className="text-xl font-medium text-ink mb-4">Votes, suggestions and follows</h2>
+              <ul className="space-y-2">
+                <li>• When you vote on or suggest a link for a Bundel without an account, we store the name you type and a random code saved on your device. The Bundel&apos;s owner and its visitors see your name next to your vote.</li>
+                <li>• If you follow someone by email, we store your email address only after you confirm it, and send at most one email a day when they add links. Every email has an unsubscribe link, and unsubscribing deletes your address. The curator is told someone followed, never who.</li>
+                <li>• Emails are delivered by our email provider, which processes your address only to send them.</li>
+                <li>• RSS feeds contain only what is already public on Bundel pages.</li>
+              </ul>
             </div>
 
             <div>
@@ -87,7 +97,7 @@ export default function PrivacyPage() {
             </div>
 
             <div className="pt-8 border-t text-sm text-ink-3">
-              <p>Last updated: August 26, 2024</p>
+              <p>Last updated: October 5, 2026</p>
               <p className="mt-2">
                 Questions? Contact us at privacy@bundel.link
               </p>

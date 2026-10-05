@@ -5,6 +5,8 @@ import { prisma } from "@/lib/prisma"
 import { generateSlug } from "@/lib/utils"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
+import { recordActivity } from "@/lib/sharing"
+import { optional } from "@/lib/optional"
 
 const createLinkylinkSchema = z.object({
   title: z.string().min(1).max(100),
@@ -453,6 +455,15 @@ export async function duplicateBundel(linkylinkId: string) {
     include: { user: { select: { username: true } } },
   })
 
+  // Credit the original and let its curator know (skipped for your own Bundels).
+  await optional(prisma.remix.create({ data: { copyId: copy.id, sourceId: source.id } }), null)
+  if (source.userId !== session.user.id) {
+    const sourceOwner = await prisma.user.findUnique({ where: { id: source.userId }, select: { username: true } })
+    if (sourceOwner) {
+      await recordActivity(source.userId, "REMIX", copy.user.username, { title: source.title, slug: source.slug, username: sourceOwner.username })
+    }
+  }
+
   revalidatePath("/dashboard")
   return { id: copy.id, slug: copy.slug, username: copy.user.username }
 }
@@ -878,7 +889,7 @@ export async function addComment(data: z.infer<typeof addCommentSchema>) {
     where: { id: linkId },
     select: {
       id: true,
-      linkylink: { select: { slug: true, user: { select: { username: true } } } },
+      linkylink: { select: { slug: true, title: true, userId: true, user: { select: { username: true } } } },
     },
   })
 
@@ -898,6 +909,14 @@ export async function addComment(data: z.infer<typeof addCommentSchema>) {
       },
     },
   })
+
+  if (link.linkylink.userId !== session.user.id) {
+    await recordActivity(link.linkylink.userId, "COMMENT", comment.user.username, {
+      title: link.linkylink.title,
+      slug: link.linkylink.slug,
+      username: link.linkylink.user.username,
+    }, content)
+  }
 
   revalidatePath(`/${link.linkylink.user.username}/${link.linkylink.slug}`)
   return comment

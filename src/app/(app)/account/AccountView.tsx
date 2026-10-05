@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { signOut } from "next-auth/react"
-import { Sun, Moon, Monitor, Sparkles, Info, Shield, LogOut, ChevronRight } from "lucide-react"
+import { Sun, Moon, Monitor, Sparkles, Info, Shield, LogOut, ChevronRight, UserRound } from "lucide-react"
 import { Avatar } from "@/components/Avatar"
 import { ListGroup } from "@/components/ui/sheet"
 import { useTheme } from "@/components/theme-provider"
@@ -76,6 +76,7 @@ export function AccountView({ user, bundelCount, totalViews }: AccountViewProps)
       </section>
 
       <ListGroup className="bg-surface shadow-card">
+        <RowLink href={`/${user.username}`} icon={<UserRound className="h-5 w-5" />} label="Your public page" />
         <RowLink href="/recommendations" icon={<Sparkles className="h-5 w-5" />} label="Tidy up suggestions" />
         <RowLink href="/about" icon={<Info className="h-5 w-5" />} label="About Bundel" />
         <RowLink href="/privacy" icon={<Shield className="h-5 w-5" />} label="Privacy" />
