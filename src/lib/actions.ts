@@ -972,7 +972,7 @@ export async function deleteComment(commentId: string) {
   revalidatePath(`/${comment.link.linkylink.user.username}/${comment.link.linkylink.slug}`)
 }
 
-export async function updateCategoryItem(itemId: string, data: { title?: string; context?: string }) {
+export async function updateCategoryItem(itemId: string, data: { title?: string; context?: string | null; url?: string }) {
   const session = await auth()
   if (!session?.user?.id) {
     throw new Error("Unauthorized")
@@ -988,11 +988,13 @@ export async function updateCategoryItem(itemId: string, data: { title?: string;
     throw new Error("Item not found")
   }
 
+  const url = data.url !== undefined ? z.string().url().max(2000).parse(data.url) : undefined
   const updated = await prisma.categoryItem.update({
     where: { id: itemId },
     data: {
-      ...(data.title && { title: data.title.trim() }),
-      ...(data.context !== undefined && { context: data.context }),
+      ...(data.title && { title: data.title.trim().slice(0, 100) }),
+      ...(data.context !== undefined && { context: data.context?.trim().slice(0, 280) || null }),
+      ...(url && url !== item.url && { url, favicon: await fetchFavicon(url) }),
     },
   })
 

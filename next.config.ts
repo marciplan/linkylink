@@ -4,6 +4,7 @@ const nextConfig: NextConfig = {
   // Share-image fonts are read from disk at runtime; make sure deployments include them.
   outputFileTracingIncludes: {
     "/api/og/[slug]": ["./src/app/api/og/fonts/**"],
+    "/api/og/story/[slug]": ["./src/app/api/og/fonts/**"],
   },
   images: {
     remotePatterns: [

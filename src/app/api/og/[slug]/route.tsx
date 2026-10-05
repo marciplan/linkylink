@@ -6,6 +6,7 @@ import { bundelHue, oklchToHex } from "@/lib/theme"
 import { bundelIcon } from "@/lib/bundel-icon"
 import { domainOf } from "@/lib/links"
 import { ogFonts } from "../fonts"
+import { categoryEmoji } from "@/lib/year-review"
 
 export const runtime = "nodejs"
 
@@ -129,7 +130,14 @@ export async function GET(
           subtitle: true,
           avatar: true,
           user: { select: { username: true, image: true } },
+          type: true,
+          year: true,
           links: { orderBy: { order: 'asc' }, select: { id: true, title: true, url: true, context: true } },
+          categories: {
+            orderBy: { order: 'asc' },
+            take: 3,
+            select: { id: true, name: true, icon: true, items: { orderBy: { rank: 'asc' }, take: 1, select: { title: true } } },
+          },
         },
       }),
       TIMEOUT_MS
@@ -142,6 +150,38 @@ export async function GET(
     const icon = bundelIcon(bundel.avatar, null, bundel.title)
     const emoji = icon.kind === 'emoji' ? icon.value : (detectTheme(`${bundel.title} ${bundel.subtitle ?? ''}`)?.main ?? '🔗')
     const focus = focusId ? bundel.links.find((l) => l.id === focusId) : undefined
+
+    // A Year Review previews as the year itself plus its first categories and their #1 picks.
+    if (bundel.type === 'YEAR_REVIEW') {
+      return new ImageResponse(
+        (
+          <div style={{ display: 'flex', width: '100%', height: '100%', backgroundImage: colors.background, position: 'relative', padding: '64px 64px 100px', fontFamily: 'Inter' }}>
+            <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(180deg, rgba(0,0,0,0) 30%, rgba(0,0,0,0.38) 100%)', display: 'flex' }} />
+            <div style={{ display: 'flex', flexDirection: 'column', width: 600, color: 'white', position: 'relative', justifyContent: 'center' }}>
+              <div style={{ display: 'flex', fontSize: 26, fontWeight: 600, letterSpacing: 6, opacity: 0.85 }}>THE YEAR IN REVIEW</div>
+              <div style={{ display: 'flex', fontSize: 250, fontWeight: 800, letterSpacing: -14, lineHeight: 0.9, marginTop: 6 }}>{bundel.year ?? ''}</div>
+              <div style={{ display: 'flex', fontSize: 42, fontWeight: 700, marginTop: 20 }}>{clip(bundel.title, 28)}</div>
+              <div style={{ display: 'flex', fontSize: 28, opacity: 0.85, marginTop: 8 }}>@{bundel.user.username}</div>
+            </div>
+            {bundel.categories.length > 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', width: 440, marginLeft: 'auto', position: 'relative', background: 'white', borderRadius: 36, padding: '16px 26px', alignSelf: 'center', boxShadow: '0 24px 60px rgba(0,0,0,0.25)' }}>
+                {bundel.categories.map((c, i) => (
+                  <div key={c.id} style={{ display: 'flex', alignItems: 'center', padding: '18px 0', borderTop: i ? '2px solid #eef0f4' : 'none' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 64, height: 64, borderRadius: 20, background: colors.soft, fontSize: 36, flexShrink: 0 }}>{categoryEmoji(c.icon)}</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', marginLeft: 18, width: 300 }}>
+                      <div style={{ display: 'flex', fontSize: 22, fontWeight: 600, color: '#8a8e9c' }}>{clip(c.name, 22)}</div>
+                      <div style={{ display: 'flex', fontSize: 28, fontWeight: 700, color: '#15161c', marginTop: 2 }}>{c.items[0] ? clip(c.items[0].title, 20) : '…'}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            <Brand />
+          </div>
+        ),
+        await options()
+      )
+    }
 
     // One shared link: the link is the headline, the curator's note is the hook.
     if (focus) {

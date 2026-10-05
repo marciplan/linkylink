@@ -55,9 +55,12 @@ interface AddLinkSheetProps {
   onOpenChange: (open: boolean) => void
   onAdd: (link: NewLink) => Promise<void> | void
   initialUrl?: string
+  /** Panel heading and button label, e.g. "Add your #1". */
+  heading?: string
+  submitLabel?: string
 }
 
-export function AddLinkSheet({ open, onOpenChange, onAdd, initialUrl = "" }: AddLinkSheetProps) {
+export function AddLinkSheet({ open, onOpenChange, onAdd, initialUrl = "", heading = "Add a link", submitLabel = "Add link" }: AddLinkSheetProps) {
   const [rawUrl, setRawUrl] = useState(initialUrl)
   // null = follow the suggested title; a string = the user's own edit
   const [titleEdit, setTitleEdit] = useState<string | null>(null)
@@ -106,11 +109,11 @@ export function AddLinkSheet({ open, onOpenChange, onAdd, initialUrl = "" }: Add
       open={open}
       onOpenChange={onOpenChange}
       initialFocusRef={urlRef}
-      title="Add a link"
+      title={heading}
       footer={
         <Button variant="primary" size="lg" disabled={!valid || !title.trim() || submitting} onClick={() => submit()}>
           {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <Plus className="h-5 w-5" strokeWidth={2.5} />}
-          Add link
+          {submitLabel}
         </Button>
       }
     >
