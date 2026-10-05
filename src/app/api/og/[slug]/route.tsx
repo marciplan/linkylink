@@ -10,6 +10,8 @@ const HEIGHT = 630
 const RESPONSE_OPTIONS = {
   width: WIDTH,
   height: HEIGHT,
+  // Fluent emoji to match the app's icons (the renderer ships Fluent's Color style).
+  emoji: 'fluent' as const,
   headers: {
     'Content-Type': 'image/png',
     'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400',

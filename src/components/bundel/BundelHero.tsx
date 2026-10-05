@@ -1,4 +1,5 @@
 import Image from "next/image"
+import { FluentEmoji } from "@/components/FluentEmoji"
 import { bundelGradient } from "@/lib/theme"
 import type { BundelIcon } from "@/lib/bundel-icon"
 
@@ -20,9 +21,7 @@ export function BundelIconTile({ icon, size = 72 }: { icon: BundelIcon; size?: n
       style={{ width: size, height: size }}
     >
       {icon.kind === "emoji" ? (
-        <span style={{ fontSize: size * 0.52, lineHeight: 1 }} aria-hidden>
-          {icon.value}
-        </span>
+        <FluentEmoji emoji={icon.value} size={Math.round(size * 0.62)} className="drop-shadow-sm" />
       ) : (
         <Image src={icon.value} alt="" fill sizes={`${size}px`} className="object-cover" />
       )}

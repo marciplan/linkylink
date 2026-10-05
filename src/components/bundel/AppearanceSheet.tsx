@@ -5,6 +5,7 @@ import Image from "next/image"
 import { Check, Loader2, Palette, RefreshCw } from "lucide-react"
 import { Sheet } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
+import { FluentEmoji } from "@/components/FluentEmoji"
 import { bundelGradient } from "@/lib/theme"
 import { cn } from "@/lib/utils"
 
@@ -98,11 +99,12 @@ export function AppearanceSheet({ open, onOpenChange, bundel, hue, icon, headerI
                 onClick={() => onIconChange(emoji)}
                 aria-pressed={icon === emoji}
                 className={cn(
-                  "pressable grid aspect-square place-items-center rounded-2xl text-3xl",
+                  "pressable grid aspect-square place-items-center rounded-2xl",
                   icon === emoji ? "bg-tint-soft ring-2 ring-tint" : "bg-surface-2"
                 )}
+                aria-label={`Use ${emoji}`}
               >
-                {emoji}
+                <FluentEmoji emoji={emoji} size={40} />
               </button>
             ))}
             <input

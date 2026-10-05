@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { MoreHorizontal, Share } from "lucide-react"
+import { FluentEmoji } from "@/components/FluentEmoji"
 import { bundelGradient } from "@/lib/theme"
 import { cn } from "@/lib/utils"
 
@@ -76,7 +77,7 @@ export function HomepageDemo() {
               <Share className="h-3.5 w-3.5" />
             </div>
             <div key={`h-${index}`} className="relative animate-rise">
-              <span className="grid h-12 w-12 place-items-center rounded-[30%] bg-white/25 text-2xl ring-1 ring-white/50 backdrop-blur">{ex.emoji}</span>
+              <span className="grid h-12 w-12 place-items-center rounded-[30%] bg-white/25 ring-1 ring-white/50 backdrop-blur"><FluentEmoji emoji={ex.emoji} size={30} /></span>
               <p className="mt-3 text-[22px] font-bold leading-tight tracking-tight text-balance">{ex.title}</p>
               <p className="mt-2 text-xs font-medium text-white/80">@{ex.username} · {ex.links.length} links</p>
             </div>
