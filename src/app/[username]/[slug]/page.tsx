@@ -7,7 +7,8 @@ import { bundelHue, bundelThemeColor } from "@/lib/theme"
 import { optional } from "@/lib/optional"
 import { summarizeVotes } from "@/lib/sharing"
 import { BundelVisitorView } from "./BundelVisitorView"
-import { OwnerView, YearReview } from "./views"
+import { OwnerView, ReviewOwner } from "./views"
+import { ReviewVisitorView } from "./ReviewVisitorView"
 
 interface PageProps {
   params: Promise<{
@@ -198,7 +199,9 @@ export default async function PublicLinkylinkPage({ params, searchParams }: Page
 
   const ownerView = isOwner && viewMode !== "public"
   const view = linkylink.type === "YEAR_REVIEW"
-    ? <YearReview linkylink={linkylink} isOwner={isOwner} />
+    ? ownerView
+      ? <ReviewOwner review={linkylink} />
+      : <ReviewVisitorView review={linkylink} previewHref={isOwner ? `/${username}/${slug}` : undefined} />
     : ownerView
       ? <OwnerView
           bundel={linkylink}

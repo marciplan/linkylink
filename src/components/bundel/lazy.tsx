@@ -5,6 +5,8 @@ import dynamic from "next/dynamic"
 
 // Client-side split point: only Bundels in Ask mode download the voting UI.
 export const AskVisitorList = dynamic(() => import("./ask/AskVisitorList"))
+// Year Review celebration, loaded only on review pages.
+export const ConfettiOnView = dynamic(() => import("../yearreview/Confetti"), { ssr: false })
 
 /** Brings a shared link (?l=…) into view once the page has painted. */
 export function FocusLink({ id }: { id: string }) {
