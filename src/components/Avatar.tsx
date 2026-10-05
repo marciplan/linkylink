@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import Image from "next/image"
 import generateGradient from "gradient-avatar"
+import { FluentEmoji } from "./FluentEmoji"
 
 interface AvatarProps {
   src?: string | null
@@ -46,16 +47,14 @@ export function Avatar({ src, username, title, size = 80, className = "" }: Avat
   // Render emoji avatar
   if (isEmoji) {
     // Clean the emoji string - take only the first valid emoji character
-    const cleanEmoji = src?.match(/\p{Emoji}/u)?.[0] || src?.charAt(0) || '😀'
+    const cleanEmoji = src?.match(/\p{Extended_Pictographic}(\u200d\p{Extended_Pictographic}|\ufe0f)*/u)?.[0] || src?.charAt(0) || '😀'
     
     return (
       <div
-        className={`relative flex items-center justify-center rounded-full bg-gray-100 ${className}`}
+        className={`relative flex items-center justify-center rounded-full bg-surface-2 ${className}`}
         style={{ width: size, height: size }}
       >
-        <span style={{ fontSize: size * 0.6 }}>
-          {cleanEmoji}
-        </span>
+        <FluentEmoji emoji={cleanEmoji} size={Math.round(size * 0.66)} />
       </div>
     )
   }
@@ -84,12 +83,10 @@ export function Avatar({ src, username, title, size = 80, className = "" }: Avat
 
     return (
       <div
-        className={`relative flex items-center justify-center rounded-full bg-gray-100 ${className}`}
+        className={`relative flex items-center justify-center rounded-full bg-surface-2 ${className}`}
         style={{ width: size, height: size }}
       >
-        <span style={{ fontSize: size * 0.6 }}>
-          {fallbackEmoji}
-        </span>
+        <FluentEmoji emoji={fallbackEmoji} size={Math.round(size * 0.66)} />
       </div>
     )
   }

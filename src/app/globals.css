@@ -2,13 +2,72 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Design tokens. Values are OKLCH channels ("L C H") so Tailwind can add alpha.
+ * Neutrals carry a hint of blue; the tint is per-Bundel and driven by --tint-h.
+ */
 @layer base {
-  body {
-    @apply bg-white text-gray-900 antialiased;
+  :root {
+    color-scheme: light;
+    --bg: 0.985 0.002 265;
+    --surface: 1 0 0;
+    --surface-2: 0.962 0.004 265;
+    --ink: 0.2 0.012 265;
+    --ink-2: 0.46 0.012 265;
+    --ink-3: 0.64 0.01 265;
+    --line: 0.915 0.006 265;
+    --danger: 0.58 0.2 25;
+    --tint-h: 265;
   }
-  
+
+  .dark {
+    color-scheme: dark;
+    --bg: 0.145 0.005 265;
+    --surface: 0.195 0.007 265;
+    --surface-2: 0.245 0.008 265;
+    --ink: 0.97 0.003 265;
+    --ink-2: 0.74 0.01 265;
+    --ink-3: 0.56 0.01 265;
+    --line: 0.29 0.008 265;
+    --danger: 0.68 0.19 25;
+  }
+
+  /* Derived tint tokens are redeclared wherever the hue changes so they pick it up. */
+  :root,
+  [data-tint] {
+    --tint: 0.6 0.17 var(--tint-h);
+    --tint-soft: 0.955 0.03 var(--tint-h);
+    --tint-ink: 0.42 0.15 var(--tint-h);
+    --tint-strong: 0.52 0.16 var(--tint-h);
+  }
+
+  .dark,
+  .dark [data-tint] {
+    --tint: 0.68 0.15 var(--tint-h);
+    --tint-soft: 0.29 0.055 var(--tint-h);
+    --tint-ink: 0.86 0.09 var(--tint-h);
+    --tint-strong: 0.55 0.15 var(--tint-h);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply bg-bg text-ink antialiased;
+    font-feature-settings: "cv11", "ss01";
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior-y: none;
+  }
+
   * {
-    @apply border-gray-200;
+    @apply border-line;
+  }
+
+  :focus-visible {
+    outline: 2px solid oklch(var(--tint));
+    outline-offset: 2px;
   }
 }
 
@@ -19,6 +78,60 @@
 
   .safe-bottom {
     padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .pb-safe {
+    padding-bottom: max(env(safe-area-inset-bottom), 0.75rem);
+  }
+
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  /* Tactile press feedback for anything tappable. */
+  .pressable {
+    transition: transform 0.18s cubic-bezier(0.23, 1, 0.32, 1), background-color 0.15s, opacity 0.15s;
+  }
+  .pressable:active {
+    transform: scale(0.97);
+  }
+
+  .glass {
+    background-color: oklch(var(--surface) / 0.78);
+    -webkit-backdrop-filter: saturate(1.8) blur(20px);
+    backdrop-filter: saturate(1.8) blur(20px);
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .text-pretty {
+    text-wrap: pretty;
+  }
+
+  .scrollbar-none {
+    scrollbar-width: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Staggered entrance: set --i on each child. */
+  .stagger {
+    animation: rise 0.5s cubic-bezier(0.23, 1, 0.32, 1) both;
+    animation-delay: calc(min(var(--i, 0), 12) * 40ms);
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 

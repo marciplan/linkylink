@@ -38,15 +38,18 @@ export async function POST(request: NextRequest) {
     const backgroundData = await generateBackgroundOptions(title, subtitle, defaultEmoji)
     console.log('Generated background images:', backgroundData.images.length)
 
-    // Update linkylink with generated data
+    // Fill in the icon unless the owner picked one meanwhile. Backgrounds are
+    // stored as options only; by default the page uses its themed gradient.
     await prisma.linkLink.update({
       where: { id: linkylinkId },
       data: {
-        avatar: defaultEmoji,
-        headerImage: backgroundData.selectedImage,
         headerPrompt: backgroundData.prompt,
         headerImages: backgroundData.images,
       },
+    })
+    await prisma.linkLink.updateMany({
+      where: { id: linkylinkId, avatar: null },
+      data: { avatar: defaultEmoji },
     })
 
     console.log('✅ Background generation completed for linkylink:', linkylinkId)

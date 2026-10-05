@@ -90,6 +90,28 @@ A mobile-first web app for creating and sharing beautiful link collections. Perf
    - `NEXT_PUBLIC_APP_URL` - Same as NEXTAUTH_URL
 4. Deploy!
 
+### Database updates
+
+The build only generates the Prisma client; it doesn't change the database.
+After pulling schema changes, apply them once against production:
+
+```bash
+DATABASE_URL="<production url>" npx prisma db push
+```
+
+The sharing tables (votes, suggestions, activity, email follows, remix
+credit) are additive. Until they exist, the app keeps working with those
+features switched off.
+
+### Sharing features (optional settings)
+
+| Variable | What it does |
+| --- | --- |
+| `RESEND_API_KEY`, `EMAIL_FROM` | Turns on "Follow by email" (double opt-in) and the daily digest, sent through [Resend](https://resend.com). Without them, following is RSS-only. |
+| `CRON_SECRET` | Protects `/api/cron/digest`. Vercel Cron sends it automatically; the schedule is in `vercel.json` (daily, 16:00 UTC). |
+| `EMAIL_DRY_RUN=1` | Local development: prints emails to the server log instead of sending them. |
+| `NEXT_PUBLIC_EMOJI_CDN` | Where Fluent emoji images load from. Defaults to the pinned `@lobehub/fluent-emoji-3d` package on jsDelivr. |
+
 ## Analytics (Rybbit)
 
 - Add your site ID to `.env.local`:

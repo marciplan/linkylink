@@ -98,10 +98,10 @@ export default function AdminPage() {
     <div className="container mx-auto py-8 px-4">
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-3xl font-bold text-ink mb-2">
             Bundel Admin
           </h1>
-          <p className="text-gray-600">
+          <p className="text-ink-2">
             Manage and migrate your Bundel data
           </p>
         </div>
@@ -181,7 +181,7 @@ export default function AdminPage() {
           </Card>
         )}
 
-        <div className="mt-8 text-sm text-gray-500">
+        <div className="mt-8 text-sm text-ink-3">
           <h3 className="font-medium mb-2">Usage Instructions:</h3>
           <ul className="space-y-1 list-disc list-inside">
             <li><strong>Migrate Favicons:</strong> Updates all links without favicons</li>

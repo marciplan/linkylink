@@ -1,37 +1,31 @@
 import { ImageResponse } from "next/og"
 import type { NextRequest } from 'next/server'
 import { prisma } from "@/lib/prisma"
+import { optional } from "@/lib/optional"
+import { bundelHue, oklchToHex } from "@/lib/theme"
+import { bundelIcon } from "@/lib/bundel-icon"
+import { domainOf } from "@/lib/links"
+import { ogFonts } from "../fonts"
 
 export const runtime = "nodejs"
 
 const TIMEOUT_MS = 4000
 const WIDTH = 1200
 const HEIGHT = 630
-const RESPONSE_OPTIONS = {
+const BASE_OPTIONS = {
   width: WIDTH,
   height: HEIGHT,
+  // Fluent emoji to match the app's icons (the renderer ships Fluent's Color style).
+  emoji: 'fluent' as const,
   headers: {
     'Content-Type': 'image/png',
     'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400',
   },
 }
 
-const GRADIENTS = [
-  "linear-gradient(135deg, #ff6e7f 0%, #bfe9ff 100%)",
-  "linear-gradient(135deg, #00c6ff 0%, #0072ff 100%)",
-  "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
-  "linear-gradient(135deg, #fa709a 0%, #fee140 100%)",
-  "linear-gradient(135deg, #30cfd0 0%, #330867 100%)",
-  "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
-  "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)",
-  "linear-gradient(135deg, #fa8bff 0%, #2bd2ff 50%, #2bff88 100%)",
-  "linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)",
-  "linear-gradient(135deg, #c471f5 0%, #fa71cd 100%)",
-  "linear-gradient(135deg, #ff5858 0%, #f09819 100%)",
-  "linear-gradient(135deg, #5f72bd 0%, #9b23ea 100%)",
-  "linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)",
-  "linear-gradient(135deg, #ee9ca7 0%, #ffdde1 100%)",
-]
+async function options() {
+  return { ...BASE_OPTIONS, fonts: await ogFonts() }
+}
 
 const THEMES: { keywords: string[]; main: string; decor: string[] }[] = [
   { keywords: ['summer', 'beach', 'sun', 'vacation', 'tropic'], main: '☀️', decor: ['🌴', '🏖️', '🍉', '🕶️', '🌺', '🌊'] },
@@ -56,20 +50,8 @@ const THEMES: { keywords: string[]; main: string; decor: string[] }[] = [
   { keywords: ['nature', 'garden', 'plant', 'flower', 'eco'], main: '🌿', decor: ['🌸', '🌻', '🌳', '🍃', '🌷', '🦋'] },
 ]
 
-const GENERIC_DECOR = ['✨', '💫', '⭐', '🌟', '💎', '🔮', '🌈', '🎉', '💖', '🍀', '🎈', '🚀']
 
-function hashSlug(slug: string): number {
-  let hash = 2166136261
-  for (let i = 0; i < slug.length; i++) {
-    hash ^= slug.charCodeAt(i)
-    hash = Math.imul(hash, 16777619)
-  }
-  return Math.abs(hash)
-}
 
-function pick<T>(arr: T[], seed: number, offset = 0): T {
-  return arr[(seed + offset) % arr.length]
-}
 
 function detectTheme(text: string): typeof THEMES[number] | null {
   const lower = text.toLowerCase()
@@ -79,35 +61,32 @@ function detectTheme(text: string): typeof THEMES[number] | null {
   return null
 }
 
-function buildScene(slug: string, title: string, subtitle: string | null, avatar: string | null) {
-  const seed = hashSlug(slug)
-  const theme = detectTheme(`${title} ${subtitle || ''}`)
-  const background = pick(GRADIENTS, seed)
-  const mainEmoji = avatar || theme?.main || pick(GENERIC_DECOR, seed, 3)
-  const decorPool = theme?.decor || GENERIC_DECOR
-  const decor = [
-    { e: pick(decorPool, seed, 1), x: 60, y: 60, size: 80, rotate: -12 },
-    { e: pick(decorPool, seed, 2), x: 1060, y: 80, size: 96, rotate: 14 },
-    { e: pick(decorPool, seed, 4), x: 100, y: 480, size: 88, rotate: 10 },
-    { e: pick(decorPool, seed, 6), x: 980, y: 460, size: 72, rotate: -8 },
-    { e: pick(decorPool, seed, 8), x: 540, y: 30, size: 56, rotate: 0 },
-    { e: pick(decorPool, seed, 10), x: 940, y: 280, size: 64, rotate: 18 },
-  ]
-  return { background, mainEmoji, decor }
+/** The page's gradient in sRGB (the image renderer doesn't understand OKLCH). */
+function palette(hue: number) {
+  return {
+    background: [
+      `radial-gradient(circle at 0% 0%, ${oklchToHex(0.78, 0.12, (hue + 320) % 360)} 0%, transparent 60%)`,
+      `radial-gradient(circle at 100% 10%, ${oklchToHex(0.62, 0.19, (hue + 40) % 360)} 0%, transparent 65%)`,
+      `linear-gradient(160deg, ${oklchToHex(0.72, 0.16, hue)} 0%, ${oklchToHex(0.5, 0.16, hue)} 100%)`,
+    ].join(", "),
+    soft: oklchToHex(0.95, 0.03, hue),
+    ink: oklchToHex(0.42, 0.15, hue),
+  }
 }
 
-function fallbackImage() {
+async function fallbackImage() {
+  const { background } = palette(265)
   return new ImageResponse(
     (
-      <div style={{ height: '100%', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: GRADIENTS[0] }}>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', color: 'white', textShadow: '0 2px 20px rgba(0,0,0,0.5)' }}>
-          <div style={{ fontSize: 140, marginBottom: 20 }}>📦</div>
-          <div style={{ fontSize: 72, fontWeight: 'bold' }}>Bundel</div>
-          <div style={{ fontSize: 32, opacity: 0.95, marginTop: 8 }}>All your links, one place</div>
+      <div style={{ height: '100%', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundImage: background, fontFamily: 'Inter' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', color: 'white' }}>
+          <div style={{ fontSize: 140, marginBottom: 20 }}>🔗</div>
+          <div style={{ fontSize: 76, fontWeight: 800, letterSpacing: '-0.03em' }}>Bundel</div>
+          <div style={{ fontSize: 34, opacity: 0.9, marginTop: 8 }}>All your links, one place</div>
         </div>
       </div>
     ),
-    RESPONSE_OPTIONS
+    await options()
   )
 }
 
@@ -122,160 +101,130 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   })
 }
 
+const clip = (text: string, max: number) => (text.length > max ? text.slice(0, max - 1).trimEnd() + '…' : text)
+
+function Brand() {
+  return (
+    <div style={{ position: 'absolute', bottom: 40, left: 64, display: 'flex', alignItems: 'center', fontSize: 26, fontWeight: 700, color: 'rgba(255,255,255,0.92)' }}>
+      <span style={{ fontSize: 30, marginRight: 10 }}>🔗</span>
+      bundel.link
+    </div>
+  )
+}
+
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
     const { slug } = await params
+    const focusId = request.nextUrl.searchParams.get('l')
 
-    const linkylink = await withTimeout(
+    const bundel = await withTimeout(
       prisma.linkLink.findUnique({
         where: { slug },
         select: {
+          id: true,
           title: true,
           subtitle: true,
           avatar: true,
-          user: { select: { username: true } },
-          _count: { select: { links: true } },
+          user: { select: { username: true, image: true } },
+          links: { orderBy: { order: 'asc' }, select: { id: true, title: true, url: true, context: true } },
         },
       }),
       TIMEOUT_MS
     )
+    if (!bundel) return fallbackImage()
 
-    if (!linkylink) return fallbackImage()
+    const ask = await withTimeout(optional(prisma.ask.findUnique({ where: { linkylinkId: bundel.id } }), null), TIMEOUT_MS).catch(() => null)
+    const hue = bundelHue(slug)
+    const colors = palette(hue)
+    const icon = bundelIcon(bundel.avatar, null, bundel.title)
+    const emoji = icon.kind === 'emoji' ? icon.value : (detectTheme(`${bundel.title} ${bundel.subtitle ?? ''}`)?.main ?? '🔗')
+    const focus = focusId ? bundel.links.find((l) => l.id === focusId) : undefined
 
-    const { background, mainEmoji, decor } = buildScene(
-      slug,
-      linkylink.title,
-      linkylink.subtitle,
-      linkylink.avatar
-    )
-    const linkCount = linkylink._count?.links ?? 0
-    const subtitleLine =
-      linkylink.subtitle ||
-      `@${linkylink.user.username} · ${linkCount} ${linkCount === 1 ? 'link' : 'links'}`
+    // One shared link: the link is the headline, the curator's note is the hook.
+    if (focus) {
+      return new ImageResponse(
+        (
+          <div style={{ display: 'flex', width: '100%', height: '100%', backgroundImage: colors.background, padding: 56, position: 'relative', fontFamily: 'Inter' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', width: '100%', background: 'white', borderRadius: 40, padding: '52px 60px', boxShadow: '0 24px 60px rgba(0,0,0,0.25)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', fontSize: 26, color: '#6b6f80' }}>
+                <span style={{ fontSize: 34, marginRight: 12 }}>{emoji}</span>
+                {clip(`@${bundel.user.username} · ${bundel.title}`, 52)}
+              </div>
+              <div style={{ display: 'flex', fontSize: focus.title.length > 40 ? 60 : 72, fontWeight: 800, color: '#15161c', letterSpacing: '-0.03em', lineHeight: 1.05, marginTop: 28 }}>
+                {clip(focus.title, 70)}
+              </div>
+              <div style={{ display: 'flex', fontSize: 30, color: colors.ink, fontWeight: 600, marginTop: 18 }}>{domainOf(focus.url)}</div>
+              {focus.context && (
+                <div style={{ display: 'flex', marginTop: 'auto', borderLeft: `6px solid ${colors.ink}`, paddingLeft: 24, fontSize: 34, color: '#3a3d4a', lineHeight: 1.3 }}>
+                  “{clip(focus.context, 120)}”
+                </div>
+              )}
+            </div>
+          </div>
+        ),
+        await options()
+      )
+    }
+
+    const top = bundel.links.slice(0, 3)
+    const more = bundel.links.length - top.length
+    const kicker = ask ? `@${bundel.user.username} asks` : `@${bundel.user.username}`
+    const headline = ask?.question || bundel.title
 
     return new ImageResponse(
       (
-        <div
-          style={{
-            display: 'flex',
-            height: '100%',
-            width: '100%',
-            position: 'relative',
-            background,
-          }}
-        >
-          <div
-            style={{
-              position: 'absolute',
-              inset: 0,
-              background: 'linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.25) 100%)',
-              display: 'flex',
-            }}
-          />
+        <div style={{ display: 'flex', width: '100%', height: '100%', backgroundImage: colors.background, position: 'relative', padding: '64px 64px 100px', fontFamily: 'Inter' }}>
+          <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,0.28) 100%)', display: 'flex' }} />
 
-          {decor.map((d, i) => (
-            <div
-              key={i}
-              style={{
-                position: 'absolute',
-                left: d.x,
-                top: d.y,
-                fontSize: d.size,
-                transform: `rotate(${d.rotate}deg)`,
-                opacity: 0.85,
-                display: 'flex',
-                textShadow: '0 4px 12px rgba(0,0,0,0.25)',
-              }}
-            >
-              {d.e}
+          {/* Left: who and what */}
+          <div style={{ display: 'flex', flexDirection: 'column', width: top.length ? 560 : 1072, color: 'white', position: 'relative' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 120, height: 120, borderRadius: 36, background: 'rgba(255,255,255,0.28)', border: '2px solid rgba(255,255,255,0.5)', fontSize: 72 }}>
+              {emoji}
             </div>
-          ))}
-
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: '100%',
-              padding: '0 100px',
-              position: 'relative',
-              zIndex: 1,
-            }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: 190,
-                height: 190,
-                borderRadius: '50%',
-                background: 'white',
-                fontSize: 120,
-                marginBottom: 36,
-                boxShadow: '0 12px 40px rgba(0,0,0,0.25)',
-              }}
-            >
-              {mainEmoji}
+            <div style={{ display: 'flex', fontSize: 28, fontWeight: 600, opacity: 0.9, marginTop: 32 }}>{kicker}</div>
+            <div style={{ display: 'flex', fontSize: headline.length > 32 ? 54 : 66, fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1.04, marginTop: 8, textShadow: '0 2px 20px rgba(0,0,0,0.25)' }}>
+              {clip(headline, 64)}
             </div>
-
-            <div
-              style={{
-                fontSize: linkylink.title.length > 28 ? 64 : 80,
-                fontWeight: 800,
-                color: 'white',
-                textAlign: 'center',
-                lineHeight: 1.1,
-                letterSpacing: '-0.02em',
-                textShadow: '0 4px 24px rgba(0,0,0,0.45)',
-                maxWidth: 980,
-                display: 'flex',
-                justifyContent: 'center',
-              }}
-            >
-              {linkylink.title}
-            </div>
-
-            <div
-              style={{
-                fontSize: 30,
-                color: 'rgba(255,255,255,0.95)',
-                marginTop: 24,
-                textAlign: 'center',
-                textShadow: '0 2px 12px rgba(0,0,0,0.35)',
-                maxWidth: 900,
-                display: 'flex',
-                justifyContent: 'center',
-              }}
-            >
-              {subtitleLine}
-            </div>
+            {ask ? (
+              <div style={{ display: 'flex', alignItems: 'center', marginTop: 28, alignSelf: 'flex-start', background: 'white', color: colors.ink, borderRadius: 999, padding: '12px 26px', fontSize: 28, fontWeight: 700 }}>
+                🗳️ Tap to vote
+              </div>
+            ) : (
+              <div style={{ display: 'flex', fontSize: 28, opacity: 0.9, marginTop: 20 }}>
+                {bundel.links.length} {bundel.links.length === 1 ? 'link' : 'links'}{bundel.subtitle ? ` · ${clip(bundel.subtitle, 40)}` : ''}
+              </div>
+            )}
           </div>
 
-          <div
-            style={{
-              position: 'absolute',
-              bottom: 40,
-              right: 50,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              fontSize: 26,
-              fontWeight: 700,
-              color: 'rgba(255,255,255,0.9)',
-              textShadow: '0 2px 10px rgba(0,0,0,0.3)',
-            }}
-          >
-            <span style={{ fontSize: 32 }}>🔗</span>
-            <span>Bundel</span>
-          </div>
+          {/* Right: what's inside */}
+          {top.length > 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column', width: 480, marginLeft: 'auto', position: 'relative', background: 'white', borderRadius: 36, padding: '18px 26px', boxShadow: '0 24px 60px rgba(0,0,0,0.25)', alignSelf: 'center' }}>
+              {top.map((link, i) => (
+                <div key={link.id} style={{ display: 'flex', alignItems: 'center', padding: '18px 0', borderTop: i ? '2px solid #eef0f4' : 'none' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 60, height: 60, borderRadius: 18, background: colors.soft, color: colors.ink, fontSize: 28, fontWeight: 800, flexShrink: 0 }}>
+                    {domainOf(link.url).charAt(0).toUpperCase()}
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', marginLeft: 18, width: 340 }}>
+                    <div style={{ display: 'flex', fontSize: 28, fontWeight: 700, color: '#15161c' }}>{clip(link.title, 24)}</div>
+                    <div style={{ display: 'flex', fontSize: 22, color: '#8a8e9c', marginTop: 2 }}>{clip(domainOf(link.url), 30)}</div>
+                  </div>
+                </div>
+              ))}
+              {more > 0 && (
+                <div style={{ display: 'flex', fontSize: 24, fontWeight: 600, color: colors.ink, padding: '12px 0 6px', borderTop: '2px solid #eef0f4' }}>
+                  +{more} more
+                </div>
+              )}
+            </div>
+          )}
+
+          <Brand />
         </div>
       ),
-      RESPONSE_OPTIONS
+      await options()
     )
   } catch (error) {
     console.error('OG image generation error:', error)

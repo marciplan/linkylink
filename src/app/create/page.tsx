@@ -1,539 +1,176 @@
 "use client"
 
-import { useState, FormEvent } from "react"
-import { useRouter } from "next/navigation"
+import { Suspense, useRef, useState } from "react"
 import Link from "next/link"
-import { motion } from "framer-motion"
-import { Loader2, Link2, Plus, ArrowLeft, Calendar, LinkIcon } from "lucide-react"
-import { ThemeToggle } from "@/components/theme-toggle"
-import { createLinkylink, addLinkToLinkylink } from "@/lib/actions"
-import { useSession } from "next-auth/react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { toast } from "sonner"
+import { CalendarHeart, ClipboardPaste, Loader2, X } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input, Textarea } from "@/components/ui/field"
+import { BundelIconTile } from "@/components/bundel/BundelHero"
+import { Favicon } from "@/components/bundel/Favicon"
+import { useUnfurl } from "@/components/bundel/AddLinkSheet"
+import { addLinkToLinkylink, createLinkylink } from "@/lib/actions"
+import { bundelGradient, bundelHue } from "@/lib/theme"
+import { domainOf, findUrl } from "@/lib/links"
+import { generateSlug } from "@/lib/utils"
+import { useCanPaste } from "@/lib/use-can-paste"
 
-type CreateFormData = {
-  title: string
-  subtitle?: string
-  avatar?: string
-}
-
-interface CreatedLinkyLink {
-  id: string
-  title: string
-  subtitle?: string | null
-  slug: string
-  user: {
-    username: string
-  }
-}
-
-export default function CreatePage() {
-  const { data: session, status } = useSession()
+function CreateBundel() {
   const router = useRouter()
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState("")
-  const [fieldErrors, setFieldErrors] = useState<{ title?: string; subtitle?: string; avatar?: string }>({})
-  const [step, setStep] = useState<'type' | 'info' | 'links'>('type')
-  const [createdLinkylink, setCreatedLinkylink] = useState<CreatedLinkyLink | null>(null)
-  const [linkTitle, setLinkTitle] = useState("")
-  const [linkUrl, setLinkUrl] = useState("")
-  const [linkContext, setLinkContext] = useState("")
+  const params = useSearchParams()
+  const [name, setName] = useState("")
+  const [description, setDescription] = useState("")
+  const [rawUrl, setRawUrl] = useState(() => findUrl(params.get("url")) ?? "")
+  const [creating, setCreating] = useState(false)
+  const canPaste = useCanPaste()
+  const nameRef = useRef<HTMLTextAreaElement>(null)
+  const { url, valid, data, loading } = useUnfurl(rawUrl)
 
-  // Redirect to login if not authenticated
-  if (status === "loading") {
-    return <div className="min-h-screen flex items-center justify-center">
-      <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
-    </div>
-  }
+  // Preview colour matches the page that will be created (it is keyed on the slug).
+  const hue = bundelHue(generateSlug(name) || "new-bundel")
 
-  if (!session) {
-    router.push("/login?callbackUrl=/create")
-    return null
-  }
-
-
-  const normalizeUrl = (input: string): string => {
-    if (!input.trim()) return input
-    
-    let url = input.trim()
-    
-    // If it already has a protocol, return as is
-    if (url.match(/^https?:\/\//)) {
-      return url
-    }
-    
-    // Add https:// prefix
-    url = `https://${url}`
-    
-    return url
-  }
-
-  const extractTitleFromUrl = (url: string): string => {
-    if (!url) return ""
-
-    const normalizedUrl = normalizeUrl(url)
-
+  const paste = async () => {
     try {
-      const urlObj = new URL(normalizedUrl)
-      const segments = urlObj.pathname.split('/').filter(Boolean)
-
-      const ROUTING_NOISE = new Set([
-        'p', 'dp', 'gp', 'product', 'products', 'item', 'items',
-        'ref', 'category', 'categories', 'c', 'tag', 'tags',
-        'page', 'pages', 'view', 'detail', 'details', 'www',
-      ])
-      const isJunk = (s: string): boolean => {
-        if (!s) return true
-        if (/^\d+$/.test(s)) return true                       // pure numeric IDs
-        if (/^[0-9a-f]{8,}$/i.test(s) && !/[-_]/.test(s)) return true // hash/sku
-        if (/^[0-9a-f-]{32,}$/i.test(s)) return true           // uuid-ish
-        if (/^[a-z]{2}([_-][a-z]{2,3})?$/i.test(s)) return true // locales: en, nl-NL
-        if (ROUTING_NOISE.has(s.toLowerCase())) return true
-        return false
-      }
-      const hasLetters = (s: string) => /[a-zA-Z]/.test(s)
-
-      let chosen = ''
-      let fallback = ''
-      for (let i = segments.length - 1; i >= 0; i--) {
-        const seg = decodeURIComponent(segments[i]).replace(/\.[a-zA-Z0-9]+$/, '')
-        if (isJunk(seg)) continue
-        if (hasLetters(seg) && (/[-_]/.test(seg) || seg.length > 4)) {
-          chosen = seg
-          break
-        }
-        if (!fallback && hasLetters(seg)) fallback = seg
-      }
-
-      const raw = chosen || fallback || urlObj.hostname.replace(/^www\./, '')
-
-      return raw
-        .replace(/[-_]+/g, ' ')
-        .replace(/([a-z])([A-Z])/g, '$1 $2')
-        .toLowerCase()
-        .split(' ')
-        .filter(Boolean)
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' ')
-        .trim()
+      const text = await navigator.clipboard.readText()
+      const found = findUrl(text)
+      if (found) setRawUrl(found)
+      else toast("No link on your clipboard")
     } catch {
-      return ""
+      // Permission denied — the field is still there to paste into manually.
     }
   }
 
-
-  const onInfoSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setError("")
-    setFieldErrors({})
-
-    const formData = new FormData(e.currentTarget)
-    const title = formData.get("title") as string
-    const subtitle = formData.get("subtitle") as string
-    const avatar = formData.get("avatar") as string
-
-    // Client-side validation
-    const errors: { title?: string; subtitle?: string; avatar?: string } = {}
-    if (!title || title.length < 1) {
-      errors.title = "Title is required"
-    } else if (title.length > 100) {
-      errors.title = "Title is too long"
-    }
-    if (subtitle && subtitle.length > 200) {
-      errors.subtitle = "Subtitle is too long"
-    }
-    if (avatar && avatar.trim() && !avatar.startsWith("http")) {
-      errors.avatar = "Please enter a valid image URL"
-    }
-
-    if (Object.keys(errors).length > 0) {
-      setFieldErrors(errors)
-      setIsLoading(false)
+  const create = async (e?: React.FormEvent) => {
+    e?.preventDefault()
+    const title = name.trim()
+    if (!title || creating) {
+      nameRef.current?.focus()
       return
     }
-
+    setCreating(true)
     try {
-      const cleanedData: CreateFormData = {
-        title: title.trim(),
-        subtitle: subtitle?.trim() || undefined,
-        avatar: avatar?.trim() || undefined,
+      const bundel = await createLinkylink({ title: title.slice(0, 100), subtitle: description.trim() || undefined })
+      if (valid) {
+        await addLinkToLinkylink(bundel.id, { title: (data?.title || domainOf(url)).slice(0, 100), url, order: 0 })
       }
-      const linkylink = await createLinkylink(cleanedData)
-      setCreatedLinkylink(linkylink)
-      setStep('links')
+      router.push(`/${bundel.user.username}/${bundel.slug}`)
     } catch {
-      setError("Failed to create Bundel. Please try again.")
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const onAddFirstLink = async () => {
-    if (!linkTitle.trim() || !linkUrl.trim() || !createdLinkylink) return
-
-    const normalizedUrl = normalizeUrl(linkUrl.trim())
-    
-    setIsLoading(true)
-    try {
-      await addLinkToLinkylink(createdLinkylink.id, {
-        title: linkTitle.trim(),
-        url: normalizedUrl,
-        context: linkContext.trim() || undefined,
-        order: 0
-      })
-      
-      router.push(`/${createdLinkylink.user.username}/${createdLinkylink.slug}?edit=true`)
-    } catch (error) {
-      console.error('Failed to add link:', error)
-      setError("Failed to add link. Please try again.")
-    } finally {
-      setIsLoading(false)
+      toast.error("Couldn't create your Bundel. Try again?")
+      setCreating(false)
     }
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-white dark:bg-gray-900 transition-colors">
-      {/* Header */}
-      <header className="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Link href="/" className="flex items-center gap-2 text-gray-900 dark:text-white">
-              <Link2 className="w-5 h-5" />
-              <span className="font-medium">Bundel</span>
-            </Link>
-            <div className="flex items-center gap-3">
-              <ThemeToggle />
-              <Link
-                href="/dashboard"
-                className="px-4 py-2 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 rounded-lg text-sm font-medium flex items-center gap-2 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 transition-colors"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                Back to dashboard
-              </Link>
-            </div>
-          </div>
+    <div data-tint style={{ "--tint-h": hue } as React.CSSProperties} className="flex min-h-dvh flex-col bg-bg">
+      {/* Sheets render in a portal outside this element, so set the hue page-wide too. */}
+      <style>{`:root{--tint-h:${hue}}`}</style>
+      <header className="sticky top-0 z-10 pt-safe">
+        <div className="mx-auto flex h-14 max-w-lg items-center justify-between px-3">
+          <Link href="/dashboard" aria-label="Cancel" className="pressable grid h-10 w-10 place-items-center rounded-full bg-surface-2 text-ink-2">
+            <X className="h-5 w-5" />
+          </Link>
+          <p className="text-[15px] font-semibold">New Bundel</p>
+          <span className="w-10" />
         </div>
       </header>
 
-      {/* Main */}
-      <main className="flex-1 py-12">
-        <div className="max-w-2xl mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
-          >
-            <div className="mb-8">
-              {step === 'type' && (
-                <>
-                  <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Create Bundel</h1>
-                  <p className="text-gray-600 dark:text-gray-400 mt-2">Choose what type of Bundel you want to create</p>
-                </>
-              )}
-              {step === 'info' && (
-                <>
-                  <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Create Bundel</h1>
-                  <p className="text-gray-600 dark:text-gray-400 mt-2">Start by giving your collection a name and subtitle</p>
-                </>
-              )}
-              {step === 'links' && (
-                <>
-                  <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Add Your First Link</h1>
-                  <p className="text-gray-600 dark:text-gray-400 mt-2">Your Bundel is ready! Add your first link to get started</p>
-                </>
-              )}
-            </div>
-
-            {step === 'type' && (
-              <div className="space-y-4">
-                <button
-                  type="button"
-                  onClick={() => setStep('info')}
-                  className="w-full p-6 rounded-xl border-2 border-gray-200 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-500 transition-colors text-left group"
-                >
-                  <div className="flex items-start gap-4">
-                    <div className="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg group-hover:bg-gray-200 dark:group-hover:bg-gray-700 transition-colors">
-                      <LinkIcon className="w-6 h-6 text-gray-600 dark:text-gray-400" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-medium text-gray-900 dark:text-white">Normal Bundel</h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                        A simple collection of links. Perfect for sharing resources, portfolios, or link-in-bio pages.
-                      </p>
-                    </div>
-                  </div>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => router.push('/create/year-review')}
-                  className="w-full p-6 rounded-xl border-2 border-gray-200 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-500 transition-colors text-left group"
-                >
-                  <div className="flex items-start gap-4">
-                    <div className="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg group-hover:bg-gray-200 dark:group-hover:bg-gray-700 transition-colors">
-                      <Calendar className="w-6 h-6 text-gray-600 dark:text-gray-400" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-medium text-gray-900 dark:text-white">Year Review</h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                        Create ranked lists by category. Perfect for sharing your best and worst of the year.
-                      </p>
-                    </div>
-                  </div>
-                </button>
-
-                <Link
-                  href="/dashboard"
-                  className="w-full px-6 py-3 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-center block mt-6"
-                >
-                  Cancel
-                </Link>
-              </div>
-            )}
-
-            {step === 'info' && (
-              <form onSubmit={onInfoSubmit} className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Title *
-                  </label>
-                  <input
-                    name="title"
-                    type="text"
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:border-gray-900 dark:focus:border-gray-400 focus:ring-1 focus:ring-gray-900 dark:focus:ring-gray-400 outline-none transition-colors text-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                    placeholder="My Awesome Links"
-                    disabled={isLoading}
-                    autoFocus
-                  />
-                  {fieldErrors.title && (
-                    <p className="text-red-600 dark:text-red-400 text-sm mt-1">{fieldErrors.title}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Subtitle (optional)
-                  </label>
-                  <textarea
-                    name="subtitle"
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:border-gray-900 dark:focus:border-gray-400 focus:ring-1 focus:ring-gray-900 dark:focus:ring-gray-400 outline-none transition-colors resize-none bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                    placeholder="A collection of my favorite resources"
-                    rows={3}
-                    disabled={isLoading}
-                  />
-                  {fieldErrors.subtitle && (
-                    <p className="text-red-600 dark:text-red-400 text-sm mt-1">{fieldErrors.subtitle}</p>
-                  )}
-                </div>
-
-                {error && (
-                  <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 px-4 py-3 rounded-lg text-sm border border-red-200 dark:border-red-800">
-                    {error}
-                  </div>
-                )}
-
-                <div className="space-y-3">
-                  <button
-                    type="submit"
-                    disabled={isLoading}
-                    className="w-full bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 px-6 py-3 rounded-lg font-medium hover:bg-gray-800 dark:hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
-                  >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        Creating Bundel...
-                      </>
-                    ) : (
-                      "Continue →"
-                    )}
-                  </button>
-                  <Link
-                    href="/dashboard"
-                    className="w-full px-6 py-3 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-center block"
-                  >
-                    Cancel
-                  </Link>
-                </div>
-              </form>
-            )}
-
-            {step === 'links' && (
-              <div className="space-y-6">
-                {/* Bundel Preview */}
-                {createdLinkylink && (
-                  <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-xl p-6 border border-gray-200 dark:border-gray-600">
-                    <div className="text-center">
-                      <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                        {createdLinkylink.title}
-                      </h2>
-                      {createdLinkylink.subtitle && (
-                        <p className="text-gray-600 dark:text-gray-300 mb-4">{createdLinkylink.subtitle}</p>
-                      )}
-                      <div className="inline-flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600">
-                        <Link2 className="w-4 h-4" />
-                        bundel.link/{createdLinkylink.user.username}/{createdLinkylink.slug}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Add First Link */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium text-gray-900 dark:text-white">Add Your First Link</h3>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Link URL *
-                    </label>
-                    <input
-                      type="url"
-                      value={linkUrl}
-                      onChange={(e) => {
-                        const rawInput = e.target.value
-                        setLinkUrl(rawInput)
-                        
-                        // Auto-generate title from URL if title is empty
-                        if (!linkTitle.trim() && rawInput.trim()) {
-                          const suggestedTitle = extractTitleFromUrl(rawInput)
-                          setLinkTitle(suggestedTitle)
-                        }
-                      }}
-                      onBlur={(e) => {
-                        // Normalize URL when user leaves the field
-                        const rawInput = e.target.value
-                        if (rawInput.trim()) {
-                          const normalized = normalizeUrl(rawInput)
-                          setLinkUrl(normalized)
-                        }
-                      }}
-                      placeholder="example.com or https://example.com"
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:border-gray-900 dark:focus:border-gray-400 focus:ring-1 focus:ring-gray-900 dark:focus:ring-gray-400 outline-none transition-colors bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                      disabled={isLoading}
-                      autoFocus
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Link Title *
-                    </label>
-                    <input
-                      type="text"
-                      value={linkTitle}
-                      onChange={(e) => setLinkTitle(e.target.value)}
-                      placeholder="Link title (e.g., My YouTube Channel)"
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:border-gray-900 dark:focus:border-gray-400 focus:ring-1 focus:ring-gray-900 dark:focus:ring-gray-400 outline-none transition-colors bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                      disabled={isLoading}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey && linkTitle.trim() && linkUrl.trim()) {
-                          e.preventDefault()
-                          onAddFirstLink()
-                        }
-                      }}
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Description (optional)
-                    </label>
-                    <textarea
-                      value={linkContext}
-                      onChange={(e) => {
-                        if (e.target.value.length <= 280) {
-                          setLinkContext(e.target.value)
-                        }
-                      }}
-                      placeholder="Add context or description (optional, 280 chars)"
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:border-gray-900 dark:focus:border-gray-400 focus:ring-1 focus:ring-gray-900 dark:focus:ring-gray-400 outline-none transition-colors resize-none bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                      disabled={isLoading}
-                      rows={2}
-                    />
-                    <div className="text-xs text-gray-400 dark:text-gray-500 mt-1 text-right">
-                      {linkContext.length}/280
-                    </div>
-                  </div>
-                </div>
-
-                {error && (
-                  <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 px-4 py-3 rounded-lg text-sm border border-red-200 dark:border-red-800">
-                    {error}
-                  </div>
-                )}
-
-                <div className="space-y-3">
-                  <button
-                    type="button"
-                    onClick={onAddFirstLink}
-                    disabled={!linkTitle.trim() || !linkUrl.trim() || isLoading}
-                    className="w-full bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 px-6 py-3 rounded-lg font-medium hover:bg-gray-800 dark:hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
-                  >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        Adding Link...
-                      </>
-                    ) : (
-                      <>
-                        <Plus className="w-4 h-4" />
-                        Add First Link
-                      </>
-                    )}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => router.push(`/${createdLinkylink?.user.username}/${createdLinkylink?.slug}?edit=true`)}
-                    className="w-full px-6 py-3 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                    disabled={isLoading}
-                  >
-                    Skip for now - Go to Bundel
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Tips */}
-            {step === 'info' && (
-              <div className="mt-12 bg-gray-50 dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-                <h3 className="font-medium text-gray-900 dark:text-white mb-3">What&apos;s next?</h3>
-                <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
-                  <li className="flex items-start gap-2">
-                    <span className="text-gray-400 dark:text-gray-500 mt-0.5">•</span>
-                    <span>After creating your Bundel, you&apos;ll see a preview of how it looks</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-gray-400 dark:text-gray-500 mt-0.5">•</span>
-                    <span>You can add your first link right away or skip and add links later</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-gray-400 dark:text-gray-500 mt-0.5">•</span>
-                    <span>You&apos;ll be able to edit everything and add more links anytime</span>
-                  </li>
-                </ul>
-              </div>
-            )}
-            
-            {step === 'links' && (
-              <div className="mt-12 bg-blue-50 dark:bg-blue-900/20 rounded-lg p-6 border border-blue-200 dark:border-blue-800">
-                <h3 className="font-medium text-gray-900 dark:text-white mb-3">Tips:</h3>
-                <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
-                  <li className="flex items-start gap-2">
-                    <span className="text-blue-400 dark:text-blue-300 mt-0.5">•</span>
-                    <span>Use clear titles that tell people what they&apos;ll find when they click</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-blue-400 dark:text-blue-300 mt-0.5">•</span>
-                    <span>Press Enter in the title field to quickly add your link</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-blue-400 dark:text-blue-300 mt-0.5">•</span>
-                    <span>You can always add more links and customize everything later</span>
-                  </li>
-                </ul>
-              </div>
-            )}
-          </motion.div>
+      <form onSubmit={create} className="mx-auto flex w-full max-w-lg flex-1 flex-col px-4 pb-safe">
+        {/* Live preview of the header */}
+        <div
+          className="relative mt-2 overflow-hidden rounded-4xl p-5 text-white shadow-float transition-[background] duration-500"
+          style={{ background: bundelGradient(hue) }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-b from-black/0 to-black/40" />
+          <div className="relative">
+            <BundelIconTile icon={{ kind: "emoji", value: "✨" }} size={52} />
+            <textarea
+              ref={nameRef}
+              value={name}
+              onChange={(e) => setName(e.target.value.replace(/\n/g, ""))}
+              onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), create())}
+              rows={1}
+              maxLength={100}
+              autoFocus
+              enterKeyHint="next"
+              aria-label="Name"
+              placeholder="Name your Bundel"
+              className="mt-4 block w-full resize-none bg-transparent text-[28px] font-bold leading-tight tracking-tight outline-none placeholder:text-white/60 [field-sizing:content] [text-shadow:0_1px_12px_rgb(0_0_0/0.2)]"
+            />
+            <Textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value.slice(0, 200))}
+              rows={1}
+              aria-label="Description"
+              placeholder="Add a description (optional)"
+              className="mt-1 !min-h-0 !rounded-none !border-0 !bg-transparent !p-0 text-[16px] text-white/90 !ring-0 placeholder:text-white/60 [field-sizing:content]"
+            />
+            <p className="mt-4 text-xs font-medium text-white/70">An icon is picked for you. Change it any time.</p>
+          </div>
         </div>
-      </main>
+
+        <section className="mt-6 space-y-2">
+          <h2 className="px-1 text-[13px] font-semibold text-ink-2">Start with a link <span className="font-normal text-ink-3">(optional)</span></h2>
+          <div className="relative">
+            <Input
+              type="url"
+              inputMode="url"
+              autoCapitalize="off"
+              autoComplete="off"
+              spellCheck={false}
+              value={rawUrl}
+              onChange={(e) => setRawUrl(e.target.value)}
+              placeholder="Paste a link"
+              aria-label="First link"
+              className="h-14 pr-28"
+            />
+            {canPaste && !rawUrl && (
+              <button
+                type="button"
+                onClick={paste}
+                className="pressable absolute right-2 top-1/2 inline-flex h-10 -translate-y-1/2 items-center gap-1.5 rounded-xl bg-ink px-3 text-sm font-semibold text-bg"
+              >
+                <ClipboardPaste className="h-4 w-4" />
+                Paste
+              </button>
+            )}
+          </div>
+          {valid && (
+            <div className="flex animate-rise items-center gap-3 rounded-2xl bg-surface p-3 shadow-card ring-1 ring-line/50">
+              <Favicon url={url} favicon={data?.favicon} size={40} />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-[15px] font-semibold">{data?.title || domainOf(url)}</p>
+                <p className="truncate text-[13px] text-ink-3">{data?.siteName || domainOf(url)}</p>
+              </div>
+              {loading && <Loader2 className="h-4 w-4 shrink-0 animate-spin text-ink-3" />}
+            </div>
+          )}
+        </section>
+
+        <div className="flex-1" />
+
+        <div className="sticky bottom-0 space-y-3 bg-gradient-to-t from-bg via-bg to-bg/0 pb-3 pt-6">
+          <Button type="submit" variant="primary" size="lg" disabled={!name.trim() || creating}>
+            {creating && <Loader2 className="h-5 w-5 animate-spin" />}
+            {creating ? "Creating…" : "Create Bundel"}
+          </Button>
+          <Link
+            href="/create/year-review"
+            className="pressable flex items-center justify-center gap-2 rounded-2xl py-2 text-sm font-semibold text-ink-2"
+          >
+            <CalendarHeart className="h-4 w-4" />
+            Making a year in review instead?
+          </Link>
+        </div>
+      </form>
     </div>
+  )
+}
+
+export default function CreatePage() {
+  return (
+    <Suspense>
+      <CreateBundel />
+    </Suspense>
   )
 }
