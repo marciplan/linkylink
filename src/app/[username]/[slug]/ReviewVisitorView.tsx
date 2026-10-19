@@ -45,7 +45,7 @@ export function ReviewVisitorView({ review, previewHref }: ReviewVisitorViewProp
               Done
             </Link>
           ) : (
-            <Link href="/" className={`${topBarButton} gap-1.5`} aria-label="Bundel home">
+            <Link href="/" className={`${topBarButton} gap-1.5`} aria-label="Bundel home" title="Bundel home">
               <Link2 className="h-4 w-4" strokeWidth={2.5} />
               <span className="pr-0.5">Bundel</span>
             </Link>

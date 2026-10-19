@@ -247,16 +247,16 @@ export default function ReviewOwnerView({ review }: ReviewOwnerViewProps) {
       <TopBar
         title={reviewBarTitle(title, review.year)}
         leading={
-          <Link href="/dashboard" className={topBarButton} aria-label="Back to your Bundels">
+          <Link href="/dashboard" className={topBarButton} aria-label="Back to your Bundels" title="Back to your Bundels">
             <ChevronLeft className="h-5 w-5" strokeWidth={2.5} />
           </Link>
         }
         trailing={
           <>
-            <Link href={`${path}?view=public`} className={topBarButton} aria-label="Preview as a visitor">
+            <Link href={`${path}?view=public`} className={topBarButton} aria-label="Preview as a visitor" title="Preview as a visitor">
               <Eye className="h-[18px] w-[18px]" />
             </Link>
-            <button onClick={() => setMenuOpen(true)} className={topBarButton} aria-label="More options">
+            <button onClick={() => setMenuOpen(true)} className={topBarButton} aria-label="More options" title="More options">
               <MoreHorizontal className="h-5 w-5" />
             </button>
           </>
