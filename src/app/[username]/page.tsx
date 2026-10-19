@@ -59,7 +59,7 @@ export default async function ProfilePage({ params }: PageProps) {
   return (
     <div className="min-h-dvh bg-bg pb-safe">
       <header className="pt-safe">
-        <div className="mx-auto flex h-14 max-w-2xl items-center justify-between px-4">
+        <div className="mx-auto flex h-14 max-w-2xl items-center justify-between px-4 lg:h-16 lg:max-w-6xl lg:px-8">
           <Link href={isMe ? "/dashboard" : "/"} className="pressable inline-flex items-center gap-2 font-semibold">
             <span className="grid h-8 w-8 place-items-center rounded-[10px] bg-ink text-bg">
               <Link2 className="h-4 w-4" strokeWidth={2.5} />
@@ -74,8 +74,8 @@ export default async function ProfilePage({ params }: PageProps) {
         </div>
       </header>
 
-      <main className="mx-auto max-w-2xl px-4">
-        <section className="animate-rise px-1 pb-6 pt-4">
+      <main className="mx-auto max-w-2xl px-4 lg:grid lg:max-w-6xl lg:grid-cols-[300px_minmax(0,1fr)] lg:items-start lg:gap-12 lg:px-8 lg:pt-6">
+        <section className="animate-rise px-1 pb-6 pt-4 lg:sticky lg:top-8 lg:px-0">
           <Avatar src={user.image} username={user.username} size={80} />
           <h1 className="mt-4 text-display text-balance">{displayName}</h1>
           <p className="mt-1 text-[15px] text-ink-2">
@@ -88,7 +88,7 @@ export default async function ProfilePage({ params }: PageProps) {
         {user.linkylinks.length === 0 ? (
           <p className="rounded-3xl bg-surface px-6 py-12 text-center text-ink-2 shadow-card">No public Bundels yet.</p>
         ) : (
-          <div className="overflow-hidden rounded-3xl bg-surface shadow-card ring-1 ring-line/50 divide-y divide-line/70">
+          <div className="overflow-hidden rounded-3xl bg-surface shadow-card ring-1 ring-line/50 divide-y divide-line/70 lg:grid lg:grid-cols-2 lg:gap-4 lg:divide-y-0 lg:overflow-visible lg:rounded-none lg:bg-transparent lg:shadow-none lg:ring-0">
             {user.linkylinks.map((b, i) => (
               <LinkylinkCard
                 key={b.id}
@@ -109,7 +109,7 @@ export default async function ProfilePage({ params }: PageProps) {
           </div>
         )}
 
-        <p className="py-10 text-center text-sm text-ink-3">
+        <p className="py-10 text-center text-sm text-ink-3 lg:col-span-2">
           Made with{" "}
           <Link href="/" className="font-semibold text-ink-2 underline-offset-4 hover:underline">
             Bundel

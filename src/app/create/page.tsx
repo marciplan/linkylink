@@ -67,7 +67,7 @@ function CreateBundel() {
       {/* Sheets render in a portal outside this element, so set the hue page-wide too. */}
       <style>{`:root{--tint-h:${hue}}`}</style>
       <header className="sticky top-0 z-10 pt-safe">
-        <div className="mx-auto flex h-14 max-w-lg items-center justify-between px-3">
+        <div className="mx-auto flex h-14 max-w-lg items-center justify-between px-3 lg:h-16 lg:max-w-4xl lg:px-8">
           <Link href="/dashboard" aria-label="Cancel" className="pressable grid h-10 w-10 place-items-center rounded-full bg-surface-2 text-ink-2">
             <X className="h-5 w-5" />
           </Link>
@@ -76,10 +76,10 @@ function CreateBundel() {
         </div>
       </header>
 
-      <form onSubmit={create} className="mx-auto flex w-full max-w-lg flex-1 flex-col px-4 pb-safe">
+      <form onSubmit={create} className="mx-auto flex w-full max-w-lg flex-1 flex-col px-4 pb-safe lg:grid lg:max-w-4xl lg:flex-none lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:grid-rows-[auto_1fr] lg:content-start lg:items-start lg:gap-x-10 lg:px-8 lg:pt-6">
         {/* Live preview of the header */}
         <div
-          className="tone-hero grain relative mt-2 overflow-hidden rounded-4xl p-5 text-white shadow-float"
+          className="tone-hero grain relative mt-2 overflow-hidden rounded-4xl p-5 text-white shadow-float lg:col-start-1 lg:row-span-2 lg:row-start-1 lg:mt-0 lg:min-h-[320px] lg:p-8"
           {...toneProps(tone)}
         >
           <div className="absolute inset-0 bg-gradient-to-b from-black/0 to-black/40" />
@@ -110,7 +110,7 @@ function CreateBundel() {
           </div>
         </div>
 
-        <section className="mt-6 space-y-2">
+        <section className="mt-6 space-y-2 lg:col-start-2 lg:row-start-1 lg:mt-0">
           <h2 className="px-1 text-[13px] font-semibold text-ink-2">Start with a link <span className="font-normal text-ink-3">(optional)</span></h2>
           <div className="relative">
             <Input
@@ -148,9 +148,9 @@ function CreateBundel() {
           )}
         </section>
 
-        <div className="flex-1" />
+        <div className="flex-1 lg:hidden" />
 
-        <div className="sticky bottom-0 space-y-3 bg-gradient-to-t from-bg via-bg to-bg/0 pb-3 pt-6">
+        <div className="sticky bottom-0 space-y-3 bg-gradient-to-t from-bg via-bg to-bg/0 pb-3 pt-6 lg:static lg:col-start-2 lg:row-start-2 lg:bg-none lg:pt-4">
           <Button type="submit" variant="primary" size="lg" disabled={!name.trim() || creating}>
             {creating && <Loader2 className="h-5 w-5 animate-spin" />}
             {creating ? "Creating…" : "Create Bundel"}

@@ -47,13 +47,14 @@ export default async function RecommendationsPage() {
       <PageHeader
         title="Tidy up"
         subtitle="Links that might fit better in another Bundel."
+        wide
         leading={
           <Link href="/dashboard" aria-label="Back" className="pressable -ml-1 grid h-10 w-10 place-items-center rounded-full text-ink hover:bg-ink/5">
             <ChevronLeft className="h-6 w-6" />
           </Link>
         }
       />
-      <main className="mx-auto max-w-2xl px-4">
+      <main className="mx-auto max-w-2xl px-4 lg:max-w-6xl lg:px-8">
         {bundles.length < 2 ? (
           <div className="flex flex-col items-center rounded-3xl bg-surface px-6 py-14 text-center shadow-card">
             <span className="grid h-14 w-14 place-items-center rounded-2xl bg-tint-soft text-tint-ink">

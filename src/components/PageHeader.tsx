@@ -11,13 +11,15 @@ interface PageHeaderProps {
   /** Trailing actions shown in the compact bar. */
   actions?: React.ReactNode
   children?: React.ReactNode
+  /** Align the title with a wide desktop layout (the content below uses the same width). */
+  wide?: boolean
 }
 
 /**
  * iOS-style large title that hands off to a compact, blurred sticky bar once
  * it scrolls out of view.
  */
-export function PageHeader({ title, subtitle, leading, actions, children }: PageHeaderProps) {
+export function PageHeader({ title, subtitle, leading, actions, children, wide }: PageHeaderProps) {
   const sentinel = useRef<HTMLDivElement>(null)
   const [condensed, setCondensed] = useState(false)
 
@@ -35,7 +37,7 @@ export function PageHeader({ title, subtitle, leading, actions, children }: Page
     <>
       <div
         className={cn(
-          "sticky top-0 z-40 pt-safe transition-[background-color,border-color] duration-200",
+          "sticky top-0 z-40 pt-safe transition-[background-color,border-color] duration-200 lg:hidden",
           condensed ? "glass border-b border-line/60" : "border-b border-transparent"
         )}
       >
@@ -53,7 +55,7 @@ export function PageHeader({ title, subtitle, leading, actions, children }: Page
           <div className="flex min-w-[44px] items-center justify-end gap-1">{actions}</div>
         </div>
       </div>
-      <header className="mx-auto max-w-2xl px-5 pb-4 pt-1">
+      <header className={cn("mx-auto max-w-2xl px-5 pb-4 pt-1 lg:pb-6 lg:pt-10", wide && "lg:max-w-6xl lg:px-8")}>
         <h1 className="text-display text-balance">{title}</h1>
         {subtitle && <p className="mt-1.5 text-[15px] text-ink-2 text-pretty">{subtitle}</p>}
         <div ref={sentinel} aria-hidden />
