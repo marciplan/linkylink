@@ -59,7 +59,7 @@ export function BundelVisitorView({ bundel, currentUser, commentCounts, previewH
         title={bundel.title}
         leading={
           previewHref ? (
-            <Link href={previewHref} className={topBarButton}>
+            <Link href={previewHref} target="_top" className={topBarButton}>
               Done
             </Link>
           ) : (
