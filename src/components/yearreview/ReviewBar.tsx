@@ -35,7 +35,7 @@ export function ReviewBar({ slug, title, year, username, categories }: ReviewBar
 
   return (
     <>
-      <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-4 pb-safe">
+      <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-4 pb-safe lg:right-auto lg:w-[var(--pane)]">
         <div className="glass pointer-events-auto mb-1 flex w-full max-w-sm items-center gap-2 rounded-full border border-line/60 p-1.5 shadow-float">
           {shareable.length > 0 && (
             <button onClick={() => setStoriesOpen(true)} className={buttonStyles({ variant: "ghost", size: "md", className: "flex-1 text-ink" })}>

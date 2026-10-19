@@ -16,16 +16,16 @@ interface YearHeroProps {
  */
 export function YearHero({ tone, year, headerImage, title, subtitle, meta }: YearHeroProps) {
   return (
-    <section className="grain relative overflow-hidden text-white">
+    <section className="grain relative overflow-hidden text-white lg:sticky lg:top-0 lg:flex lg:h-dvh">
       <div className="tone-hero absolute inset-0 -z-10" {...toneProps(tone)}>
         {headerImage && <Image src={headerImage} alt="" fill priority sizes="100vw" className="object-cover" />}
         <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/10 to-black/60" />
       </div>
-      <div className="mx-auto flex min-h-[420px] max-w-2xl flex-col justify-end px-5 pb-14 pt-[calc(env(safe-area-inset-top)+80px)] sm:min-h-[460px]">
+      <div className="mx-auto flex min-h-[420px] max-w-2xl flex-col justify-end px-5 pb-14 pt-[calc(env(safe-area-inset-top)+80px)] sm:min-h-[460px] lg:min-h-0 lg:max-w-none lg:flex-1 lg:px-10 lg:pb-32">
         <p className="animate-rise text-[13px] font-semibold uppercase tracking-[0.22em] text-white/80">The year in review</p>
         <p
           aria-hidden={!year}
-          className="animate-rise font-black leading-[0.82] tracking-[-0.06em] [animation-delay:60ms] [text-shadow:0_6px_40px_rgb(0_0_0/0.28)]"
+          className="animate-rise font-black leading-[0.82] tracking-[-0.06em] [animation-delay:60ms] [text-shadow:0_6px_40px_rgb(0_0_0/0.28)] lg:!text-[9rem]"
           style={{ fontSize: "clamp(6.5rem, 34vw, 11rem)" }}
         >
           {year ?? "—"}

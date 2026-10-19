@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useIsDesktop } from "@/components/DesktopOnly"
 import { cn } from "@/lib/utils"
 
 interface TopBarProps {
@@ -16,12 +17,15 @@ interface TopBarProps {
  * Children can read the state through the `data-solid` attribute.
  */
 export function TopBar({ title, leading, trailing, watchId = "hero-end" }: TopBarProps) {
-  const [solid, setSolid] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
+  // On desktop the hero is a fixed side panel, so the bar never needs to turn solid.
+  const desktop = useIsDesktop()
+  const solid = scrolled && !desktop
 
   useEffect(() => {
     const el = document.getElementById(watchId)
     if (!el) return
-    const io = new IntersectionObserver(([entry]) => setSolid(!entry.isIntersecting && entry.boundingClientRect.top < 80), {
+    const io = new IntersectionObserver(([entry]) => setScrolled(!entry.isIntersecting && entry.boundingClientRect.top < 80), {
       rootMargin: "-64px 0px 0px 0px",
     })
     io.observe(el)
@@ -32,11 +36,11 @@ export function TopBar({ title, leading, trailing, watchId = "hero-end" }: TopBa
     <div
       data-solid={solid}
       className={cn(
-        "group fixed inset-x-0 top-0 z-40 pt-safe transition-colors duration-200",
+        "group fixed inset-x-0 top-0 z-40 pt-safe transition-colors duration-200 lg:right-auto lg:w-[var(--pane)]",
         solid ? "glass border-b border-line/60 text-ink" : "border-b border-transparent text-white"
       )}
     >
-      <div className="mx-auto flex h-14 max-w-2xl items-center gap-2 px-3">
+      <div className="mx-auto flex h-14 max-w-2xl items-center gap-2 px-3 lg:max-w-none lg:px-6">
         <div className="flex min-w-[44px] items-center">{leading}</div>
         <p
           className={cn(

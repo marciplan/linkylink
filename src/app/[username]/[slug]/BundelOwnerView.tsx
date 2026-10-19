@@ -269,7 +269,7 @@ export default function BundelOwnerView({ bundel, commentCounts, ask: initialAsk
     })
 
   return (
-    <div data-tint style={{ "--tint-h": hue } as React.CSSProperties} className="min-h-dvh bg-bg">
+    <div data-tint style={{ "--tint-h": hue } as React.CSSProperties} className="min-h-dvh bg-bg lg:grid lg:grid-cols-[var(--pane)_minmax(0,1fr)] lg:items-start lg:[--pane:440px]">
       {/* Sheets render in a portal outside this element, so set the hue page-wide too. */}
       <style>{`:root{--tint-h:${hue}}`}</style>
       <TopBar
@@ -349,11 +349,11 @@ export default function BundelOwnerView({ bundel, commentCounts, ask: initialAsk
           </>
         }
       />
-      <div id="hero-end" aria-hidden />
+      <div id="hero-end" aria-hidden className="lg:hidden" />
 
       <MaybeAsk bundelId={bundel.id} ask={ask} summary={voteSummary} ownerName={bundel.user.username}>
-      <main className="relative -mt-6 rounded-t-4xl bg-bg pb-40 pt-5">
-        <div className="mx-auto max-w-2xl space-y-3 px-4">
+      <main className="relative -mt-6 rounded-t-4xl bg-bg pb-40 pt-5 lg:col-start-2 lg:mt-0 lg:min-h-dvh lg:rounded-none lg:pb-32 lg:pt-20">
+        <div className="mx-auto max-w-2xl space-y-3 px-4 lg:max-w-3xl lg:px-12">
           {suggestions.length > 0 && (
             <section aria-label="Suggestions" className="rounded-3xl bg-surface p-4 shadow-card ring-1 ring-line/50">
               <h2 className="text-[13px] font-semibold uppercase tracking-wide text-ink-3">
@@ -422,7 +422,7 @@ export default function BundelOwnerView({ bundel, commentCounts, ask: initialAsk
       </MaybeAsk>
 
       {/* Owner actions in the thumb zone */}
-      <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-4 pb-safe">
+      <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-4 pb-safe lg:left-[var(--pane)]">
         <div className="glass pointer-events-auto mb-1 flex w-full max-w-sm items-center gap-2 rounded-full border border-line/60 p-1.5 shadow-float">
           <Button variant="primary" size="md" className="flex-1" onClick={() => setAdding(true)}>
             <Plus className="h-5 w-5" strokeWidth={2.5} />

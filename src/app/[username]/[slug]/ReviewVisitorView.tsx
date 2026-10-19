@@ -35,7 +35,7 @@ export function ReviewVisitorView({ review, previewHref }: ReviewVisitorViewProp
   const picks = review.categories.reduce((n, c) => n + c.items.length, 0)
 
   return (
-    <div data-tint style={{ "--tint-h": hue } as React.CSSProperties} className="min-h-dvh bg-bg">
+    <div data-tint style={{ "--tint-h": hue } as React.CSSProperties} className="min-h-dvh bg-bg lg:grid lg:grid-cols-[var(--pane)_minmax(0,1fr)] lg:items-start lg:[--pane:440px]">
       <style>{`:root{--tint-h:${hue}}`}</style>
       <TopBar
         title={reviewBarTitle(review.title, review.year)}
@@ -80,10 +80,10 @@ export function ReviewVisitorView({ review, previewHref }: ReviewVisitorViewProp
           </>
         }
       />
-      <div id="hero-end" aria-hidden />
+      <div id="hero-end" aria-hidden className="lg:hidden" />
 
-      <main className="relative -mt-7 rounded-t-4xl bg-bg pb-40 pt-5">
-        <div className="mx-auto max-w-2xl space-y-4 px-4">
+      <main className="relative -mt-7 rounded-t-4xl bg-bg pb-40 pt-5 lg:col-start-2 lg:mt-0 lg:min-h-dvh lg:rounded-none lg:pb-32 lg:pt-20">
+        <div className="mx-auto max-w-2xl space-y-4 px-4 lg:max-w-5xl lg:grid lg:grid-cols-2 lg:items-start lg:gap-5 lg:space-y-0 lg:px-12">
           {review.categories.length === 0 ? (
             <p className="py-16 text-center text-ink-3">Nothing here yet.</p>
           ) : (
@@ -91,7 +91,7 @@ export function ReviewVisitorView({ review, previewHref }: ReviewVisitorViewProp
               <CategoryCard key={category.id} category={category} index={i} />
             ))
           )}
-          <p className="pt-8 text-center text-sm text-ink-3">
+          <p className="pt-8 text-center text-sm text-ink-3 lg:col-span-2">
             Made by{" "}
             <Link href={`/${review.user.username}`} className="font-semibold text-ink-2 underline-offset-4 hover:underline">
               @{review.user.username}

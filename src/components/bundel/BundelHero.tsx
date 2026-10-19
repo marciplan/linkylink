@@ -45,14 +45,14 @@ export function BundelIconTile({ icon, tone, size = 72, variant = "chip" }: { ic
  */
 export function BundelHero({ tone, headerImage, icon, iconAction, title, subtitle, meta }: BundelHeroProps) {
   return (
-    <section className="grain relative isolate overflow-hidden text-white">
+    <section className="grain relative isolate overflow-hidden text-white lg:sticky lg:top-0 lg:flex lg:h-dvh">
       <div className="tone-hero absolute inset-0 -z-10" {...toneProps(tone)}>
         {headerImage && (
           <Image src={headerImage} alt="" fill priority sizes="100vw" className="object-cover" />
         )}
         <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/5 to-black/55" />
       </div>
-      <div className="mx-auto flex min-h-[320px] max-w-2xl flex-col justify-end px-5 pb-12 pt-[calc(env(safe-area-inset-top)+76px)] sm:min-h-[360px]">
+      <div className="mx-auto flex min-h-[320px] max-w-2xl flex-col justify-end px-5 pb-12 pt-[calc(env(safe-area-inset-top)+76px)] sm:min-h-[360px] lg:min-h-0 lg:max-w-none lg:flex-1 lg:px-10 lg:pb-32">
         <div className="relative w-fit animate-rise">
           <BundelIconTile icon={icon} tone={tone} />
           {iconAction}
