@@ -25,7 +25,7 @@ export default async function AccountPage() {
 
   return (
     <>
-      <PageHeader title="You" />
+      <PageHeader title="You" wide />
       <AccountView
         user={user}
         bundelCount={stats._count}

@@ -30,6 +30,7 @@ import { Favicon } from "@/components/bundel/Favicon"
 import { InlineText } from "@/components/bundel/InlineText"
 import { domainOf } from "@/lib/links"
 import { CopyLinkButton } from "@/components/CopyLinkButton"
+import { OwnerLinkContextMenu } from "@/components/ContextMenu"
 import { usePasteUrl } from "@/lib/use-paste-url"
 import type { VoteSummary } from "@/lib/sharing"
 
@@ -87,6 +88,7 @@ function OwnerLinkRow({
       <div className="absolute inset-0 flex items-center justify-end rounded-3xl bg-danger pr-6 text-white" aria-hidden>
         <Trash2 className="h-5 w-5" />
       </div>
+      <OwnerLinkContextMenu url={link.url} onEdit={onOpen} onDelete={onDelete}>
       <motion.div
         drag="x"
         dragDirectionLock
@@ -114,6 +116,7 @@ function OwnerLinkRow({
           <GripVertical className="h-5 w-5" />
         </button>
       </motion.div>
+      </OwnerLinkContextMenu>
     </Reorder.Item>
   )
 }
@@ -423,7 +426,8 @@ export default function BundelOwnerView({ bundel, commentCounts, ask: initialAsk
                 ))}
               </Reorder.Group>
               <p className="mt-4 text-center text-[13px] text-ink-3">
-                Tap to edit · Drag <GripVertical className="inline h-3 w-3 align-[-1px]" /> to reorder · Swipe left to remove
+                <span className="lg:hidden">Tap to edit · Drag <GripVertical className="inline h-3 w-3 align-[-1px]" /> to reorder · Swipe left to remove</span>
+                <span className="hidden lg:inline">Click to edit · Drag <GripVertical className="inline h-3 w-3 align-[-1px]" /> to reorder · Right-click for more</span>
               </p>
             </>
           )}

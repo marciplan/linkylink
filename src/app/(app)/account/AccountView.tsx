@@ -34,7 +34,8 @@ export function AccountView({ user, bundelCount, totalViews }: AccountViewProps)
   const { theme, setTheme } = useTheme()
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6 px-4">
+    <div className="mx-auto max-w-2xl space-y-6 px-4 lg:grid lg:max-w-6xl lg:grid-cols-2 lg:items-start lg:gap-8 lg:space-y-0 lg:px-8">
+      <div className="space-y-6">
       <div className="flex items-center gap-4 rounded-3xl bg-surface p-4 shadow-card">
         <Avatar src={user.image} username={user.username} size={56} />
         <div className="min-w-0 flex-1">
@@ -74,7 +75,9 @@ export function AccountView({ user, bundelCount, totalViews }: AccountViewProps)
           ))}
         </div>
       </section>
+      </div>
 
+      <div className="space-y-6">
       <ListGroup className="bg-surface shadow-card">
         <RowLink href={`/${user.username}`} icon={<UserRound className="h-5 w-5" />} label="Your public page" />
         <RowLink href="/recommendations" icon={<Sparkles className="h-5 w-5" />} label="Tidy up suggestions" />
@@ -91,8 +94,8 @@ export function AccountView({ user, bundelCount, totalViews }: AccountViewProps)
           Sign out
         </button>
       </ListGroup>
-
       <p className="pb-4 text-center text-xs text-ink-3">Signed in as {user.email}</p>
+      </div>
     </div>
   )
 }
