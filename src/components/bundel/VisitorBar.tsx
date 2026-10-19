@@ -41,7 +41,7 @@ export function VisitorBar({ bundelId, title, subtitle, isSignedIn, path }: Visi
   }
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-4 pb-safe">
+    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-4 pb-safe lg:right-auto lg:w-[var(--pane)]">
       <div className="glass pointer-events-auto mb-1 flex w-full max-w-sm items-center gap-2 rounded-full border border-line/60 p-1.5 shadow-float">
         <button onClick={saveCopy} disabled={saving} className={buttonStyles({ variant: "ghost", size: "md", className: "flex-1 text-ink" })}>
           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CopyIcon className="h-4 w-4" />}

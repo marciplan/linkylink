@@ -51,7 +51,7 @@ export function BundelVisitorView({ bundel, currentUser, commentCounts, previewH
   const count = bundel.links.length
 
   return (
-    <div data-tint style={{ "--tint-h": hue } as React.CSSProperties} className="min-h-dvh bg-bg">
+    <div data-tint style={{ "--tint-h": hue } as React.CSSProperties} className="min-h-dvh bg-bg lg:grid lg:grid-cols-[var(--pane)_minmax(0,1fr)] lg:items-start lg:[--pane:440px]">
       {/* Sheets render in a portal outside this element, so set the hue page-wide too. */}
       <style>{`:root{--tint-h:${hue}}`}</style>
       <TopBar
@@ -99,10 +99,10 @@ export function BundelVisitorView({ bundel, currentUser, commentCounts, previewH
           </>
         }
       />
-      <div id="hero-end" aria-hidden />
+      <div id="hero-end" aria-hidden className="lg:hidden" />
 
-      <main className="relative -mt-6 rounded-t-4xl bg-bg pb-36 pt-5">
-        <div className="mx-auto max-w-2xl px-4">
+      <main className="relative -mt-6 rounded-t-4xl bg-bg pb-36 pt-5 lg:col-start-2 lg:mt-0 lg:min-h-dvh lg:rounded-none lg:pb-32 lg:pt-20">
+        <div className="mx-auto max-w-2xl px-4 lg:max-w-3xl lg:px-12">
           {ask ? (
             <AskVisitorList
               bundelId={bundel.id}
