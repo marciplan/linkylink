@@ -5,6 +5,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Reorder, useDragControls } from "framer-motion"
 import { toast } from "sonner"
+import { PreviewDrawer } from "@/components/bundel/PreviewDrawer"
 import { ChevronLeft, Eye, GripVertical, Link2, MoreHorizontal, Paintbrush, Plus, Settings2, Share, Trash2 } from "lucide-react"
 import { TopBar } from "@/components/bundel/TopBar"
 import { topBarButton } from "@/components/bundel/styles"
@@ -104,6 +105,7 @@ export default function ReviewOwnerView({ review }: ReviewOwnerViewProps) {
   const [editingItem, setEditingItem] = useState<{ categoryId: string; item: Item } | null>(null)
   const [categorySheet, setCategorySheet] = useState<{ open: boolean; id: string | null }>({ open: false, id: null })
   const [menuOpen, setMenuOpen] = useState(false)
+  const [preview, setPreview] = useState({ open: false, version: 0 })
   const [appearanceOpen, setAppearanceOpen] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [startingPreset, setStartingPreset] = useState<string | null>(null)
@@ -253,9 +255,17 @@ export default function ReviewOwnerView({ review }: ReviewOwnerViewProps) {
         }
         trailing={
           <>
-            <Link href={`${path}?view=public`} className={topBarButton} aria-label="Preview as a visitor" title="Preview as a visitor">
+            <Link href={`${path}?view=public`} className={`${topBarButton} lg:hidden`} aria-label="Preview as a visitor" title="Preview as a visitor">
               <Eye className="h-[18px] w-[18px]" />
             </Link>
+            <button
+              onClick={() => setPreview((p) => ({ open: true, version: p.version + 1 }))}
+              className={`${topBarButton} hidden lg:inline-flex`}
+              aria-label="Preview as a visitor"
+              title="Preview as a visitor"
+            >
+              <Eye className="h-[18px] w-[18px]" />
+            </button>
             <button onClick={() => setMenuOpen(true)} className={topBarButton} aria-label="More options" title="More options">
               <MoreHorizontal className="h-5 w-5" />
             </button>
@@ -419,6 +429,8 @@ export default function ReviewOwnerView({ review }: ReviewOwnerViewProps) {
         onMove={(direction) => editingCategory && moveCategory(editingCategory.id, direction)}
         onDelete={() => editingCategory && removeCategory(editingCategory.id)}
       />
+
+      <PreviewDrawer open={preview.open} onOpenChange={(open) => setPreview((p) => ({ ...p, open }))} src={`${path}?view=public`} version={preview.version} />
 
       <AppearanceSheet
         open={appearanceOpen}

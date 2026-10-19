@@ -29,6 +29,7 @@ import { AskSettingsSheet } from "@/components/bundel/ask/AskSettingsSheet"
 import { Favicon } from "@/components/bundel/Favicon"
 import { InlineText } from "@/components/bundel/InlineText"
 import { domainOf } from "@/lib/links"
+import { PreviewDrawer } from "@/components/bundel/PreviewDrawer"
 import { CopyLinkButton } from "@/components/CopyLinkButton"
 import { OwnerLinkContextMenu } from "@/components/ContextMenu"
 import { usePasteUrl } from "@/lib/use-paste-url"
@@ -142,6 +143,7 @@ export default function BundelOwnerView({ bundel, commentCounts, ask: initialAsk
   const [pastedUrl, setPastedUrl] = useState("")
   const [editing, setEditing] = useState<BundelLink | null>(null)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [preview, setPreview] = useState({ open: false, version: 0 })
   const [appearanceOpen, setAppearanceOpen] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [ask, setAsk] = useState(initialAsk)
@@ -293,9 +295,17 @@ export default function BundelOwnerView({ bundel, commentCounts, ask: initialAsk
         }
         trailing={
           <>
-            <Link href={`${path}?view=public`} className={topBarButton} aria-label="Preview as a visitor" title="Preview as a visitor">
+            <Link href={`${path}?view=public`} className={`${topBarButton} lg:hidden`} aria-label="Preview as a visitor" title="Preview as a visitor">
               <Eye className="h-[18px] w-[18px]" />
             </Link>
+            <button
+              onClick={() => setPreview((p) => ({ open: true, version: p.version + 1 }))}
+              className={`${topBarButton} hidden lg:inline-flex`}
+              aria-label="Preview as a visitor"
+              title="Preview as a visitor"
+            >
+              <Eye className="h-[18px] w-[18px]" />
+            </button>
             <button onClick={() => setMenuOpen(true)} className={topBarButton} aria-label="More options" title="More options">
               <MoreHorizontal className="h-5 w-5" />
             </button>
@@ -447,6 +457,8 @@ export default function BundelOwnerView({ bundel, commentCounts, ask: initialAsk
           </Button>
         </div>
       </div>
+
+      <PreviewDrawer open={preview.open} onOpenChange={(open) => setPreview((p) => ({ ...p, open }))} src={`${path}?view=public`} version={preview.version} />
 
       <AddLinkSheet open={adding} onOpenChange={setAdding} onAdd={handleAdd} initialUrl={pastedUrl} />
 
