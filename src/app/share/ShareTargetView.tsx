@@ -11,7 +11,7 @@ import { useUnfurl } from "@/components/bundel/AddLinkSheet"
 import { addLink } from "@/lib/actions"
 import { bundelIcon } from "@/lib/bundel-icon"
 import { domainOf } from "@/lib/links"
-import { bundelGradient, bundelHue } from "@/lib/theme"
+import { bundelTone } from "@/lib/emoji-tone"
 
 interface ShareTargetViewProps {
   url: string | null
@@ -93,7 +93,7 @@ export function ShareTargetView({ url, sharedTitle, bundels }: ShareTargetViewPr
             </Link>
             <ul className="overflow-hidden rounded-2xl bg-surface shadow-card ring-1 ring-line/50 divide-y divide-line/70">
               {bundels.map((b) => {
-                const hue = bundelHue(b.slug)
+                const icon = bundelIcon(b.avatar, b.user.image, b.title)
                 return (
                   <li key={b.id}>
                     <button
@@ -101,9 +101,7 @@ export function ShareTargetView({ url, sharedTitle, bundels }: ShareTargetViewPr
                       disabled={!!savingTo || savedTo === b.id}
                       className="flex min-h-[64px] w-full items-center gap-3 px-3 text-left active:bg-ink/5"
                     >
-                      <span className="rounded-[30%]" style={{ background: bundelGradient(hue) }}>
-                        <BundelIconTile icon={bundelIcon(b.avatar, b.user.image, b.title)} size={44} />
-                      </span>
+                      <BundelIconTile icon={icon} tone={bundelTone(b.slug, icon)} size={44} variant="tile" />
                       <span className="min-w-0 flex-1">
                         <span className="block truncate font-semibold">{b.title}</span>
                         <span className="block text-[13px] text-ink-3">{b._count.links} {b._count.links === 1 ? "link" : "links"}</span>

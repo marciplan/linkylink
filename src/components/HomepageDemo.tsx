@@ -3,14 +3,14 @@
 import { useEffect, useState } from "react"
 import { MoreHorizontal, Share } from "lucide-react"
 import { FluentEmoji } from "@/components/FluentEmoji"
-import { bundelGradient } from "@/lib/theme"
+import { toneProps, type Tone } from "@/lib/tone"
 import { cn } from "@/lib/utils"
 
 interface DemoExample {
   title: string
   username: string
   emoji: string
-  hue: number
+  tone: Tone
   links: { title: string; domain: string; note?: string }[]
 }
 
@@ -19,7 +19,7 @@ const examples: DemoExample[] = [
     title: "Which vacation should we book?",
     username: "sarah_travels",
     emoji: "✈️",
-    hue: 220,
+    tone: { hue: 255, soft: 0.064, deep: 0.06, ink: "mid", neutral: false },
     links: [
       { title: "Villa in Tuscany", domain: "airbnb.com", note: "Pool + vineyard. My vote." },
       { title: "All-inclusive Maldives resort", domain: "booking.com" },
@@ -29,8 +29,8 @@ const examples: DemoExample[] = [
   {
     title: "My favorite music videos",
     username: "marciplan",
-    emoji: "🎵",
-    hue: 330,
+    emoji: "🎬",
+    tone: { hue: 295, soft: 0.064, deep: 0.06, ink: "mid", neutral: false },
     links: [
       { title: "Fred Again - Boiler Room", domain: "youtube.com", note: "The best 60 minutes on YouTube." },
       { title: "Bon Iver at AIR Studios", domain: "youtube.com" },
@@ -41,7 +41,7 @@ const examples: DemoExample[] = [
     title: "Team building activity",
     username: "tech_team",
     emoji: "🎯",
-    hue: 150,
+    tone: { hue: 5, soft: 0.085, deep: 0.1, ink: "mid", neutral: false },
     links: [
       { title: "Escape room downtown", domain: "eventbrite.com", note: "Fits 12, Friday afternoons." },
       { title: "Italian cooking class", domain: "cozymeal.com" },
@@ -64,20 +64,20 @@ export function HomepageDemo() {
 
   return (
     <div className="relative mx-auto w-full max-w-[320px]" aria-label="Example Bundel" role="img">
-      <div className="absolute -inset-10 -z-10 rounded-full opacity-40 blur-3xl transition-[background] duration-700" style={{ background: bundelGradient(ex.hue) }} />
+      <div className="absolute -inset-10 -z-10 rounded-full opacity-40 blur-3xl transition-[background] duration-700" style={{ background: `oklch(0.6 ${ex.tone.deep + 0.04} ${ex.tone.hue})` }} />
       <div className="overflow-hidden rounded-[44px] border-[6px] border-ink bg-bg shadow-float">
         <div
           data-tint
-          style={{ "--tint-h": ex.hue } as React.CSSProperties}
+          style={{ "--tint-h": ex.tone.hue } as React.CSSProperties}
           className="relative"
         >
-          <div className="relative px-5 pb-9 pt-14 text-left text-white transition-[background] duration-700" style={{ background: bundelGradient(ex.hue) }}>
+          <div className="tone-hero relative px-5 pb-9 pt-14 text-left text-white" {...toneProps(ex.tone)}>
             <div className="absolute inset-0 bg-gradient-to-b from-black/0 to-black/40" />
             <div className="absolute right-4 top-4 grid h-8 w-8 place-items-center rounded-full bg-black/20 ring-1 ring-white/25">
               <Share className="h-3.5 w-3.5" />
             </div>
             <div key={`h-${index}`} className="relative animate-rise">
-              <span className="grid h-12 w-12 place-items-center rounded-[30%] bg-white/25 ring-1 ring-white/50 backdrop-blur"><FluentEmoji emoji={ex.emoji} size={30} /></span>
+              <span className="tone-chip grid h-12 w-12 place-items-center rounded-[30%]" {...toneProps(ex.tone)}><FluentEmoji emoji={ex.emoji} size={30} /></span>
               <p className="mt-3 text-[22px] font-bold leading-tight tracking-tight text-balance">{ex.title}</p>
               <p className="mt-2 text-xs font-medium text-white/80">@{ex.username} · {ex.links.length} links</p>
             </div>

@@ -2,7 +2,8 @@ import { ImageResponse } from "next/og"
 import type { NextRequest } from 'next/server'
 import { prisma } from "@/lib/prisma"
 import { optional } from "@/lib/optional"
-import { bundelHue, oklchToHex } from "@/lib/theme"
+import { bundelTone } from "@/lib/emoji-tone"
+import { tonePalette, type Tone } from "@/lib/tone"
 import { bundelIcon } from "@/lib/bundel-icon"
 import { domainOf } from "@/lib/links"
 import { ogFonts } from "../fonts"
@@ -62,21 +63,16 @@ function detectTheme(text: string): typeof THEMES[number] | null {
   return null
 }
 
-/** The page's gradient in sRGB (the image renderer doesn't understand OKLCH). */
-function palette(hue: number) {
-  return {
-    background: [
-      `radial-gradient(circle at 0% 0%, ${oklchToHex(0.78, 0.12, (hue + 320) % 360)} 0%, transparent 60%)`,
-      `radial-gradient(circle at 100% 10%, ${oklchToHex(0.62, 0.19, (hue + 40) % 360)} 0%, transparent 65%)`,
-      `linear-gradient(160deg, ${oklchToHex(0.72, 0.16, hue)} 0%, ${oklchToHex(0.5, 0.16, hue)} 100%)`,
-    ].join(", "),
-    soft: oklchToHex(0.95, 0.03, hue),
-    ink: oklchToHex(0.42, 0.15, hue),
-  }
+const BRAND_TONE: Tone = { hue: 265, soft: 0.05, deep: 0.09, ink: "mid", neutral: false }
+
+/** The page's colours in sRGB (the image renderer doesn't understand OKLCH). */
+function palette(tone: Tone) {
+  const p = tonePalette(tone)
+  return { background: p.field, soft: p.soft, ink: p.ink, chip: p.chip }
 }
 
 async function fallbackImage() {
-  const { background } = palette(265)
+  const { background } = palette(BRAND_TONE)
   return new ImageResponse(
     (
       <div style={{ height: '100%', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundImage: background, fontFamily: 'Inter' }}>
@@ -145,9 +141,8 @@ export async function GET(
     if (!bundel) return fallbackImage()
 
     const ask = await withTimeout(optional(prisma.ask.findUnique({ where: { linkylinkId: bundel.id } }), null), TIMEOUT_MS).catch(() => null)
-    const hue = bundelHue(slug)
-    const colors = palette(hue)
     const icon = bundelIcon(bundel.avatar, null, bundel.title)
+    const colors = palette(bundelTone(slug, icon))
     const emoji = icon.kind === 'emoji' ? icon.value : (detectTheme(`${bundel.title} ${bundel.subtitle ?? ''}`)?.main ?? '🔗')
     const focus = focusId ? bundel.links.find((l) => l.id === focusId) : undefined
 
@@ -221,7 +216,7 @@ export async function GET(
 
           {/* Left: who and what */}
           <div style={{ display: 'flex', flexDirection: 'column', width: top.length ? 560 : 1072, color: 'white', position: 'relative' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 120, height: 120, borderRadius: 36, background: 'rgba(255,255,255,0.28)', border: '2px solid rgba(255,255,255,0.5)', fontSize: 72 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 120, height: 120, borderRadius: 36, background: colors.chip, border: '2px solid rgba(255,255,255,0.5)', fontSize: 72 }}>
               {emoji}
             </div>
             <div style={{ display: 'flex', fontSize: 28, fontWeight: 600, opacity: 0.9, marginTop: 32 }}>{kicker}</div>

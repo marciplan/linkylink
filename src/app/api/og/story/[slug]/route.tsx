@@ -2,8 +2,9 @@ import { ImageResponse } from "next/og"
 import type { NextRequest } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { domainOf } from "@/lib/links"
-import { bundelHue, oklchToHex } from "@/lib/theme"
-import { categoryEmoji, categoryHue, categoryLabel, RANK_EMOJI, WORST_EMOJI } from "@/lib/year-review"
+import { emojiTone } from "@/lib/emoji-tone"
+import { tonePalette } from "@/lib/tone"
+import { categoryEmoji, categoryLabel, RANK_EMOJI, WORST_EMOJI } from "@/lib/year-review"
 import { ogFonts } from "../../fonts"
 
 export const runtime = "nodejs"
@@ -37,10 +38,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
   const label = review.year ? `MY ${review.year}` : "MY YEAR"
   const best = category.categoryType === "BEST"
-  const hue = categoryHue(bundelHue(slug), index)
-  const background = best
-    ? `linear-gradient(165deg, ${oklchToHex(0.6, 0.2, hue)} 0%, ${oklchToHex(0.4, 0.17, (hue + 38) % 360)} 100%)`
-    : `linear-gradient(165deg, ${oklchToHex(0.3, 0.045, hue)} 0%, ${oklchToHex(0.17, 0.03, (hue + 30) % 360)} 100%)`
+  const colors = tonePalette(emojiTone(categoryEmoji(category.icon)))
+  const background = colors.story(category.categoryType)
   const items = category.items.slice(0, 5)
   const [first, ...rest] = items
   const medals = best ? RANK_EMOJI : WORST_EMOJI
@@ -54,7 +53,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", marginTop: 90 }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 210, height: 210, borderRadius: 66, background: "rgba(255,255,255,0.18)", fontSize: 128 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 210, height: 210, borderRadius: 66, background: colors.chip, fontSize: 128 }}>
             {categoryEmoji(category.icon)}
           </div>
           <div style={{ display: "flex", fontSize: 40, fontWeight: 600, letterSpacing: 7, opacity: 0.8, marginTop: 56 }}>

@@ -11,9 +11,9 @@ import { BundelIconTile } from "@/components/bundel/BundelHero"
 import { Favicon } from "@/components/bundel/Favicon"
 import { useUnfurl } from "@/components/bundel/AddLinkSheet"
 import { addLinkToLinkylink, createLinkylink } from "@/lib/actions"
-import { bundelGradient, bundelHue } from "@/lib/theme"
+import { emojiTone } from "@/lib/emoji-tone"
+import { toneProps } from "@/lib/tone"
 import { domainOf, findUrl } from "@/lib/links"
-import { generateSlug } from "@/lib/utils"
 import { useCanPaste } from "@/lib/use-can-paste"
 
 function CreateBundel() {
@@ -27,8 +27,9 @@ function CreateBundel() {
   const nameRef = useRef<HTMLTextAreaElement>(null)
   const { url, valid, data, loading } = useUnfurl(rawUrl)
 
-  // Preview colour matches the page that will be created (it is keyed on the slug).
-  const hue = bundelHue(generateSlug(name) || "new-bundel")
+  // The icon is picked for the new Bundel once it exists; until then the preview wears the sparkle's gold.
+  const tone = emojiTone("✨")
+  const hue = tone.hue
 
   const paste = async () => {
     try {
@@ -78,12 +79,12 @@ function CreateBundel() {
       <form onSubmit={create} className="mx-auto flex w-full max-w-lg flex-1 flex-col px-4 pb-safe">
         {/* Live preview of the header */}
         <div
-          className="relative mt-2 overflow-hidden rounded-4xl p-5 text-white shadow-float transition-[background] duration-500"
-          style={{ background: bundelGradient(hue) }}
+          className="tone-hero grain relative mt-2 overflow-hidden rounded-4xl p-5 text-white shadow-float"
+          {...toneProps(tone)}
         >
           <div className="absolute inset-0 bg-gradient-to-b from-black/0 to-black/40" />
           <div className="relative">
-            <BundelIconTile icon={{ kind: "emoji", value: "✨" }} size={52} />
+            <BundelIconTile icon={{ kind: "emoji", value: "✨" }} tone={tone} size={52} />
             <textarea
               ref={nameRef}
               value={name}

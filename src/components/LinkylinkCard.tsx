@@ -2,7 +2,7 @@ import Link from "next/link"
 import { ChevronRight } from "lucide-react"
 import { BundelIconTile } from "@/components/bundel/BundelHero"
 import { bundelIcon } from "@/lib/bundel-icon"
-import { bundelGradient, bundelHue } from "@/lib/theme"
+import { bundelTone } from "@/lib/emoji-tone"
 
 interface LinkylinkCardProps {
   title: string
@@ -35,7 +35,8 @@ export function LinkylinkCard({
   index = 0,
 }: LinkylinkCardProps) {
   const isYearReview = type === "YEAR_REVIEW"
-  const hue = bundelHue(slug)
+  const icon = bundelIcon(avatar, userImage, title)
+  const tone = bundelTone(slug, icon)
   const count = isYearReview
     ? `${categoryCount} ${categoryCount === 1 ? "category" : "categories"}`
     : `${linkCount} ${linkCount === 1 ? "link" : "links"}`
@@ -46,9 +47,7 @@ export function LinkylinkCard({
       className="stagger flex min-h-[76px] items-center gap-3.5 px-3.5 py-3 transition-colors active:bg-ink/5 hover:bg-ink/[0.02]"
       style={{ "--i": index } as React.CSSProperties}
     >
-      <span className="rounded-[30%] shadow-card" style={{ background: bundelGradient(hue) }}>
-        <BundelIconTile icon={bundelIcon(avatar, userImage, title)} size={52} />
-      </span>
+      <BundelIconTile icon={icon} tone={tone} size={52} variant="tile" />
       <span className="min-w-0 flex-1">
         <span className="flex items-center gap-2">
           <span className="truncate text-[16px] font-semibold">{title}</span>

@@ -10,7 +10,7 @@ import { ShareButton } from "@/components/bundel/ShareButton"
 import { AskVisitorList, FocusLink } from "@/components/bundel/lazy"
 import type { AskSettings } from "@/components/bundel/ask/AskProvider"
 import { bundelIcon } from "@/lib/bundel-icon"
-import { bundelHue } from "@/lib/theme"
+import { bundelTone } from "@/lib/emoji-tone"
 import { cn } from "@/lib/utils"
 import type { VoteSummary } from "@/lib/sharing"
 
@@ -42,8 +42,9 @@ interface BundelVisitorViewProps {
  * and the share bar — hydrate on the client.
  */
 export function BundelVisitorView({ bundel, currentUser, commentCounts, previewHref, ask, voteSummary = {}, focusLinkId, remixedFrom }: BundelVisitorViewProps) {
-  const hue = bundelHue(bundel.slug)
   const icon = bundelIcon(bundel.avatar, bundel.user.image, bundel.title)
+  const tone = bundelTone(bundel.slug, icon)
+  const hue = tone.hue
   const path = `/${bundel.user.username}/${bundel.slug}`
   const loginHref = `/login?callbackUrl=${encodeURIComponent(path)}`
   const owner = { username: bundel.user.username, avatar: bundel.avatar || bundel.user.image }
@@ -75,7 +76,7 @@ export function BundelVisitorView({ bundel, currentUser, commentCounts, previewH
       />
 
       <BundelHero
-        hue={hue}
+        tone={tone}
         headerImage={bundel.headerImage}
         icon={icon}
         title={bundel.title}

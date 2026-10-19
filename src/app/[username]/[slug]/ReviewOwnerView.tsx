@@ -27,8 +27,9 @@ import {
 import { bundelIcon } from "@/lib/bundel-icon"
 import { domainOf } from "@/lib/links"
 import { copyText, shareOrCopy } from "@/lib/share"
-import { bundelHue } from "@/lib/theme"
-import { CATEGORY_PRESETS, categoryEmoji, categoryHue, categoryLabel, reviewBarTitle } from "@/lib/year-review"
+import { bundelTone, emojiTone } from "@/lib/emoji-tone"
+import { toneProps } from "@/lib/tone"
+import { CATEGORY_PRESETS, categoryEmoji, categoryLabel, reviewBarTitle } from "@/lib/year-review"
 import { cn } from "@/lib/utils"
 
 interface Item {
@@ -111,8 +112,9 @@ export default function ReviewOwnerView({ review }: ReviewOwnerViewProps) {
     categoriesRef.current = categories
   }, [categories])
 
-  const hue = bundelHue(review.slug)
   const icon = bundelIcon(avatar, review.user.image, title)
+  const tone = bundelTone(review.slug, icon)
+  const hue = tone.hue
   const path = `/${review.user.username}/${review.slug}`
   const editingCategory = categories.find((c) => c.id === categorySheet.id) ?? null
   const addingCategory = categories.find((c) => c.id === addingTo) ?? null
@@ -262,7 +264,7 @@ export default function ReviewOwnerView({ review }: ReviewOwnerViewProps) {
       />
 
       <YearHero
-        hue={hue}
+        tone={tone}
         year={review.year}
         headerImage={headerImage}
         title={<InlineText key={title} label="Review title" value={title} maxLength={100} placeholder="Name your review" onCommit={(v) => { if (!v) return; setTitle(v); saveReview({ title: v }) }} />}
@@ -308,7 +310,7 @@ export default function ReviewOwnerView({ review }: ReviewOwnerViewProps) {
             </section>
           )}
 
-          {categories.map((category, ci) => {
+          {categories.map((category) => {
             const best = category.categoryType === "BEST"
             const full = category.items.length >= category.rankLimit
             return (
@@ -316,10 +318,10 @@ export default function ReviewOwnerView({ review }: ReviewOwnerViewProps) {
                 key={category.id}
                 aria-label={category.name}
                 className="grain relative overflow-hidden rounded-[32px] p-4 text-white shadow-float"
-                style={{ background: cardBackground(categoryHue(hue, ci), category.categoryType) }}
+                style={{ background: cardBackground(category.icon, category.categoryType) }}
               >
                 <header className="flex items-center gap-3 pl-1">
-                  <span className={cn("grid h-12 w-12 shrink-0 place-items-center rounded-[20px]", glassPanel)}>
+                  <span className="tone-chip grid h-12 w-12 shrink-0 place-items-center rounded-[20px]" {...toneProps(emojiTone(categoryEmoji(category.icon)))}>
                     <FluentEmoji emoji={categoryEmoji(category.icon)} size={30} />
                   </span>
                   <div className="min-w-0 flex-1">
@@ -422,7 +424,7 @@ export default function ReviewOwnerView({ review }: ReviewOwnerViewProps) {
         open={appearanceOpen}
         onOpenChange={setAppearanceOpen}
         bundel={{ id: review.id, title, subtitle, headerImages: review.headerImages }}
-        hue={hue}
+        tone={tone}
         icon={icon.kind === "emoji" ? icon.value : ""}
         headerImage={headerImage}
         onIconChange={(emoji) => {

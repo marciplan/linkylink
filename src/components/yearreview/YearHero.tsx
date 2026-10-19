@@ -1,8 +1,8 @@
 import Image from "next/image"
-import { bundelGradient } from "@/lib/theme"
+import { toneProps, type Tone } from "@/lib/tone"
 
 interface YearHeroProps {
-  hue: number
+  tone: Tone
   year: number | null
   headerImage?: string | null
   title: React.ReactNode
@@ -14,10 +14,10 @@ interface YearHeroProps {
  * The opening frame of a Year Review: the year itself, set huge, on the
  * Bundel's gradient with film grain. Everything else is quiet around it.
  */
-export function YearHero({ hue, year, headerImage, title, subtitle, meta }: YearHeroProps) {
+export function YearHero({ tone, year, headerImage, title, subtitle, meta }: YearHeroProps) {
   return (
     <section className="grain relative overflow-hidden text-white">
-      <div className="absolute inset-0 -z-10" style={{ background: bundelGradient(hue) }}>
+      <div className="tone-hero absolute inset-0 -z-10" {...toneProps(tone)}>
         {headerImage && <Image src={headerImage} alt="" fill priority sizes="100vw" className="object-cover" />}
         <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/10 to-black/60" />
       </div>

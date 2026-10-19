@@ -7,8 +7,9 @@ import { ConfettiOnView } from "@/components/bundel/lazy"
 import { YearHero } from "@/components/yearreview/YearHero"
 import { CategoryCard, type ReviewCategory } from "@/components/yearreview/CategoryCard"
 import { ReviewBar } from "@/components/yearreview/ReviewBar"
-import { bundelHue } from "@/lib/theme"
-import { categoryHue, reviewBarTitle } from "@/lib/year-review"
+import { bundelIcon } from "@/lib/bundel-icon"
+import { bundelTone } from "@/lib/emoji-tone"
+import { reviewBarTitle } from "@/lib/year-review"
 
 interface ReviewVisitorViewProps {
   review: {
@@ -18,7 +19,8 @@ interface ReviewVisitorViewProps {
     subtitle: string | null
     headerImage: string | null
     year: number | null
-    user: { username: string; name: string | null }
+    avatar: string | null
+    user: { username: string; name: string | null; image: string | null }
     categories: ReviewCategory[]
   }
   /** Set when the owner is previewing their own page. */
@@ -27,7 +29,8 @@ interface ReviewVisitorViewProps {
 
 /** A Year Review as visitors see it: the year, then one poster-style card per category. */
 export function ReviewVisitorView({ review, previewHref }: ReviewVisitorViewProps) {
-  const hue = bundelHue(review.slug)
+  const tone = bundelTone(review.slug, bundelIcon(review.avatar, review.user.image, review.title))
+  const hue = tone.hue
   const filled = review.categories.filter((c) => c.items.length > 0)
   const picks = review.categories.reduce((n, c) => n + c.items.length, 0)
 
@@ -56,7 +59,7 @@ export function ReviewVisitorView({ review, previewHref }: ReviewVisitorViewProp
       />
 
       <YearHero
-        hue={hue}
+        tone={tone}
         year={review.year}
         headerImage={review.headerImage}
         title={review.title}
@@ -85,7 +88,7 @@ export function ReviewVisitorView({ review, previewHref }: ReviewVisitorViewProp
             <p className="py-16 text-center text-ink-3">Nothing here yet.</p>
           ) : (
             review.categories.map((category, i) => (
-              <CategoryCard key={category.id} category={category} hue={categoryHue(hue, i)} index={i} />
+              <CategoryCard key={category.id} category={category} index={i} />
             ))
           )}
           <p className="pt-8 text-center text-sm text-ink-3">

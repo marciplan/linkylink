@@ -1,10 +1,11 @@
 import Image from "next/image"
 import { FluentEmoji } from "@/components/FluentEmoji"
-import { bundelGradient } from "@/lib/theme"
+import { toneProps, type Tone } from "@/lib/tone"
 import type { BundelIcon } from "@/lib/bundel-icon"
+import { cn } from "@/lib/utils"
 
 interface BundelHeroProps {
-  hue: number
+  tone: Tone
   headerImage?: string | null
   icon: BundelIcon
   /** Rendered on the icon tile so owners can tap it to change the look. */
@@ -14,11 +15,20 @@ interface BundelHeroProps {
   meta?: React.ReactNode
 }
 
-export function BundelIconTile({ icon, size = 72 }: { icon: BundelIcon; size?: number }) {
+/**
+ * The icon in its tonal tile. "chip" is the pale identity tile used on a hero;
+ * "tile" is the soft tile used in lists, where the page background does the contrast.
+ */
+export function BundelIconTile({ icon, tone, size = 72, variant = "chip" }: { icon: BundelIcon; tone: Tone; size?: number; variant?: "chip" | "tile" }) {
+  const props = toneProps(tone)
   return (
     <span
-      className="relative grid shrink-0 place-items-center overflow-hidden rounded-[30%] bg-white/25 shadow-lg ring-1 ring-white/50 backdrop-blur-md"
-      style={{ width: size, height: size }}
+      className={cn(
+        "relative grid shrink-0 place-items-center overflow-hidden rounded-[30%]",
+        variant === "chip" ? "tone-chip" : "tone-tile shadow-card ring-1 ring-black/5 dark:ring-white/10"
+      )}
+      style={{ ...props.style, width: size, height: size }}
+      data-ink={props["data-ink"]}
     >
       {icon.kind === "emoji" ? (
         <FluentEmoji emoji={icon.value} size={Math.round(size * 0.62)} className="drop-shadow-sm" />
@@ -33,10 +43,10 @@ export function BundelIconTile({ icon, size = 72 }: { icon: BundelIcon; size?: n
  * Full-bleed header: the Bundel's image or a generated mesh gradient, with the
  * title block anchored to the bottom where it is closest to the thumb.
  */
-export function BundelHero({ hue, headerImage, icon, iconAction, title, subtitle, meta }: BundelHeroProps) {
+export function BundelHero({ tone, headerImage, icon, iconAction, title, subtitle, meta }: BundelHeroProps) {
   return (
-    <section className="relative isolate overflow-hidden text-white">
-      <div className="absolute inset-0 -z-10" style={{ background: bundelGradient(hue) }}>
+    <section className="grain relative isolate overflow-hidden text-white">
+      <div className="tone-hero absolute inset-0 -z-10" {...toneProps(tone)}>
         {headerImage && (
           <Image src={headerImage} alt="" fill priority sizes="100vw" className="object-cover" />
         )}
@@ -44,7 +54,7 @@ export function BundelHero({ hue, headerImage, icon, iconAction, title, subtitle
       </div>
       <div className="mx-auto flex min-h-[320px] max-w-2xl flex-col justify-end px-5 pb-12 pt-[calc(env(safe-area-inset-top)+76px)] sm:min-h-[360px]">
         <div className="relative w-fit animate-rise">
-          <BundelIconTile icon={icon} />
+          <BundelIconTile icon={icon} tone={tone} />
           {iconAction}
         </div>
         <div className="mt-5 animate-rise [animation-delay:60ms] [text-shadow:0_1px_12px_rgb(0_0_0/0.25)]">
