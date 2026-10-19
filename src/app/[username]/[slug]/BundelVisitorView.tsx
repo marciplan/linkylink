@@ -2,6 +2,7 @@ import Link from "next/link"
 import { Link2, Share } from "lucide-react"
 import { BundelHero } from "@/components/bundel/BundelHero"
 import { LinkRowBody, type BundelLink } from "@/components/bundel/LinkRow"
+import { LinkContextMenu } from "@/components/ContextMenu"
 import { LinkMoreButton } from "@/components/bundel/LinkMoreButton"
 import { TopBar } from "@/components/bundel/TopBar"
 import { linkRowStyles, topBarButton } from "@/components/bundel/styles"
@@ -128,6 +129,7 @@ export function BundelVisitorView({ bundel, currentUser, commentCounts, previewH
                   className={cn("stagger relative scroll-mt-24 rounded-3xl", focusLinkId === link.id && "ring-2 ring-tint")}
                   style={{ "--i": i } as React.CSSProperties}
                 >
+                  <LinkContextMenu url={link.url} sharePath={`${path}?l=${link.id}`}>
                   <a
                     href={link.url}
                     target="_blank"
@@ -137,6 +139,7 @@ export function BundelVisitorView({ bundel, currentUser, commentCounts, previewH
                   >
                     <LinkRowBody link={link} commentCount={commentCounts[link.id] ?? 0} />
                   </a>
+                  </LinkContextMenu>
                   <LinkMoreButton
                     link={link}
                     owner={owner}
