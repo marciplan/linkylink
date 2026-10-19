@@ -2,6 +2,7 @@
 
 import { Drawer } from "vaul"
 import { X } from "lucide-react"
+import { useIsDesktop } from "@/components/DesktopOnly"
 import { cn } from "@/lib/utils"
 
 interface SheetProps {
@@ -22,10 +23,12 @@ interface SheetProps {
 /**
  * Bottom sheet — the one overlay pattern for the app. Drag down or tap the
  * scrim to dismiss; content scrolls inside while the handle stays put.
+ * On desktop it is a drawer that slides in from the right instead.
  */
 export function Sheet({ open, onOpenChange, title, hideTitle, description, children, className, footer, initialFocusRef }: SheetProps) {
+  const desktop = useIsDesktop()
   return (
-    <Drawer.Root open={open} onOpenChange={onOpenChange} repositionInputs={false}>
+    <Drawer.Root open={open} onOpenChange={onOpenChange} repositionInputs={false} direction={desktop ? "right" : "bottom"}>
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-[2px]" />
         <Drawer.Content
@@ -38,11 +41,12 @@ export function Sheet({ open, onOpenChange, title, hideTitle, description, child
             "fixed inset-x-0 bottom-0 z-[61] mx-auto flex max-h-[92dvh] w-full max-w-lg flex-col",
             "rounded-t-4xl bg-surface text-ink shadow-float outline-none",
             "sm:bottom-4 sm:rounded-4xl",
+            "lg:inset-x-auto lg:inset-y-4 lg:right-4 lg:mx-0 lg:h-[calc(100dvh-2rem)] lg:max-h-none lg:w-[460px] lg:max-w-none lg:rounded-4xl",
             className
           )}
         >
           <div className="flex shrink-0 items-start gap-3 px-5 pb-2 pt-3">
-            <div className="absolute left-1/2 top-2 h-1.5 w-10 -translate-x-1/2 rounded-full bg-ink/15" aria-hidden />
+            <div className="absolute left-1/2 top-2 h-1.5 w-10 -translate-x-1/2 rounded-full bg-ink/15 lg:hidden" aria-hidden />
             <div className={cn("min-w-0 flex-1 pt-4", hideTitle && "sr-only")}>
               <Drawer.Title className="text-title text-balance">{title}</Drawer.Title>
               {description ? (

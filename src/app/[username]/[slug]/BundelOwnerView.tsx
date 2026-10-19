@@ -29,6 +29,8 @@ import { AskSettingsSheet } from "@/components/bundel/ask/AskSettingsSheet"
 import { Favicon } from "@/components/bundel/Favicon"
 import { InlineText } from "@/components/bundel/InlineText"
 import { domainOf } from "@/lib/links"
+import { CopyLinkButton } from "@/components/CopyLinkButton"
+import { usePasteUrl } from "@/lib/use-paste-url"
 import type { VoteSummary } from "@/lib/sharing"
 
 interface BundelOwnerViewProps {
@@ -134,6 +136,7 @@ export default function BundelOwnerView({ bundel, commentCounts, ask: initialAsk
   const [headerImage, setHeaderImage] = useState(bundel.headerImage)
   const [links, setLinks] = useState(bundel.links)
   const [adding, setAdding] = useState(false)
+  const [pastedUrl, setPastedUrl] = useState("")
   const [editing, setEditing] = useState<BundelLink | null>(null)
   const [menuOpen, setMenuOpen] = useState(false)
   const [appearanceOpen, setAppearanceOpen] = useState(false)
@@ -156,6 +159,12 @@ export default function BundelOwnerView({ bundel, commentCounts, ask: initialAsk
       flush()
     }
   }, [])
+
+  // ⌘V (or dropping a link) anywhere on the page starts adding it.
+  usePasteUrl((url) => {
+    setPastedUrl(url)
+    setAdding(true)
+  })
 
   const icon = bundelIcon(avatar, bundel.user.image, title)
   const tone = bundelTone(bundel.slug, icon)
@@ -275,16 +284,16 @@ export default function BundelOwnerView({ bundel, commentCounts, ask: initialAsk
       <TopBar
         title={title || "Untitled"}
         leading={
-          <Link href="/dashboard" className={topBarButton} aria-label="Back to your Bundels">
+          <Link href="/dashboard" className={topBarButton} aria-label="Back to your Bundels" title="Back to your Bundels">
             <ChevronLeft className="h-5 w-5" strokeWidth={2.5} />
           </Link>
         }
         trailing={
           <>
-            <Link href={`${path}?view=public`} className={topBarButton} aria-label="Preview as a visitor">
+            <Link href={`${path}?view=public`} className={topBarButton} aria-label="Preview as a visitor" title="Preview as a visitor">
               <Eye className="h-[18px] w-[18px]" />
             </Link>
-            <button onClick={() => setMenuOpen(true)} className={topBarButton} aria-label="More options">
+            <button onClick={() => setMenuOpen(true)} className={topBarButton} aria-label="More options" title="More options">
               <MoreHorizontal className="h-5 w-5" />
             </button>
           </>
@@ -338,6 +347,7 @@ export default function BundelOwnerView({ bundel, commentCounts, ask: initialAsk
             <span>{links.length} {links.length === 1 ? "link" : "links"}</span>
             <span aria-hidden>·</span>
             <span>{bundel.views.toLocaleString()} views</span>
+            <CopyLinkButton path={path} className="hidden h-8 w-8 bg-white/15 text-white hover:bg-white/25 hover:text-white lg:grid" />
             {remixedFrom && (
               <>
                 <span aria-hidden>·</span>
@@ -386,7 +396,7 @@ export default function BundelOwnerView({ bundel, commentCounts, ask: initialAsk
           {ask && <AskCard titles={Object.fromEntries(links.map((l) => [l.id, l.title]))} onEdit={() => setAskOpen(true)} />}
           {links.length === 0 ? (
             <button
-              onClick={() => setAdding(true)}
+              onClick={() => { setPastedUrl(""); setAdding(true) }}
               className="pressable flex w-full flex-col items-center gap-3 rounded-3xl border-2 border-dashed border-line px-6 py-12 text-center"
             >
               <span className="grid h-14 w-14 place-items-center rounded-2xl bg-tint-soft text-tint-ink">
@@ -424,7 +434,7 @@ export default function BundelOwnerView({ bundel, commentCounts, ask: initialAsk
       {/* Owner actions in the thumb zone */}
       <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-4 pb-safe lg:left-[var(--pane)]">
         <div className="glass pointer-events-auto mb-1 flex w-full max-w-sm items-center gap-2 rounded-full border border-line/60 p-1.5 shadow-float">
-          <Button variant="primary" size="md" className="flex-1" onClick={() => setAdding(true)}>
+          <Button variant="primary" size="md" className="flex-1" onClick={() => { setPastedUrl(""); setAdding(true) }}>
             <Plus className="h-5 w-5" strokeWidth={2.5} />
             Add link
           </Button>
@@ -434,7 +444,7 @@ export default function BundelOwnerView({ bundel, commentCounts, ask: initialAsk
         </div>
       </div>
 
-      <AddLinkSheet open={adding} onOpenChange={setAdding} onAdd={handleAdd} />
+      <AddLinkSheet open={adding} onOpenChange={setAdding} onAdd={handleAdd} initialUrl={pastedUrl} />
 
       <EditLinkSheet
         link={editing}

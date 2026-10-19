@@ -2,7 +2,9 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Link2, Plus, Sparkles } from "lucide-react"
+import { Link2, Plus, Search, Sparkles } from "lucide-react"
+import { useSyncExternalStore } from "react"
+import { OPEN_PALETTE_EVENT } from "@/components/palette-event"
 import { Avatar } from "@/components/Avatar"
 import { buttonStyles } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -21,8 +23,11 @@ const items = [
  * The signed-in app's top bar on desktop. Phones keep the floating tab bar, so this
  * only shows from the `lg` breakpoint up.
  */
+const noop = () => () => {}
+
 export function DesktopNav({ user }: DesktopNavProps) {
   const pathname = usePathname()
+  const mac = useSyncExternalStore(noop, () => /Mac|iPhone|iPad/.test(navigator.platform), () => false)
 
   return (
     <header className="glass sticky top-0 z-50 hidden border-b border-line/60 lg:block">
@@ -56,6 +61,15 @@ export function DesktopNav({ user }: DesktopNavProps) {
         </div>
 
         <div className="ml-auto flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new Event(OPEN_PALETTE_EVENT))}
+            className="pressable hidden h-9 items-center gap-2 rounded-full bg-surface-2 pl-3 pr-2 text-[14px] text-ink-3 transition-colors hover:bg-ink/10 xl:inline-flex"
+          >
+            <Search className="h-3.5 w-3.5" />
+            Search
+            <kbd className="rounded-md bg-surface px-1.5 py-0.5 text-[11px] font-semibold text-ink-2 shadow-sm">{mac ? "⌘K" : "Ctrl K"}</kbd>
+          </button>
           <Link href="/create" className={buttonStyles({ size: "sm" })}>
             <Plus className="h-4 w-4" strokeWidth={2.5} />
             New Bundel
