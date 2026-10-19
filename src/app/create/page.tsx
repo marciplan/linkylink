@@ -76,7 +76,7 @@ function CreateBundel() {
         </div>
       </header>
 
-      <form onSubmit={create} className="mx-auto flex w-full max-w-lg flex-1 flex-col px-4 pb-safe lg:grid lg:max-w-4xl lg:flex-none lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:content-start lg:items-start lg:gap-x-10 lg:px-8 lg:pt-6">
+      <form onSubmit={create} className="mx-auto flex w-full max-w-lg flex-1 flex-col px-4 pb-safe lg:grid lg:max-w-4xl lg:flex-none lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:grid-rows-[auto_1fr] lg:content-start lg:items-start lg:gap-x-10 lg:px-8 lg:pt-6">
         {/* Live preview of the header */}
         <div
           className="tone-hero grain relative mt-2 overflow-hidden rounded-4xl p-5 text-white shadow-float lg:col-start-1 lg:row-span-2 lg:row-start-1 lg:mt-0 lg:min-h-[320px] lg:p-8"
