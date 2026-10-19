@@ -41,7 +41,7 @@ export function Sheet({ open, onOpenChange, title, hideTitle, description, child
             "fixed inset-x-0 bottom-0 z-[61] mx-auto flex max-h-[92dvh] w-full max-w-lg flex-col",
             "rounded-t-4xl bg-surface text-ink shadow-float outline-none",
             "sm:bottom-4 sm:rounded-4xl",
-            "lg:inset-x-auto lg:inset-y-4 lg:right-4 lg:mx-0 lg:h-[calc(100dvh-2rem)] lg:max-h-none lg:w-[460px] lg:max-w-none lg:rounded-4xl",
+            "lg:after:hidden lg:inset-x-auto lg:inset-y-4 lg:right-4 lg:mx-0 lg:h-[calc(100dvh-2rem)] lg:max-h-none lg:w-[460px] lg:max-w-none lg:rounded-4xl",
             className
           )}
         >
