@@ -284,7 +284,7 @@ export default function ReviewOwnerView({ review }: ReviewOwnerViewProps) {
       <main className="relative -mt-7 rounded-t-4xl bg-bg pb-40 pt-5 lg:col-start-2 lg:mt-0 lg:min-h-dvh lg:rounded-none lg:pb-32 lg:pt-20">
         <div className="mx-auto max-w-2xl space-y-4 px-4 lg:max-w-5xl lg:grid lg:grid-cols-2 lg:items-start lg:gap-5 lg:space-y-0 lg:px-12">
           {categories.length === 0 && (
-            <section className="animate-rise rounded-3xl bg-surface p-5 shadow-card ring-1 ring-line/50">
+            <section className="animate-rise rounded-3xl bg-surface p-5 shadow-card ring-1 ring-line/50 lg:col-span-2">
               <h2 className="text-title">Start your {review.year}</h2>
               <p className="mt-1 text-[15px] text-ink-2 text-pretty">Pick a category, then add your #1. Takes ten seconds each.</p>
               <div className="mt-4 flex flex-wrap gap-2">
@@ -360,7 +360,7 @@ export default function ReviewOwnerView({ review }: ReviewOwnerViewProps) {
           {categories.length > 0 && (
             <button
               onClick={() => setCategorySheet({ open: true, id: null })}
-              className="pressable flex h-16 w-full items-center justify-center gap-2 rounded-3xl border-2 border-dashed border-line text-[16px] font-semibold text-ink-2"
+              className="pressable flex h-16 w-full items-center justify-center gap-2 rounded-3xl border-2 border-dashed border-line text-[16px] font-semibold text-ink-2 lg:col-span-2"
             >
               <Plus className="h-5 w-5" strokeWidth={2.5} />
               Add a category

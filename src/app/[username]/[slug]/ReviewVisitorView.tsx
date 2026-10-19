@@ -91,7 +91,7 @@ export function ReviewVisitorView({ review, previewHref }: ReviewVisitorViewProp
               <CategoryCard key={category.id} category={category} index={i} />
             ))
           )}
-          <p className="pt-8 text-center text-sm text-ink-3">
+          <p className="pt-8 text-center text-sm text-ink-3 lg:col-span-2">
             Made by{" "}
             <Link href={`/${review.user.username}`} className="font-semibold text-ink-2 underline-offset-4 hover:underline">
               @{review.user.username}
