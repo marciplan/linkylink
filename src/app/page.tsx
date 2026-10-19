@@ -78,11 +78,11 @@ export default async function HomePage() {
             <div className="animate-rise relative [animation-delay:120ms]">
               <HomepageDemo />
               {/* Floating callouts, desktop only */}
-              <div className="pointer-events-none absolute -left-4 top-24 hidden items-center gap-2 rounded-2xl bg-surface px-3.5 py-2.5 text-[13px] font-semibold shadow-float ring-1 ring-line/60 xl:flex" aria-hidden>
+              <div className="pointer-events-none absolute -left-52 top-44 hidden items-center gap-2 rounded-2xl bg-surface px-3.5 py-2.5 text-[13px] font-semibold shadow-float ring-1 ring-line/60 xl:flex" aria-hidden>
                 <FluentEmoji emoji="🗳️" size={22} />
                 Vote for your pick
               </div>
-              <div className="pointer-events-none absolute -right-2 bottom-40 hidden items-center gap-2 rounded-2xl bg-surface px-3.5 py-2.5 text-[13px] font-semibold shadow-float ring-1 ring-line/60 xl:flex" aria-hidden>
+              <div className="pointer-events-none absolute -right-28 bottom-44 hidden items-center gap-2 rounded-2xl bg-surface px-3.5 py-2.5 text-[13px] font-semibold shadow-float ring-1 ring-line/60 xl:flex" aria-hidden>
                 <FluentEmoji emoji="✅" size={22} />
                 Link copied
               </div>

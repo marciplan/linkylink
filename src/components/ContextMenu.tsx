@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react"
+import { createPortal } from "react-dom"
 import { Copy, ExternalLink, Link2, Pencil, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
@@ -79,7 +80,10 @@ export function ContextMenu({ items, children }: { items: MenuItem[]; children: 
       }}
     >
       {children}
-      {pos && (
+      {pos &&
+        // A portal, because rows animate with transforms and a transformed ancestor would
+        // become the containing block for this fixed menu.
+        createPortal(
         <div
           ref={menuRef}
           role="menu"
@@ -106,8 +110,9 @@ export function ContextMenu({ items, children }: { items: MenuItem[]; children: 
               {item.label}
             </button>
           ))}
-        </div>
-      )}
+        </div>,
+        document.body
+        )}
     </div>
   )
 }
