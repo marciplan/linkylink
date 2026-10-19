@@ -8,7 +8,9 @@ import { ChevronLeft, ChevronRight, Loader2, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/field"
 import { createYearReview } from "@/lib/actions"
-import { bundelGradient, bundelHue } from "@/lib/theme"
+import { bundelIcon } from "@/lib/bundel-icon"
+import { bundelTone } from "@/lib/emoji-tone"
+import { toneProps } from "@/lib/tone"
 import { generateSlug } from "@/lib/utils"
 
 export default function CreateYearReviewPage() {
@@ -18,7 +20,7 @@ export default function CreateYearReviewPage() {
   const [titleEdit, setTitleEdit] = useState<string | null>(null)
   const [creating, setCreating] = useState(false)
   const title = titleEdit ?? `My ${year}`
-  const hue = bundelHue(generateSlug(title) || "year-review")
+  const tone = bundelTone(generateSlug(title) || "year-review", bundelIcon(null, null, title))
 
   const create = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -46,7 +48,7 @@ export default function CreateYearReviewPage() {
       </header>
 
       <form onSubmit={create} className="mx-auto flex w-full max-w-lg flex-1 flex-col px-4 pb-safe">
-        <div className="grain relative mt-2 overflow-hidden rounded-4xl p-6 text-white shadow-float" style={{ background: bundelGradient(hue) }}>
+        <div className="tone-hero grain relative mt-2 overflow-hidden rounded-4xl p-6 text-white shadow-float" {...toneProps(tone)}>
           <div className="absolute inset-0 -z-10 bg-gradient-to-b from-black/5 to-black/45" />
           <p className="text-[12px] font-semibold uppercase tracking-[0.22em] text-white/80">The year in review</p>
           <div className="my-2 flex items-center justify-between">

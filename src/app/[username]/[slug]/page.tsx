@@ -3,7 +3,9 @@ import { Metadata, Viewport } from "next"
 import { prisma } from "@/lib/prisma"
 import { incrementViews } from "@/lib/actions"
 import { auth } from "@/lib/auth"
-import { bundelHue, bundelThemeColor } from "@/lib/theme"
+import { bundelIcon } from "@/lib/bundel-icon"
+import { bundelTone } from "@/lib/emoji-tone"
+import { toneThemeColor } from "@/lib/tone"
 import { optional } from "@/lib/optional"
 import { summarizeVotes } from "@/lib/sharing"
 import { BundelVisitorView } from "./BundelVisitorView"
@@ -21,7 +23,7 @@ interface PageProps {
 // Browser chrome takes on the Bundel's colour so the hero runs edge to edge.
 export async function generateViewport({ params }: PageProps): Promise<Viewport> {
   const { slug } = await params
-  const bundel = await prisma.linkLink.findUnique({ where: { slug }, select: { slug: true, type: true } })
+  const bundel = await prisma.linkLink.findUnique({ where: { slug }, select: { slug: true, type: true, title: true, avatar: true, user: { select: { image: true } } } })
   if (!bundel || bundel.type !== "NORMAL") {
     return {
       themeColor: [
@@ -30,7 +32,7 @@ export async function generateViewport({ params }: PageProps): Promise<Viewport>
       ],
     }
   }
-  return { themeColor: bundelThemeColor(bundelHue(bundel.slug)) }
+  return { themeColor: toneThemeColor(bundelTone(bundel.slug, bundelIcon(bundel.avatar, bundel.user.image, bundel.title))) }
 }
 
 export async function generateMetadata({ params, searchParams }: PageProps): Promise<Metadata> {

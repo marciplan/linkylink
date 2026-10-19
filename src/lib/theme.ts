@@ -16,20 +16,6 @@ export function bundelHue(seed: string): number {
   return HUES[hashString(seed) % HUES.length]
 }
 
-/** Layered mesh gradient for headers that have no image. */
-export function bundelGradient(hue: number): string {
-  const a = `oklch(0.72 0.16 ${hue})`
-  const b = `oklch(0.62 0.19 ${(hue + 40) % 360})`
-  const c = `oklch(0.78 0.12 ${(hue + 320) % 360})`
-  const d = `oklch(0.55 0.17 ${hue})`
-  return [
-    `radial-gradient(120% 90% at 0% 0%, ${c} 0%, transparent 60%)`,
-    `radial-gradient(90% 80% at 100% 10%, ${b} 0%, transparent 65%)`,
-    `radial-gradient(120% 120% at 50% 100%, ${d} 0%, transparent 70%)`,
-    a,
-  ].join(", ")
-}
-
 /** sRGB hex for an OKLCH colour (gamut-clipped), for <meta name="theme-color">. */
 export function oklchToHex(L: number, C: number, h: number): string {
   const a = C * Math.cos((h * Math.PI) / 180)
@@ -52,9 +38,4 @@ export function oklchToHex(L: number, C: number, h: number): string {
       })
       .join("")
   )
-}
-
-/** Browser chrome colour that blends into the top of the header gradient. */
-export function bundelThemeColor(hue: number): string {
-  return oklchToHex(0.74, 0.13, (hue + 320) % 360)
 }

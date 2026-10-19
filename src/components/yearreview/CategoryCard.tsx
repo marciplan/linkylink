@@ -3,6 +3,8 @@ import { Favicon } from "@/components/bundel/Favicon"
 import { domainOf } from "@/lib/links"
 import { categoryEmoji, categoryLabel } from "@/lib/year-review"
 import { cn } from "@/lib/utils"
+import { emojiTone } from "@/lib/emoji-tone"
+import { toneProps } from "@/lib/tone"
 import { cardBackground, glassPanel, glassRow } from "./card-styles"
 import { ItemLike } from "./ItemLike"
 import { RankMark } from "./RankMark"
@@ -27,18 +29,19 @@ export interface ReviewCategory {
 }
 
 /** A category as a poster: the #1 pick large, the rest as a podium list. Server-rendered. */
-export function CategoryCard({ category, hue, index }: { category: ReviewCategory; hue: number; index: number }) {
+export function CategoryCard({ category, index }: { category: ReviewCategory; index: number }) {
   const [first, ...rest] = category.items
+  const tone = emojiTone(categoryEmoji(category.icon))
 
   return (
     <section
       id={`cat-${category.id}`}
       aria-label={category.name}
       className="grain stagger relative scroll-mt-24 overflow-hidden rounded-[32px] p-5 text-white shadow-float"
-      style={{ background: cardBackground(hue, category.categoryType), "--i": index } as React.CSSProperties}
+      style={{ background: cardBackground(category.icon, category.categoryType), "--i": index } as React.CSSProperties}
     >
       <header className="flex items-center gap-3.5">
-        <span className={cn("grid h-14 w-14 shrink-0 place-items-center rounded-[22px]", glassPanel)}>
+        <span className="tone-chip grid h-14 w-14 shrink-0 place-items-center rounded-[22px]" {...toneProps(tone)}>
           <FluentEmoji emoji={categoryEmoji(category.icon)} size={34} />
         </span>
         <div className="min-w-0">

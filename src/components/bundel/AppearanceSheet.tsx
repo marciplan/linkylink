@@ -6,14 +6,14 @@ import { Check, Loader2, Palette, RefreshCw } from "lucide-react"
 import { Sheet } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { FluentEmoji } from "@/components/FluentEmoji"
-import { bundelGradient } from "@/lib/theme"
+import { toneProps, type Tone } from "@/lib/tone"
 import { cn } from "@/lib/utils"
 
 interface AppearanceSheetProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   bundel: { id: string; title: string; subtitle: string | null; headerImages?: string[] }
-  hue: number
+  tone: Tone
   icon: string
   headerImage: string | null
   /** Persist immediately — each choice is applied as it is tapped. */
@@ -23,7 +23,7 @@ interface AppearanceSheetProps {
 
 const FALLBACK_EMOJIS = ["📝", "💼", "🌟", "🎯", "🚀", "💡", "🎨", "📊"]
 
-export function AppearanceSheet({ open, onOpenChange, bundel, hue, icon, headerImage, onIconChange, onHeaderChange }: AppearanceSheetProps) {
+export function AppearanceSheet({ open, onOpenChange, bundel, tone, icon, headerImage, onIconChange, onHeaderChange }: AppearanceSheetProps) {
   const [emojis, setEmojis] = useState<string[]>([])
   const [loadingEmojis, setLoadingEmojis] = useState(false)
   const [images, setImages] = useState<string[]>(bundel.headerImages ?? [])
@@ -134,8 +134,8 @@ export function AppearanceSheet({ open, onOpenChange, bundel, hue, icon, headerI
             <button
               onClick={() => onHeaderChange(null)}
               aria-pressed={!headerImage}
-              className={cn("pressable relative aspect-[16/9] overflow-hidden rounded-2xl", !headerImage && "ring-2 ring-tint ring-offset-2 ring-offset-surface")}
-              style={{ background: bundelGradient(hue) }}
+              className={cn("tone-hero pressable relative aspect-[16/9] overflow-hidden rounded-2xl", !headerImage && "ring-2 ring-tint ring-offset-2 ring-offset-surface")}
+              {...toneProps(tone)}
             >
               <span className="absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-full bg-black/30 px-2 py-0.5 text-xs font-semibold text-white backdrop-blur">
                 <Palette className="h-3 w-3" /> Auto

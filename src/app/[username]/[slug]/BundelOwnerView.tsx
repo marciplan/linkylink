@@ -19,7 +19,7 @@ import { Sheet, ListGroup, ListAction } from "@/components/ui/sheet"
 import { Button, buttonStyles } from "@/components/ui/button"
 import { addLink, deleteLink, deleteLinkylink, updateLink, updateLinkOrder, updateLinkylink } from "@/lib/actions"
 import { bundelIcon } from "@/lib/bundel-icon"
-import { bundelHue } from "@/lib/theme"
+import { bundelTone } from "@/lib/emoji-tone"
 import { copyText, shareOrCopy } from "@/lib/share"
 import { acceptSuggestion, declineSuggestion } from "@/lib/sharing-actions"
 import { AskProvider, type AskSettings } from "@/components/bundel/ask/AskProvider"
@@ -157,8 +157,9 @@ export default function BundelOwnerView({ bundel, commentCounts, ask: initialAsk
     }
   }, [])
 
-  const hue = bundelHue(bundel.slug)
   const icon = bundelIcon(avatar, bundel.user.image, title)
+  const tone = bundelTone(bundel.slug, icon)
+  const hue = tone.hue
   const path = `/${bundel.user.username}/${bundel.slug}`
 
   const saveBundel = async (data: Parameters<typeof updateLinkylink>[1]) => {
@@ -291,7 +292,7 @@ export default function BundelOwnerView({ bundel, commentCounts, ask: initialAsk
       />
 
       <BundelHero
-        hue={hue}
+        tone={tone}
         headerImage={headerImage}
         icon={icon}
         iconAction={
@@ -448,7 +449,7 @@ export default function BundelOwnerView({ bundel, commentCounts, ask: initialAsk
         open={appearanceOpen}
         onOpenChange={setAppearanceOpen}
         bundel={{ id: bundel.id, title, subtitle, headerImages: bundel.headerImages }}
-        hue={hue}
+        tone={tone}
         icon={icon.kind === "emoji" ? icon.value : ""}
         headerImage={headerImage}
         onIconChange={(emoji) => {
