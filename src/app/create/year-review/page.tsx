@@ -38,7 +38,7 @@ export default function CreateYearReviewPage() {
   return (
     <div className="flex min-h-dvh flex-col bg-bg">
       <header className="sticky top-0 z-10 pt-safe">
-        <div className="mx-auto flex h-14 max-w-lg items-center justify-between px-3">
+        <div className="mx-auto flex h-14 max-w-lg items-center justify-between px-3 lg:h-16 lg:px-8">
           <Link href="/create" aria-label="Back" className="pressable grid h-10 w-10 place-items-center rounded-full bg-surface-2 text-ink-2">
             <X className="h-5 w-5" />
           </Link>
@@ -47,7 +47,7 @@ export default function CreateYearReviewPage() {
         </div>
       </header>
 
-      <form onSubmit={create} className="mx-auto flex w-full max-w-lg flex-1 flex-col px-4 pb-safe">
+      <form onSubmit={create} className="mx-auto flex w-full max-w-lg flex-1 flex-col px-4 pb-safe lg:flex-none lg:max-w-xl lg:pt-4">
         <div className="tone-hero grain relative mt-2 overflow-hidden rounded-4xl p-6 text-white shadow-float" {...toneProps(tone)}>
           <div className="absolute inset-0 -z-10 bg-gradient-to-b from-black/5 to-black/45" />
           <p className="text-[12px] font-semibold uppercase tracking-[0.22em] text-white/80">The year in review</p>
@@ -80,8 +80,8 @@ export default function CreateYearReviewPage() {
           Rank your favourite albums, films, places and more. You can pick your categories next.
         </p>
 
-        <div className="flex-1" />
-        <div className="sticky bottom-0 bg-gradient-to-t from-bg via-bg to-bg/0 pb-3 pt-6">
+        <div className="flex-1 lg:hidden" />
+        <div className="sticky bottom-0 bg-gradient-to-t from-bg via-bg to-bg/0 pb-3 pt-6 lg:static lg:bg-none">
           <Button type="submit" variant="primary" size="lg" disabled={!title.trim() || creating}>
             {creating && <Loader2 className="h-5 w-5 animate-spin" />}
             {creating ? "Starting…" : `Start my ${year}`}

@@ -114,36 +114,42 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         []
       )
 
+  const hasRail = activity.length > 0 || tidyCount > 0
+
   return (
     <>
-      <PageHeader title="Bundels">
+      <PageHeader title="Bundels" wide>
         <div className="mt-4">
           <DashboardSearch initialValue={searchQuery} />
         </div>
       </PageHeader>
 
-      <main className="mx-auto max-w-2xl space-y-4 px-4">
-        {activity.length > 0 && <ActivityList items={activity} />}
-        {tidyCount > 0 && (
-          <Link
-            href="/recommendations"
-            className="pressable flex items-center gap-3 rounded-3xl bg-tint-soft p-4 text-tint-ink"
-          >
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-surface/70">
-              <Sparkles className="h-5 w-5" />
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block font-semibold">Tidy up</span>
-              <span className="block text-[14px] opacity-80">
-                {tidyCount} {tidyCount === 1 ? "link might" : "links might"} fit better in another Bundel
-              </span>
-            </span>
-            <ChevronRight className="h-5 w-5 shrink-0 opacity-60" />
-          </Link>
+      <main className="mx-auto max-w-2xl space-y-4 px-4 lg:grid lg:max-w-6xl lg:items-start lg:gap-8 lg:space-y-0 lg:px-8 lg:[grid-template-columns:var(--cols)]" style={{ "--cols": hasRail ? "minmax(0,1fr) 300px" : "minmax(0,1fr)" } as React.CSSProperties}>
+        {hasRail && (
+          <div className="space-y-4 lg:sticky lg:top-24 lg:order-2">
+            {activity.length > 0 && <ActivityList items={activity} />}
+            {tidyCount > 0 && (
+              <Link
+                href="/recommendations"
+                className="pressable flex items-center gap-3 rounded-3xl bg-tint-soft p-4 text-tint-ink"
+              >
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-surface/70">
+                  <Sparkles className="h-5 w-5" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block font-semibold">Tidy up</span>
+                  <span className="block text-[14px] opacity-80">
+                    {tidyCount} {tidyCount === 1 ? "link might" : "links might"} fit better in another Bundel
+                  </span>
+                </span>
+                <ChevronRight className="h-5 w-5 shrink-0 opacity-60" />
+              </Link>
+            )}
+          </div>
         )}
 
         {linkylinks.length === 0 ? (
-          <div className="flex flex-col items-center rounded-3xl bg-surface px-6 py-14 text-center shadow-card">
+          <div className="flex flex-col items-center rounded-3xl bg-surface px-6 py-14 text-center shadow-card lg:order-1">
             <span className="grid h-14 w-14 place-items-center rounded-2xl bg-surface-2 text-ink-2">
               {searchQuery ? <Search className="h-7 w-7" /> : <Link2 className="h-7 w-7" />}
             </span>
@@ -161,7 +167,9 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
             )}
           </div>
         ) : (
-          <div className="overflow-hidden rounded-3xl bg-surface shadow-card ring-1 ring-line/50 divide-y divide-line/70">
+          <div
+            className={`overflow-hidden rounded-3xl bg-surface shadow-card ring-1 ring-line/50 divide-y divide-line/70 lg:order-1 lg:grid lg:gap-4 lg:divide-y-0 lg:overflow-visible lg:rounded-none lg:bg-transparent lg:shadow-none lg:ring-0 ${hasRail ? "lg:grid-cols-2" : "lg:grid-cols-3"}`}
+          >
             {linkylinks.map((linkylink, index) => (
               <LinkylinkCard
                 key={linkylink.id}

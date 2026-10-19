@@ -134,8 +134,8 @@ export function RecommendationsClient({
   }
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center gap-3 rounded-3xl bg-tint-soft p-4 text-tint-ink">
+    <div className="space-y-3 lg:grid lg:grid-cols-2 lg:items-start lg:gap-4 lg:space-y-0">
+      <div className="flex items-center gap-3 rounded-3xl bg-tint-soft p-4 text-tint-ink lg:col-span-2">
         <Sparkles className="h-5 w-5 shrink-0" />
         <p className="min-w-0 flex-1 text-[14px] font-medium leading-snug">
           Move {bestFitCount === recommendations.length ? "all " : ""}{bestFitCount} {bestFitCount === 1 ? "link" : "links"} to the best fit? You can undo it.

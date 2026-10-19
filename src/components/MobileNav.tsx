@@ -21,7 +21,7 @@ export function MobileNav() {
   return (
     <nav
       aria-label="Main"
-      className="pointer-events-none fixed inset-x-0 bottom-0 z-50 flex justify-center px-4 pb-safe"
+      className="pointer-events-none fixed inset-x-0 bottom-0 z-50 flex justify-center px-4 pb-safe lg:hidden"
     >
       <div className="glass pointer-events-auto mb-1 flex items-center gap-1 rounded-full border border-line/60 p-1.5 shadow-float">
         {items.map((item) => {
