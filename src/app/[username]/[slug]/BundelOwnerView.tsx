@@ -306,6 +306,9 @@ export default function BundelOwnerView({ bundel, commentCounts, ask: initialAsk
       <style>{`:root{--tint-h:${hue}}`}</style>
       <TopBar
         title={title || "Untitled"}
+        tone={tone}
+        icon={icon}
+        meta={`@${bundel.user.username} · ${links.length} ${links.length === 1 ? "link" : "links"}`}
         leading={
           <Link
             href={subBundelOf?.path ?? "/dashboard"}

@@ -70,6 +70,9 @@ export function Avatar({ src, username, title, size = 80, className = "" }: Avat
           src={src}
           alt={`${username}'s avatar`}
           fill
+          sizes={`${size}px`}
+          // Uploaded photos are already small and versioned; no need to re-optimise them.
+          unoptimized={src.startsWith("/api/photo/")}
           className="object-cover"
         />
       </div>

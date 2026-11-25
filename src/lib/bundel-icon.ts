@@ -16,8 +16,12 @@ export function isEmojiAvatar(src: string): boolean {
 export type BundelIcon = { kind: "emoji"; value: string } | { kind: "image"; value: string }
 
 /** Resolve a Bundel's icon: its own avatar, else the owner's photo, else a stable emoji. */
+/** A photo uploaded on the account page: /api/photo/<userId>?v=<time>. */
+export const isUploadedPhoto = (src: string) => src.startsWith("/api/photo/")
+
 export function bundelIcon(avatar: string | null | undefined, userImage: string | null | undefined, title: string): BundelIcon {
-  const src = avatar || userImage
+  // An uploaded profile photo is the person, not their Bundels: don't use it as a Bundel's icon.
+  const src = avatar || (userImage && !isUploadedPhoto(userImage) ? userImage : null)
   if (src) {
     if (isEmojiAvatar(src)) {
       return { kind: "emoji", value: src.match(/\p{Extended_Pictographic}(‍\p{Extended_Pictographic}|️)*/u)?.[0] || src }

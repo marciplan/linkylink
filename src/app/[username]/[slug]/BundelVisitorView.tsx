@@ -58,6 +58,9 @@ export function BundelVisitorView({ bundel, currentUser, commentCounts, previewH
       <style>{`:root{--tint-h:${hue}}`}</style>
       <TopBar
         title={bundel.title}
+        tone={tone}
+        icon={icon}
+        meta={`@${bundel.user.username} · ${count} ${count === 1 ? "link" : "links"}`}
         leading={
           previewHref ? (
             <Link href={previewHref} target="_top" className={topBarButton}>
