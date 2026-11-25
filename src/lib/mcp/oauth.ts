@@ -99,10 +99,11 @@ export function redirectUriMatches(registered: string[], requested: string): boo
   })
 }
 
+/** Where a redirect goes, for the consent screen: the host of a web redirect, or "scheme://" for an app. */
 export function redirectHost(redirectUri: string): string {
   try {
     const url = new URL(redirectUri)
-    return url.host || url.protocol.replace(":", "")
+    return url.protocol === "https:" || url.protocol === "http:" ? url.host : `${url.protocol}//`
   } catch {
     return redirectUri
   }

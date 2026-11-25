@@ -109,7 +109,7 @@ Where the build differs from the plan:
 Still to do before it is live:
 
 1. Done 2026-11-25: the six new tables are on the production database.
-2. Connect Claude.ai and ChatGPT for real on a deployed URL. The setup steps in the Connect AI sheet for ChatGPT are from memory; check the menu names.
+2. Claude.ai connected for real on production on 2026-11-25. It registers with a Client ID Metadata Document (`https://claude.ai/oauth/mcp-oauth-client-metadata`), not DCR, and redirects to claude.ai. ChatGPT is still to be tried. The setup steps in the Connect AI sheet for ChatGPT are from memory; check the menu names.
 
 ## Phase 1: sign-in and adding links
 
