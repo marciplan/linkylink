@@ -8,6 +8,7 @@ import { tonePalette, type Tone } from "@/lib/tone"
 import { bundelIcon } from "@/lib/bundel-icon"
 import { domainOf } from "@/lib/links"
 import { ogFonts } from "../fonts"
+import { MarkImage } from "@/lib/brand-mark"
 import { categoryEmoji } from "@/lib/year-review"
 
 export const runtime = "nodejs"
@@ -69,16 +70,18 @@ const BRAND_TONE: Tone = { hue: 265, soft: 0.05, deep: 0.09, ink: "mid", neutral
 /** The page's colours in sRGB (the image renderer doesn't understand OKLCH). */
 function palette(tone: Tone) {
   const p = tonePalette(tone)
-  return { background: p.field, soft: p.soft, ink: p.ink, chip: p.chip }
+  return { background: p.field, soft: p.soft, ink: p.ink, chip: p.chip, mark: p.mark }
 }
 
 async function fallbackImage() {
-  const { background } = palette(BRAND_TONE)
+  const { background, mark } = palette(BRAND_TONE)
   return new ImageResponse(
     (
       <div style={{ height: '100%', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundImage: background, fontFamily: 'Inter' }}>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', color: 'white' }}>
-          <div style={{ fontSize: 140, marginBottom: 20 }}>🔗</div>
+          <div style={{ display: 'flex', marginBottom: 28 }}>
+            <MarkImage height={150} base={mark.base} top={mark.top} />
+          </div>
           <div style={{ fontSize: 76, fontWeight: 800, letterSpacing: '-0.03em' }}>Bundel</div>
           <div style={{ fontSize: 34, opacity: 0.9, marginTop: 8 }}>All your links, one place</div>
         </div>
@@ -101,10 +104,13 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
 
 const clip = (text: string, max: number) => (text.length > max ? text.slice(0, max - 1).trimEnd() + '…' : text)
 
-function Brand() {
+/** Bottom-left signature: the mark in this Bundel's tone, then the domain. */
+function Brand({ mark }: { mark: { base: string; top: string } }) {
   return (
     <div style={{ position: 'absolute', bottom: 40, left: 64, display: 'flex', alignItems: 'center', fontSize: 26, fontWeight: 700, color: 'rgba(255,255,255,0.92)' }}>
-      <span style={{ fontSize: 30, marginRight: 10 }}>🔗</span>
+      <div style={{ display: 'flex', marginRight: 12 }}>
+        <MarkImage height={34} base={mark.base} top={mark.top} />
+      </div>
       bundel.link
     </div>
   )
@@ -174,7 +180,7 @@ export async function GET(
                 ))}
               </div>
             )}
-            <Brand />
+            <Brand mark={colors.mark} />
           </div>
         ),
         await options()
@@ -259,7 +265,7 @@ export async function GET(
             </div>
           )}
 
-          <Brand />
+          <Brand mark={colors.mark} />
         </div>
       ),
       await options()

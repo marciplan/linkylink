@@ -1,7 +1,6 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { Link2 } from "lucide-react"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
 import { emailEnabled } from "@/lib/email"
@@ -9,6 +8,9 @@ import { Avatar } from "@/components/Avatar"
 import { LinkylinkCard } from "@/components/LinkylinkCard"
 import { buttonStyles } from "@/components/ui/button"
 import { ProfileActions } from "./ProfileActions"
+import { BundelLogo, BundelMark } from "@/components/BundelLogo"
+import { shareMetadata } from "@/lib/seo"
+import { subBundelIds } from "@/lib/sub-bundels"
 
 interface PageProps {
   params: Promise<{ username: string }>
@@ -36,13 +38,32 @@ async function getProfile(username: string) {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { username } = await params
-  const user = await prisma.user.findUnique({ where: { username }, select: { name: true, _count: { select: { linkylinks: true } } } })
+  const user = await prisma.user.findUnique({ where: { username }, select: { id: true, name: true } })
   if (!user) return {}
   const name = user.name || `@${username}`
+  const hidden = await subBundelIds(user.id)
+  const bundels = await prisma.linkLink.findMany({
+    where: { userId: user.id, isPublic: true, id: { notIn: hidden } },
+    orderBy: { createdAt: "desc" },
+    select: { title: true },
+  })
+  const titles = bundels.slice(0, 3).map((b) => b.title).join(", ")
+  const description = bundels.length
+    ? `${bundels.length} ${bundels.length === 1 ? "Bundel" : "Bundels"} by ${name}: ${titles}${bundels.length > 3 ? " and more" : ""}.`
+    : `${name} on Bundel.`
+  const share = shareMetadata({
+    title: `${name} (@${username})`,
+    description,
+    path: `/${username}`,
+    image: `/api/og/profile/${username}`,
+    imageAlt: `${name}'s Bundels`,
+    type: "profile",
+  })
   return {
     title: `${name} (@${username}) - Bundel`,
-    description: `${user._count.linkylinks} link collections by ${name}.`,
-    alternates: { canonical: `/${username}`, types: { "application/rss+xml": `/${username}/feed.xml` } },
+    description,
+    ...share,
+    alternates: { ...share.alternates, types: { "application/rss+xml": `/${username}/feed.xml` } },
   }
 }
 
@@ -61,10 +82,7 @@ export default async function ProfilePage({ params }: PageProps) {
       <header className="pt-safe">
         <div className="mx-auto flex h-14 max-w-2xl items-center justify-between px-4 lg:h-16 lg:max-w-6xl lg:px-8">
           <Link href={isMe ? "/dashboard" : "/"} className="pressable inline-flex items-center gap-2 font-semibold">
-            <span className="grid h-8 w-8 place-items-center rounded-[10px] bg-ink text-bg">
-              <Link2 className="h-4 w-4" strokeWidth={2.5} />
-            </span>
-            Bundel
+            <BundelLogo />
           </Link>
           {isMe && (
             <Link href="/dashboard" className={buttonStyles({ variant: "ghost", size: "sm" })}>
@@ -111,7 +129,8 @@ export default async function ProfilePage({ params }: PageProps) {
 
         <p className="py-10 text-center text-sm text-ink-3 lg:col-span-2">
           Made with{" "}
-          <Link href="/" className="font-semibold text-ink-2 underline-offset-4 hover:underline">
+          <Link href="/" className="inline-flex items-center gap-1 align-[-3px] font-semibold text-ink-2 underline-offset-4 hover:underline">
+            <BundelMark className="h-4" />
             Bundel
           </Link>
         </p>

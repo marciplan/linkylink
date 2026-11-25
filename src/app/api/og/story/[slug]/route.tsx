@@ -6,6 +6,7 @@ import { emojiTone } from "@/lib/emoji-tone"
 import { tonePalette } from "@/lib/tone"
 import { categoryEmoji, categoryLabel, RANK_EMOJI, WORST_EMOJI } from "@/lib/year-review"
 import { ogFonts } from "../../fonts"
+import { MarkImage } from "@/lib/brand-mark"
 
 export const runtime = "nodejs"
 
@@ -87,7 +88,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 56, fontSize: 36, fontWeight: 600, opacity: 0.9 }}>
           <span>@{review.user.username}</span>
           <span style={{ display: "flex", alignItems: "center" }}>
-            <span style={{ marginRight: 12 }}>🔗</span>
+            <span style={{ display: "flex", marginRight: 14 }}>
+              <MarkImage height={46} base={colors.mark.base} top={colors.mark.top} />
+            </span>
             bundel.link
           </span>
         </div>

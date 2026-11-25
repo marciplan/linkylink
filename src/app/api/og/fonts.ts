@@ -3,7 +3,11 @@ import { join } from "path"
 
 // Inter (SIL OFL 1.1, from @fontsource/inter) for share images; the renderer's
 // built-in font has no bold weights.
-let cache: Promise<{ name: string; data: ArrayBuffer; weight: 400 | 600 | 800; style: "normal" }[]> | null = null
+type OgFont = { name: string; data: ArrayBuffer; weight: 400 | 600 | 800; style: "normal" }
+
+// undefined (not []) when the files are missing: next/og only falls back to its
+// built-in font when `fonts` is undefined; an empty array makes it throw.
+let cache: Promise<OgFont[] | undefined> | null = null
 
 export function ogFonts() {
   cache ??= Promise.all(
@@ -13,7 +17,7 @@ export function ogFonts() {
     })
   ).catch((error) => {
     console.error("OG fonts unavailable, using the default font", error)
-    return []
+    return undefined
   })
   return cache
 }

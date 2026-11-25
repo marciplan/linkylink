@@ -6,7 +6,7 @@ import { z } from "zod"
 // Top-level paths a profile at /<username> would collide with.
 const RESERVED_USERNAMES = new Set([
   "about", "account", "admin", "api", "app-icon", "create", "dashboard", "directory", "edit", "follow",
-  "login", "mcp", "oauth", "pocket", "privacy", "recommendations", "register", "share", "well-known",
+  "login", "mcp", "moments", "oauth", "pocket", "privacy", "recommendations", "register", "share", "showcase", "docs", "well-known",
 ])
 
 const registerSchema = z.object({

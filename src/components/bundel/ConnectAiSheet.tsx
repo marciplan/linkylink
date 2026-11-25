@@ -1,19 +1,13 @@
 "use client"
 
-import { useSyncExternalStore } from "react"
+import { useMcpUrl } from "@/lib/use-mcp-url"
 import { Copy, Sparkles } from "lucide-react"
 import { Sheet } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { copyText } from "@/lib/share"
 import { LINK_ACTIVITIES, activityPrompt } from "@/lib/mcp/activities"
 
-const noSubscribe = () => () => {}
-
-/** An MCP URL on whatever host the page is served from (production, a preview, a tunnel). */
-export function useMcpUrl(path: string) {
-  const origin = useSyncExternalStore(noSubscribe, () => window.location.origin, () => "https://www.bundel.link")
-  return `${origin}${path}`
-}
+export { useMcpUrl }
 
 const STEPS = [
   {
@@ -70,6 +64,9 @@ export function ConnectAiSheet({ open, onOpenChange, bundelId, bundelTitle }: { 
             <li>“Find places to stay near the venue”</li>
           </ul>
           <p className="mt-2">Results land under the link, visible only to you.</p>
+          <a href="/docs#connect" target="_blank" rel="noopener" className="mt-2 inline-block font-semibold text-ink underline underline-offset-4">
+            Step-by-step guide
+          </a>
         </div>
       </div>
     </Sheet>

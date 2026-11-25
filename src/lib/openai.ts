@@ -13,11 +13,14 @@ export async function chatCompletion({
   model = 'gpt-4o-mini',
   max_tokens = 200,
   temperature = 0.3,
+  timeoutMs,
 }: {
   messages: ChatMessage[]
   model?: string
   max_tokens?: number
   temperature?: number
+  /** Give up after this long, so a slow response can't hold the function open. */
+  timeoutMs?: number
 }): Promise<{ ok: true; content: string } | { ok: false; error: string }> {
   const apiKey = getOpenAIKey()
   if (!apiKey) return { ok: false, error: 'Missing OpenAI API key' }
@@ -30,6 +33,7 @@ export async function chatCompletion({
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ model, messages, max_tokens, temperature }),
+      signal: timeoutMs ? AbortSignal.timeout(timeoutMs) : undefined,
     })
 
     if (!res.ok) {

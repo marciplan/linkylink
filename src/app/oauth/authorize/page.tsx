@@ -1,12 +1,13 @@
 import Link from "next/link"
 import { headers } from "next/headers"
 import { redirect } from "next/navigation"
-import { Link2, ShieldCheck, TriangleAlert } from "lucide-react"
+import { ShieldCheck, TriangleAlert } from "lucide-react"
 import { auth } from "@/lib/auth"
 import { buildRedirect, checkAuthorizeRequest } from "@/lib/mcp/authorize"
 import { originFromHeaders } from "@/lib/mcp/urls"
 import { buttonStyles } from "@/components/ui/button"
 import { answerConsent } from "./actions"
+import { BundelLogo, BundelMark } from "@/components/BundelLogo"
 
 export const metadata = { title: "Connect an AI app - Bundel", robots: { index: false } }
 
@@ -18,10 +19,7 @@ function Frame({ children }: { children: React.ReactNode }) {
       <header className="pt-safe">
         <div className="mx-auto flex h-14 max-w-md items-center px-4 lg:h-20">
           <Link href="/" className="pressable inline-flex items-center gap-2 font-semibold">
-            <span className="grid h-8 w-8 place-items-center rounded-[10px] bg-ink text-bg">
-              <Link2 className="h-4 w-4" strokeWidth={2.5} />
-            </span>
-            Bundel
+            <BundelLogo />
           </Link>
         </div>
       </header>
@@ -68,9 +66,7 @@ export default async function AuthorizePage({ searchParams }: { searchParams: Pr
 
   return (
     <Frame>
-      <span className="grid h-12 w-12 place-items-center rounded-2xl bg-ink text-bg">
-        <Link2 className="h-6 w-6" strokeWidth={2.5} />
-      </span>
+      <BundelMark className="h-12" />
       <h1 className="mt-5 text-display text-balance">Connect {check.client.name} to Bundel?</h1>
       <p className="mt-2 text-[17px] text-ink-2 text-pretty">
         {check.client.name} will be able to see {where}

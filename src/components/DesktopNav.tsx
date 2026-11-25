@@ -2,12 +2,13 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Link2, Plus, Search, Sparkles } from "lucide-react"
+import { Plus, Search, Sparkles } from "lucide-react"
 import { useSyncExternalStore } from "react"
 import { OPEN_PALETTE_EVENT } from "@/components/palette-event"
 import { Avatar } from "@/components/Avatar"
 import { buttonStyles } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { BundelLogo } from "@/components/BundelLogo"
 
 interface DesktopNavProps {
   user: { username: string; image: string | null }
@@ -33,10 +34,7 @@ export function DesktopNav({ user }: DesktopNavProps) {
     <header className="glass sticky top-0 z-50 hidden border-b border-line/60 lg:block">
       <nav aria-label="Main" className="mx-auto flex h-16 max-w-6xl items-center gap-2 px-8">
         <Link href="/dashboard" className="pressable mr-6 inline-flex items-center gap-2.5 text-[17px] font-bold tracking-tight">
-          <span className="grid h-8 w-8 place-items-center rounded-[10px] bg-ink text-bg">
-            <Link2 className="h-4 w-4" strokeWidth={2.5} />
-          </span>
-          Bundel
+          <BundelLogo className="font-bold" />
         </Link>
 
         <div className="flex items-center gap-1">
