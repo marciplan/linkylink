@@ -7,11 +7,14 @@ import { Avatar } from "@/components/Avatar"
 import { ListGroup } from "@/components/ui/sheet"
 import { useTheme } from "@/components/theme-provider"
 import { cn } from "@/lib/utils"
+import { AiSettings, type ConnectedApp } from "./AiSettings"
 
 interface AccountViewProps {
   user: { username: string; name: string | null; email: string; image: string | null }
   bundelCount: number
   totalViews: number
+  aiApps: ConnectedApp[]
+  blockedSites: { id: string; domain: string }[]
 }
 
 const themes = [
@@ -30,7 +33,7 @@ function RowLink({ href, icon, label }: { href: string; icon: React.ReactNode; l
   )
 }
 
-export function AccountView({ user, bundelCount, totalViews }: AccountViewProps) {
+export function AccountView({ user, bundelCount, totalViews, aiApps, blockedSites }: AccountViewProps) {
   const { theme, setTheme } = useTheme()
 
   return (
@@ -78,6 +81,8 @@ export function AccountView({ user, bundelCount, totalViews }: AccountViewProps)
       </div>
 
       <div className="space-y-6">
+      <AiSettings apps={aiApps} sites={blockedSites} />
+
       <ListGroup className="bg-surface shadow-card">
         <RowLink href={`/${user.username}`} icon={<UserRound className="h-5 w-5" />} label="Your public page" />
         <RowLink href="/recommendations" icon={<Sparkles className="h-5 w-5" />} label="Tidy up suggestions" />

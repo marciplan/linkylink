@@ -14,10 +14,12 @@ interface EditLinkSheetProps {
   /** Called with only the fields that changed, when the sheet closes. */
   onSave: (id: string, changes: { title?: string; url?: string; context?: string | null }) => void
   onDelete: (id: string) => void
+  /** Extra section under the actions, e.g. research with AI. Gets a close that saves edits first. */
+  extra?: (close: () => void) => React.ReactNode
 }
 
 /** Edits apply when the sheet is dismissed — there is no separate save step. */
-export function EditLinkSheet({ link, onOpenChange, onSave, onDelete }: EditLinkSheetProps) {
+export function EditLinkSheet({ link, onOpenChange, onSave, onDelete, extra }: EditLinkSheetProps) {
   const [title, setTitle] = useState("")
   const [url, setUrl] = useState("")
   const [note, setNote] = useState("")
@@ -103,6 +105,7 @@ export function EditLinkSheet({ link, onOpenChange, onSave, onDelete }: EditLink
             Remove
           </Button>
         </div>
+        {extra?.(() => close(false))}
       </div>
     </Sheet>
   )

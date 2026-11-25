@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation"
 import { Metadata } from "next"
 import { prisma } from "@/lib/prisma"
+import { isHiddenFrom } from "@/lib/sub-bundels"
 import { incrementClicks } from "@/lib/actions"
 import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react"
 
@@ -40,7 +41,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     },
   })
 
-  if (!linkylink || linkylink.user.username !== username) {
+  if (!linkylink || linkylink.user.username !== username || (await isHiddenFrom(linkylink, null))) {
     return {}
   }
 
@@ -99,7 +100,7 @@ export default async function KoboReaderPage({ params }: PageProps) {
     },
   })
 
-  if (!linkylink || linkylink.user.username !== username) {
+  if (!linkylink || linkylink.user.username !== username || (await isHiddenFrom(linkylink, null))) {
     notFound()
   }
 

@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { subBundelIds } from "@/lib/sub-bundels"
 import { findUrl } from "@/lib/links"
 import { ShareTargetView } from "./ShareTargetView"
 
@@ -20,7 +21,7 @@ export default async function SharePage({ searchParams }: PageProps) {
   const url = findUrl(sp.url) ?? findUrl(sp.text) ?? findUrl(sp.title)
 
   const bundels = await prisma.linkLink.findMany({
-    where: { userId: session.user.id, type: "NORMAL" },
+    where: { userId: session.user.id, type: "NORMAL", id: { notIn: await subBundelIds(session.user.id) } },
     orderBy: { updatedAt: "desc" },
     select: {
       id: true,

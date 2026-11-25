@@ -973,6 +973,25 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@modelcontextprotocol/core@npm:2.4.0":
+  version: 2.4.0
+  resolution: "@modelcontextprotocol/core@npm:2.4.0"
+  dependencies:
+    zod: "npm:^4.2.0"
+  checksum: 10c0/4dd07f18c7eee3f3cf7bcea9a7dd11799f13ce2255fda9ae77aff9978a21d16ee4026f63e5a3e13d5d91209acc3e7d6b97d459c1ff1b78f3b872eb0597b3dd53
+  languageName: node
+  linkType: hard
+
+"@modelcontextprotocol/server@npm:^2.4.0":
+  version: 2.4.0
+  resolution: "@modelcontextprotocol/server@npm:2.4.0"
+  dependencies:
+    "@modelcontextprotocol/core": "npm:2.4.0"
+    zod: "npm:^4.2.0"
+  checksum: 10c0/e52966e6f115296c6dbfd08550e81773f5f71fb4809c7411b11fcc619b3bd621b07f296a5571de777ea2351eca7003e6b3f4d172fe8c21563be1205b1ee4f0ec
+  languageName: node
+  linkType: hard
+
 "@mozilla/readability@npm:^0.6.0":
   version: 0.6.0
   resolution: "@mozilla/readability@npm:0.6.0"
@@ -4305,6 +4324,7 @@ __metadata:
   dependencies:
     "@auth/prisma-adapter": "npm:^2.10.0"
     "@hookform/resolvers": "npm:^5.2.1"
+    "@modelcontextprotocol/server": "npm:^2.4.0"
     "@mozilla/readability": "npm:^0.6.0"
     "@prisma/client": "npm:^6.14.0"
     "@types/bcryptjs": "npm:^3.0.0"
@@ -4334,7 +4354,7 @@ __metadata:
     tsx: "npm:^4.20.5"
     typescript: "npm:^5"
     vaul: "npm:^1.1.2"
-    zod: "npm:^4.1.1"
+    zod: "npm:^4.6.7"
   languageName: unknown
   linkType: soft
 
@@ -6558,9 +6578,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod@npm:^3.25.0 || ^4.0.0, zod@npm:^4.1.1":
+"zod@npm:^3.25.0 || ^4.0.0":
   version: 4.1.1
   resolution: "zod@npm:4.1.1"
   checksum: 10c0/bbc5936b313e96401d8a384531cb87dd68a45acf6b1a624a4806dc7934c4ee7e1257937ba676a3c02973bc3045b1086f2621ef683c8019ea63cc05dd9a568293
+  languageName: node
+  linkType: hard
+
+"zod@npm:^4.2.0, zod@npm:^4.6.7":
+  version: 4.6.7
+  resolution: "zod@npm:4.6.7"
+  checksum: 10c0/4ce2eb14034317b7254e347ca37b5ad591cf8333147030cf05b9b5d31692d45073f7f2747aa50cf8c6b29012194d2b22978cecc89969cf34a0d18e89d0ee7d7b
   languageName: node
   linkType: hard

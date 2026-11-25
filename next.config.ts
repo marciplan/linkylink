@@ -1,6 +1,18 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // The OAuth consent page must never be framed, or a hidden iframe could trick a click on Allow.
+  async headers() {
+    return [
+      {
+        source: "/oauth/:path*",
+        headers: [
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "Content-Security-Policy", value: "frame-ancestors 'none'" },
+        ],
+      },
+    ]
+  },
   // Share-image fonts are read from disk at runtime; make sure deployments include them.
   outputFileTracingIncludes: {
     "/api/og/[slug]": ["./src/app/api/og/fonts/**"],

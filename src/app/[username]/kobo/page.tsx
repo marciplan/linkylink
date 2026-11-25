@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation"
 import { Metadata } from "next"
 import { prisma } from "@/lib/prisma"
+import { subBundelIds } from "@/lib/sub-bundels"
 
 interface PageProps {
   params: Promise<{
@@ -34,6 +35,7 @@ export default async function UserKoboIndexPage({ params }: PageProps) {
       linkylinks: {
         orderBy: { createdAt: "desc" },
         select: {
+          id: true,
           slug: true,
           title: true,
           subtitle: true,
@@ -50,6 +52,8 @@ export default async function UserKoboIndexPage({ params }: PageProps) {
   if (!user) {
     notFound()
   }
+  const hidden = new Set(await subBundelIds(user.id))
+  const bundels = user.linkylinks.filter((b) => !hidden.has(b.id))
 
   return (
     <div style={{
@@ -82,19 +86,19 @@ export default async function UserKoboIndexPage({ params }: PageProps) {
         All Bundellinks
       </p>
 
-      {user.linkylinks.length === 0 ? (
+      {bundels.length === 0 ? (
         <p style={{ color: '#999', fontStyle: 'italic', marginTop: '20px' }}>
           No bundellinks yet
         </p>
       ) : (
         <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-          {user.linkylinks.map((bundel, idx) => (
+          {bundels.map((bundel, idx) => (
             <li
               key={bundel.slug}
               style={{
                 marginBottom: '15px',
                 paddingBottom: '15px',
-                borderBottom: idx === user.linkylinks.length - 1 ? 'none' : '1px solid #eee'
+                borderBottom: idx === bundels.length - 1 ? 'none' : '1px solid #eee'
               }}
             >
               <a

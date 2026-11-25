@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { rateLimitHeaders } from '@/lib/rate-limit'
+import { isPrivateHostname } from '@/lib/net'
 
 async function tryFaviconUrl(faviconUrl: string, timeout: number = 8000): Promise<boolean> {
   try {
@@ -67,6 +68,10 @@ export async function GET(request: Request) {
     const rateHeaders = rl.headers
 
     const urlObj = new URL(url)
+    // Never fetch from our own network on a caller's behalf.
+    if (!["http:", "https:"].includes(urlObj.protocol) || isPrivateHostname(urlObj.hostname)) {
+      return NextResponse.json({ favicon: null }, { headers: rateHeaders })
+    }
     const domain = urlObj.hostname.replace(/^www\./, '')
 
     // Comprehensive favicon sources in order of preference

@@ -3,8 +3,18 @@ import bcrypt from "bcryptjs"
 import { prisma } from "@/lib/prisma"
 import { z } from "zod"
 
+// Top-level paths a profile at /<username> would collide with.
+const RESERVED_USERNAMES = new Set([
+  "about", "account", "admin", "api", "app-icon", "create", "dashboard", "directory", "edit", "follow",
+  "login", "mcp", "oauth", "pocket", "privacy", "recommendations", "register", "share", "well-known",
+])
+
 const registerSchema = z.object({
-  username: z.string().min(3).regex(/^[a-zA-Z0-9_-]+$/),
+  username: z
+    .string()
+    .min(3)
+    .regex(/^[a-zA-Z0-9_-]+$/)
+    .refine((name) => !RESERVED_USERNAMES.has(name.toLowerCase()), "Username already taken"),
   email: z.string().email(),
   password: z.string().min(6),
   name: z.string().min(1),

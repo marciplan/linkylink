@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation"
 import { motion, Reorder, useDragControls, useReducedMotion, type PanInfo } from "framer-motion"
 import { toast } from "sonner"
 import {
-  Check, ChevronLeft, Eye, GripVertical, Link2, MoreHorizontal, Paintbrush, Plus, Share, Trash2, Vote, X,
+  Check, ChevronLeft, Eye, GripVertical, Link2, Lock, MoreHorizontal, Paintbrush, Plus, Share, Sparkles, Trash2, Vote, X,
 } from "lucide-react"
 import { BundelHero } from "@/components/bundel/BundelHero"
 import { LinkRowBody, type BundelLink } from "@/components/bundel/LinkRow"
@@ -34,6 +34,8 @@ import { CopyLinkButton } from "@/components/CopyLinkButton"
 import { OwnerLinkContextMenu } from "@/components/ContextMenu"
 import { usePasteUrl } from "@/lib/use-paste-url"
 import type { VoteSummary } from "@/lib/sharing"
+import { SubBundelResults, type SubBundelSummary } from "@/components/bundel/SubBundelResults"
+import { ConnectAiSheet, ResearchWithAi } from "@/components/bundel/ConnectAiSheet"
 
 interface BundelOwnerViewProps {
   bundel: {
@@ -53,6 +55,10 @@ interface BundelOwnerViewProps {
   voteSummary: VoteSummary
   suggestions: { id: string; url: string; title: string; note: string | null; name: string }[]
   remixedFrom: { title: string; path: string; username: string } | null
+  /** Sub-Bundels AI activities made under this Bundel's links. */
+  subBundels?: SubBundelSummary[]
+  /** Set when this Bundel is itself a sub-Bundel: where it hangs. */
+  subBundelOf?: { title: string; path: string; isPublic: boolean } | null
 }
 
 function OwnerLinkRow({
@@ -132,7 +138,7 @@ function MaybeAsk({ bundelId, ask, summary, ownerName, children }: { bundelId: s
   )
 }
 
-export default function BundelOwnerView({ bundel, commentCounts, ask: initialAsk, voteSummary, suggestions: initialSuggestions, remixedFrom }: BundelOwnerViewProps) {
+export default function BundelOwnerView({ bundel, commentCounts, ask: initialAsk, voteSummary, suggestions: initialSuggestions, remixedFrom, subBundels = [], subBundelOf = null }: BundelOwnerViewProps) {
   const router = useRouter()
   const [title, setTitle] = useState(bundel.title)
   const [subtitle, setSubtitle] = useState(bundel.subtitle ?? "")
@@ -149,6 +155,7 @@ export default function BundelOwnerView({ bundel, commentCounts, ask: initialAsk
   const [ask, setAsk] = useState(initialAsk)
   const [askOpen, setAskOpen] = useState(false)
   const [suggestions, setSuggestions] = useState(initialSuggestions)
+  const [connectOpen, setConnectOpen] = useState(false)
   const linksRef = useRef(links)
   useEffect(() => {
     linksRef.current = links
@@ -275,6 +282,17 @@ export default function BundelOwnerView({ bundel, commentCounts, ask: initialAsk
     declineSuggestion(id).catch(() => toast.error("Couldn't dismiss that suggestion"))
   }
 
+  const rowFooter = (linkId: string, linkTitle: string) => {
+    const subs = subBundels.filter((s) => s.sourceLinkId === linkId)
+    if (!ask && subs.length === 0) return undefined
+    return (
+      <>
+        {subs.length > 0 && <SubBundelResults subs={subs} />}
+        {ask && <VoteBar linkId={linkId} title={linkTitle} />}
+      </>
+    )
+  }
+
   const shareBundel = () =>
     shareOrCopy({
       title,
@@ -289,7 +307,12 @@ export default function BundelOwnerView({ bundel, commentCounts, ask: initialAsk
       <TopBar
         title={title || "Untitled"}
         leading={
-          <Link href="/dashboard" className={topBarButton} aria-label="Back to your Bundels" title="Back to your Bundels">
+          <Link
+            href={subBundelOf?.path ?? "/dashboard"}
+            className={topBarButton}
+            aria-label={subBundelOf ? `Back to ${subBundelOf.title}` : "Back to your Bundels"}
+            title={subBundelOf ? `Back to ${subBundelOf.title}` : "Back to your Bundels"}
+          >
             <ChevronLeft className="h-5 w-5" strokeWidth={2.5} />
           </Link>
         }
@@ -361,6 +384,15 @@ export default function BundelOwnerView({ bundel, commentCounts, ask: initialAsk
             <span aria-hidden>·</span>
             <span>{bundel.views.toLocaleString()} views</span>
             <CopyLinkButton path={path} className="hidden h-8 w-8 bg-white/15 text-white hover:bg-white/25 hover:text-white lg:grid" />
+            {subBundelOf && (
+              <>
+                <span aria-hidden>·</span>
+                <Link href={subBundelOf.path} className="inline-flex items-center gap-1 underline decoration-white/40 underline-offset-4">
+                  {!subBundelOf.isPublic && <Lock className="h-3 w-3" aria-label="Only you can see this" />}
+                  Found for {subBundelOf.title}
+                </Link>
+              </>
+            )}
             {remixedFrom && (
               <>
                 <span aria-hidden>·</span>
@@ -407,6 +439,17 @@ export default function BundelOwnerView({ bundel, commentCounts, ask: initialAsk
             </section>
           )}
           {ask && <AskCard titles={Object.fromEntries(links.map((l) => [l.id, l.title]))} onEdit={() => setAskOpen(true)} />}
+          {subBundels.some((s) => s.activity === "compare") && (
+            <section aria-label="Found by AI for this Bundel" className="rounded-3xl bg-surface pt-4 shadow-card ring-1 ring-line/50">
+              <h2 className="flex items-center gap-1.5 px-4 text-[13px] font-semibold uppercase tracking-wide text-ink-3">
+                <Sparkles className="h-3.5 w-3.5" />
+                Found by AI
+              </h2>
+              <div className="pt-3">
+                <SubBundelResults subs={subBundels.filter((s) => s.activity === "compare")} indent={false} />
+              </div>
+            </section>
+          )}
           {links.length === 0 ? (
             <button
               onClick={() => { setPastedUrl(""); setAdding(true) }}
@@ -431,7 +474,7 @@ export default function BundelOwnerView({ bundel, commentCounts, ask: initialAsk
                     onOpen={() => !link.id.startsWith("temp-") && setEditing(link)}
                     onDelete={() => handleDelete(link.id)}
                     onDragEnd={persistOrder}
-                    footer={ask ? <VoteBar linkId={link.id} title={link.title} /> : undefined}
+                    footer={rowFooter(link.id, link.title)}
                   />
                 ))}
               </Reorder.Group>
@@ -467,7 +510,21 @@ export default function BundelOwnerView({ bundel, commentCounts, ask: initialAsk
         onOpenChange={(open) => !open && setEditing(null)}
         onSave={handleEdit}
         onDelete={handleDelete}
+        extra={(close) =>
+          editing && (
+            <ResearchWithAi
+              linkTitle={editing.title}
+              bundelTitle={title}
+              onConnect={() => {
+                close()
+                setConnectOpen(true)
+              }}
+            />
+          )
+        }
       />
+
+      <ConnectAiSheet open={connectOpen} onOpenChange={setConnectOpen} bundelId={bundel.id} bundelTitle={title} />
 
       <AskSettingsSheet open={askOpen} onOpenChange={setAskOpen} bundelId={bundel.id} ask={ask} onChange={setAsk} />
 
@@ -526,6 +583,14 @@ export default function BundelOwnerView({ bundel, commentCounts, ask: initialAsk
                 onClick={() => {
                   setMenuOpen(false)
                   setAskOpen(true)
+                }}
+              />
+              <ListAction
+                icon={<Sparkles className="h-5 w-5" />}
+                label="Connect AI"
+                onClick={() => {
+                  setMenuOpen(false)
+                  setConnectOpen(true)
                 }}
               />
               <ListAction
