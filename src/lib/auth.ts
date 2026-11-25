@@ -2,6 +2,7 @@ import NextAuth from "next-auth"
 import { PrismaAdapter } from "@auth/prisma-adapter"
 import Credentials from "next-auth/providers/credentials"
 import { prisma } from "@/lib/prisma"
+import type { PrismaClient } from "@prisma/client"
 import bcrypt from "bcryptjs"
 import { z } from "zod"
 import { authConfig } from "./auth-config"
@@ -13,7 +14,8 @@ const loginSchema = z.object({
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
-  adapter: PrismaAdapter(prisma),
+  // The adapter wants a plain client type; ours only adds a default omit (photo bytes).
+  adapter: PrismaAdapter(prisma as unknown as PrismaClient),
   session: {
     strategy: "jwt",
   },

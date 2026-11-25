@@ -27,6 +27,9 @@ model User {
   password                 String
   name                     String?
   image                    String?
+  /// Uploaded profile photo (256px WebP/JPEG), served from /api/photo/[id]; `image` then points there.
+  photo                    Bytes?
+  photoType                String?
   linkylinks               LinkLink[]
   dismissedRecommendations DismissedRecommendation[]
   comments                 Comment[]

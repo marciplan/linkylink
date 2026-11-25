@@ -3,11 +3,11 @@
 import Link from "next/link"
 import { signOut } from "next-auth/react"
 import { Sun, Moon, Monitor, Sparkles, Info, Shield, LogOut, ChevronRight, UserRound } from "lucide-react"
-import { Avatar } from "@/components/Avatar"
 import { ListGroup } from "@/components/ui/sheet"
 import { useTheme } from "@/components/theme-provider"
 import { cn } from "@/lib/utils"
 import { AiSettings, type ConnectedApp } from "./AiSettings"
+import { ProfilePhoto } from "./ProfilePhoto"
 
 interface AccountViewProps {
   user: { username: string; name: string | null; email: string; image: string | null }
@@ -40,7 +40,7 @@ export function AccountView({ user, bundelCount, totalViews, aiApps, blockedSite
     <div className="mx-auto max-w-2xl space-y-6 px-4 lg:grid lg:max-w-6xl lg:grid-cols-2 lg:items-start lg:gap-8 lg:space-y-0 lg:px-8">
       <div className="space-y-6">
       <div className="flex items-center gap-4 rounded-3xl bg-surface p-4 shadow-card">
-        <Avatar src={user.image} username={user.username} size={56} />
+        <ProfilePhoto username={user.username} image={user.image} />
         <div className="min-w-0 flex-1">
           <p className="truncate text-lg font-semibold">{user.name || user.username}</p>
           <p className="truncate text-sm text-ink-2">@{user.username}</p>

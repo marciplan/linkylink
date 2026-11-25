@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Home, Plus, CircleUser } from "lucide-react"
+import { Avatar } from "@/components/Avatar"
 import { cn } from "@/lib/utils"
 
 const items = [
@@ -15,7 +16,7 @@ const items = [
  * Floating tab bar for the signed-in app. Sits in the thumb zone on phones and
  * stays a compact centered pill on larger screens.
  */
-export function MobileNav() {
+export function MobileNav({ user }: { user?: { username: string; image: string | null } | null }) {
   const pathname = usePathname()
 
   return (
@@ -51,7 +52,14 @@ export function MobileNav() {
                 active ? "text-ink" : "text-ink-3 hover:text-ink-2"
               )}
             >
-              <Icon className="h-[22px] w-[22px]" strokeWidth={active ? 2.4 : 2} />
+              {item.href === "/account" && user?.image ? (
+                // Your own photo stands in for the icon once you've set one
+                <span className={cn("rounded-full ring-2 ring-offset-1 ring-offset-bg transition-shadow", active ? "ring-ink" : "ring-transparent")}>
+                  <Avatar src={user.image} username={user.username} size={22} />
+                </span>
+              ) : (
+                <Icon className="h-[22px] w-[22px]" strokeWidth={active ? 2.4 : 2} />
+              )}
               {item.label}
             </Link>
           )

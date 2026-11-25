@@ -58,7 +58,7 @@ export function BundelHero({ tone, headerImage, icon, iconAction, title, subtitl
           {iconAction}
         </div>
         <div className="mt-5 animate-rise [animation-delay:60ms] [text-shadow:0_1px_12px_rgb(0_0_0/0.25)]">
-          <h1 className="text-display text-balance">{title}</h1>
+          <h1 id="hero-title" className="text-display text-balance">{title}</h1>
           {subtitle && <div className="mt-2 text-[17px] leading-snug text-white/90 text-pretty">{subtitle}</div>}
           {meta && <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-medium text-white/80">{meta}</div>}
         </div>
