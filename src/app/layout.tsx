@@ -3,16 +3,19 @@ import Script from "next/script"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import { Providers } from "@/components/providers"
+import { SITE, shareMetadata } from "@/lib/seo"
 
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
 })
 
+const rootShare = shareMetadata({ title: "Bundel: all your links, one page", description: SITE.description, path: "/", imageAlt: "Bundel: all your links, one page" })
+
 export const metadata: Metadata = {
-  title: "Bundel - Share Multiple Links Beautifully",
-  description: "Create beautiful link pages to share multiple URLs at once. Perfect for social media, portfolios, and resource collections.",
-  keywords: ["links", "share", "social", "linktree", "bio link"],
+  title: "Bundel: all your links, one page",
+  description: SITE.description,
+  keywords: ["link in bio", "link list", "share links", "wishlist", "travel planning", "bookmarks", "MCP", "Claude", "ChatGPT"],
   authors: [{ name: "Bundel" }],
   applicationName: "Bundel",
   appleWebApp: {
@@ -27,27 +30,10 @@ export const metadata: Metadata = {
       process.env.NEXTAUTH_URL ||
       "http://localhost:3000"
   ),
-  openGraph: {
-    title: "Bundel - Share Multiple Links Beautifully",
-    description: "Create beautiful link pages to share multiple URLs at once.",
-    type: "website",
-    siteName: "Bundel",
-    locale: "en_US",
-    images: [
-      {
-        url: "/api/og/default",
-        width: 1200,
-        height: 630,
-        alt: "Bundel - All your links, one place",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Bundel - Share Multiple Links Beautifully",
-    description: "Create beautiful link pages to share multiple URLs at once.",
-    images: ["/api/og/default"],
-  },
+  ...rootShare,
+  // Pages set their own canonical and URL; the layout must not claim "/" for all of them.
+  alternates: undefined,
+  openGraph: { ...rootShare.openGraph, url: undefined },
 }
 
 export const viewport: Viewport = {

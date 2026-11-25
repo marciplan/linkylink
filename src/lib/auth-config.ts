@@ -17,6 +17,14 @@ export const authConfig = {
         return false
       }
 
+      // Already signed in: "Get started" links go through /register, so send
+      // them straight on to where they were headed.
+      if (isLoggedIn && (nextUrl.pathname === '/register' || nextUrl.pathname === '/login')) {
+        const callback = nextUrl.searchParams.get('callbackUrl')
+        const to = callback && callback.startsWith('/') && !callback.startsWith('//') ? callback : '/dashboard'
+        return Response.redirect(new URL(to, nextUrl))
+      }
+
       return true
     },
   },

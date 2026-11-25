@@ -46,6 +46,8 @@ export function tonePalette(tone: Tone) {
     chip: tone.ink === "light" ? hex(0.42, tone.soft + 0.03, h) : hex(0.965, tone.soft * 0.7, h),
     soft: hex(0.95, tone.soft * 0.7, h),
     ink: hex(0.4, Math.max(tone.deep, 0.05), h),
+    /** The Bundel mark on this tone's deep field: pale base, tinted top (same as .mark-tone in CSS). */
+    mark: { base: hex(0.985, 0.012, h), top: hex(0.86, tone.neutral ? 0.02 : 0.1, h) },
     story: (type: "BEST" | "WORST") =>
       type === "BEST"
         ? `linear-gradient(165deg, ${hex(0.46, tone.deep, h)} 0%, ${hex(0.28, tone.deep * 0.85, (h + 14) % 360)} 100%)`

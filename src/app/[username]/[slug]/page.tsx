@@ -12,6 +12,7 @@ import { summarizeVotes } from "@/lib/sharing"
 import { BundelVisitorView } from "./BundelVisitorView"
 import { OwnerView, ReviewOwner } from "./views"
 import { ReviewVisitorView } from "./ReviewVisitorView"
+import { shareMetadata } from "@/lib/seo"
 
 interface PageProps {
   params: Promise<{
@@ -42,7 +43,7 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
 
   const linkylink = await prisma.linkLink.findUnique({
     where: { slug },
-    include: { user: true },
+    include: { user: true, links: { orderBy: { order: "asc" }, take: 3, select: { title: true } }, _count: { select: { links: true } } },
   })
 
   if (!linkylink || linkylink.user.username !== username || (await isHiddenFrom(linkylink, (await auth())?.user?.id))) {
@@ -64,38 +65,37 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
       ? `Help @${username} pick: ${ask.question || linkylink.title}`
       : buildDescription(linkylink)
 
-  const ogImage = {
-    url: focus ? `/api/og/${slug}?l=${focus.id}` : `/api/og/${slug}`,
-    width: 1200,
-    height: 630,
-    alt: title,
-    type: "image/png",
-  }
-
   return {
     title: `${title} - Bundel`,
     description,
-    alternates: { canonical: pageUrl },
     authors: [{ name: authorName, url: `/${username}` }],
     robots: linkylink.isPublic ? undefined : { index: false, follow: false },
-    openGraph: {
+    ...shareMetadata({
       title,
       description,
-      url: pageUrl,
+      path: focus ? `${pageUrl}?l=${focus.id}` : pageUrl,
+      canonical: pageUrl,
+      image: focus ? `/api/og/${slug}?l=${focus.id}` : `/api/og/${slug}`,
+      imageAlt: focus ? `${focus.title}, shared from ${linkylink.title} on Bundel` : `${linkylink.title} by ${authorName} on Bundel`,
       type: linkylink.type === "YEAR_REVIEW" ? "article" : "website",
-      images: [ogImage],
-    },
-    twitter: {
-      card: "summary_large_image",
-      title,
-      description,
-      images: [ogImage],
-    },
+    }),
   }
 }
 
-function buildDescription(linkylink: { title: string; subtitle: string | null; user: { username: string } }): string {
-  return linkylink.subtitle || `Check out ${linkylink.title} by @${linkylink.user.username}`
+/** What a link preview says under the title: the curator's line, then what's inside. */
+function buildDescription(linkylink: {
+  title: string
+  subtitle: string | null
+  user: { username: string; name: string | null }
+  links?: { title: string }[]
+  _count?: { links: number }
+}): string {
+  const count = linkylink._count?.links ?? 0
+  const inside = (linkylink.links ?? []).map((l) => l.title).join(", ")
+  const by = linkylink.user.name || `@${linkylink.user.username}`
+  const summary = count > 0 ? `${count} ${count === 1 ? "link" : "links"} by ${by}${inside ? `: ${inside}${count > 3 ? " and more" : ""}` : ""}` : `A Bundel by ${by}`
+  const text = linkylink.subtitle ? `${linkylink.subtitle} · ${summary}` : summary
+  return text.length > 200 ? `${text.slice(0, 197)}…` : text
 }
 
 export default async function PublicLinkylinkPage({ params, searchParams }: PageProps) {
@@ -216,7 +216,7 @@ export default async function PublicLinkylinkPage({ params, searchParams }: Page
     "@context": "https://schema.org",
     "@type": "CollectionPage",
     name: linkylink.title,
-    description: buildDescription(linkylink),
+    description: buildDescription({ ...linkylink, links: linkylink.links.slice(0, 3), _count: { links: linkylink.links.length } }),
     url: `/${username}/${slug}`,
     author: {
       "@type": "Person",

@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Link2, Share } from "lucide-react"
+import { Share } from "lucide-react"
 import { TopBar } from "@/components/bundel/TopBar"
 import { topBarButton } from "@/components/bundel/styles"
 import { ShareButton } from "@/components/bundel/ShareButton"
@@ -10,6 +10,7 @@ import { ReviewBar } from "@/components/yearreview/ReviewBar"
 import { bundelIcon } from "@/lib/bundel-icon"
 import { bundelTone } from "@/lib/emoji-tone"
 import { reviewBarTitle } from "@/lib/year-review"
+import { BundelMark } from "@/components/BundelLogo"
 
 interface ReviewVisitorViewProps {
   review: {
@@ -46,7 +47,7 @@ export function ReviewVisitorView({ review, previewHref }: ReviewVisitorViewProp
             </Link>
           ) : (
             <Link href="/" className={`${topBarButton} gap-1.5`} aria-label="Bundel home" title="Bundel home">
-              <Link2 className="h-4 w-4" strokeWidth={2.5} />
+              <BundelMark className="mark-tone h-[18px]" />
               <span className="pr-0.5">Bundel</span>
             </Link>
           )

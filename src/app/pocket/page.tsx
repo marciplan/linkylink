@@ -4,9 +4,10 @@ import { useState, FormEvent, ChangeEvent } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { motion } from "framer-motion"
-import { Loader2, Link2, Upload, ArrowLeft, FileText, CheckCircle2 } from "lucide-react"
+import { Loader2, Upload, ArrowLeft, FileText, CheckCircle2 } from "lucide-react"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { useSession } from "next-auth/react"
+import { BundelLogo } from "@/components/BundelLogo"
 
 export default function PocketImportPage() {
   const { data: session, status } = useSession()
@@ -83,8 +84,7 @@ export default function PocketImportPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <Link href="/" className="flex items-center gap-2 text-gray-900 dark:text-white">
-              <Link2 className="w-5 h-5" />
-              <span className="font-medium">Bundel</span>
+              <BundelLogo />
             </Link>
             <div className="flex items-center gap-3">
               <ThemeToggle />

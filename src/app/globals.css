@@ -2,6 +2,28 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Registered so tone changes can animate: a Bundel's colours morph instead of jumping. */
+@property --t-h {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 265;
+}
+@property --t-s {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0.05;
+}
+@property --t-c {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0.09;
+}
+@property --tint-h {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 265;
+}
+
 /*
  * Design tokens. Values are OKLCH channels ("L C H") so Tailwind can add alpha.
  * Neutrals carry a hint of blue; the tint is per-Bundel and driven by --tint-h.
@@ -47,6 +69,24 @@
     --tint-soft: 0.29 0.055 var(--tint-h);
     --tint-ink: 0.86 0.09 var(--tint-h);
     --tint-strong: 0.55 0.15 var(--tint-h);
+  }
+
+  /*
+   * The Bundel mark on a shared Bundel takes that Bundel's own hue, so it
+   * shapeshifts with every page: pale over the hero, deep once the bar turns
+   * solid, and light again on a dark solid bar.
+   */
+  .mark-tone {
+    --mark-base: oklch(0.985 0.012 var(--tint-h));
+    --mark-top: oklch(0.86 0.1 var(--tint-h));
+  }
+  [data-solid="true"] .mark-tone {
+    --mark-base: oklch(0.34 0.12 var(--tint-h));
+    --mark-top: oklch(0.62 0.16 var(--tint-h));
+  }
+  .dark [data-solid="true"] .mark-tone {
+    --mark-base: oklch(0.96 0.03 var(--tint-h));
+    --mark-top: oklch(0.76 0.13 var(--tint-h));
   }
 
   html {
@@ -157,6 +197,14 @@
       linear-gradient(168deg, oklch(0.38 var(--t-c) var(--t-h)), oklch(0.24 calc(var(--t-c) * 0.85) calc(var(--t-h) + 14)));
   }
 
+  /* An emoji-only tile on the deep field. A dark emoji (👥, 🎧, 🕶️) would sink into it,
+     so those get a pale field of the same hue instead. */
+  .tone-hero.tone-icon[data-ink="dark"] {
+    background:
+      radial-gradient(75% 65% at 22% 28%, oklch(0.99 calc(var(--t-s) * 0.4) var(--t-h)) 0%, transparent 70%),
+      linear-gradient(168deg, oklch(0.94 calc(var(--t-s) * 0.8) var(--t-h)), oklch(0.84 calc(var(--t-s) * 1.2) calc(var(--t-h) + 14)));
+  }
+
   /* Pale identity tile that carries the emoji on a hero. */
   .tone-chip {
     background: oklch(0.965 calc(var(--t-s) * 0.7) var(--t-h));
@@ -171,6 +219,77 @@
     animation: rise 0.5s cubic-bezier(0.23, 1, 0.32, 1) both;
     animation-delay: calc(min(var(--i, 0), 12) * 40ms);
   }
+}
+
+/* Hero headline: a tile pops in, a word slides up. */
+@keyframes tile-in {
+  from {
+    opacity: 0;
+    transform: scale(0.4) rotate(-18deg);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes word-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.45em);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  [class*="animate-[tile-in"],
+  [class*="animate-[word-in"] {
+    animation: none !important;
+  }
+}
+
+/* Logo strip: the old logo leaves upwards while the new one rises from below. */
+@keyframes logo-in {
+  from {
+    opacity: 0;
+    transform: translateY(110%);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes logo-out {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-110%);
+  }
+}
+
+/* Gentle float for decorative tiles. */
+@keyframes bob {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -6px;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .animate-bob {
+    animation: bob 4.5s ease-in-out infinite;
+  }
+}
+.tone-morph {
+  transition: --t-h 900ms ease, --t-s 900ms ease, --t-c 900ms ease, --tint-h 900ms ease;
 }
 
 @keyframes rise {

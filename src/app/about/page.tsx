@@ -1,5 +1,15 @@
 import Link from "next/link"
-import { Link2, ArrowRight } from "lucide-react"
+import { ArrowRight } from "lucide-react"
+import { BundelLogo } from "@/components/BundelLogo"
+import type { Metadata } from "next"
+import { shareMetadata } from "@/lib/seo"
+
+export const metadata: Metadata = {
+  title: "About Bundel",
+  description: "What Bundel is, who makes it and why: one beautiful page for the links you want to share.",
+  ...shareMetadata({ title: "About Bundel", description: "What Bundel is, who makes it and why: one beautiful page for the links you want to share.", path: "/about" }),
+}
+
 
 export default function AboutPage() {
   return (
@@ -9,8 +19,7 @@ export default function AboutPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <Link href="/" className="flex items-center gap-2">
-              <Link2 className="w-5 h-5" />
-              <span className="font-medium">Bundel</span>
+              <BundelLogo />
             </Link>
             <nav>
               <div className="flex items-center gap-6">

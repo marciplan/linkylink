@@ -19,8 +19,9 @@ import { useCanPaste } from "@/lib/use-can-paste"
 function CreateBundel() {
   const router = useRouter()
   const params = useSearchParams()
-  const [name, setName] = useState("")
-  const [description, setDescription] = useState("")
+  // Moments pages start a ready-made Bundel: /create?title=…&subtitle=…
+  const [name, setName] = useState(() => (params.get("title") ?? "").slice(0, 100))
+  const [description, setDescription] = useState(() => (params.get("subtitle") ?? "").slice(0, 200))
   const [rawUrl, setRawUrl] = useState(() => findUrl(params.get("url")) ?? "")
   const [creating, setCreating] = useState(false)
   const canPaste = useCanPaste()

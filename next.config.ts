@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Dev only: hosts other than localhost that may load dev assets (e.g. a Tailscale name), comma-separated.
+  allowedDevOrigins: process.env.NEXT_DEV_ORIGINS?.split(",").map((h) => h.trim()).filter(Boolean),
   // The OAuth consent page must never be framed, or a hidden iframe could trick a click on Allow.
   async headers() {
     return [
@@ -17,6 +19,8 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     "/api/og/[slug]": ["./src/app/api/og/fonts/**"],
     "/api/og/story/[slug]": ["./src/app/api/og/fonts/**"],
+    "/api/og/default": ["./src/app/api/og/fonts/**"],
+    "/api/og/profile/[username]": ["./src/app/api/og/fonts/**"],
   },
   images: {
     remotePatterns: [

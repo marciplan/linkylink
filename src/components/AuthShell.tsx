@@ -1,6 +1,6 @@
 import Link from "next/link"
-import { Link2 } from "lucide-react"
 import { AuthDemo } from "@/components/AuthDemo"
+import { BundelLogo } from "@/components/BundelLogo"
 
 /** Shared frame for sign-in and sign-up: brand mark, heading, form, footer link. */
 export function AuthShell({
@@ -17,10 +17,7 @@ export function AuthShell({
       <header className="pt-safe">
         <div className="mx-auto flex h-14 max-w-sm items-center px-4 lg:h-20 lg:max-w-md lg:px-0">
           <Link href="/" className="pressable inline-flex items-center gap-2 font-semibold">
-            <span className="grid h-8 w-8 place-items-center rounded-[10px] bg-ink text-bg">
-              <Link2 className="h-4 w-4" strokeWidth={2.5} />
-            </span>
-            Bundel
+            <BundelLogo />
           </Link>
         </div>
       </header>
