@@ -7,11 +7,14 @@ import { Sheet } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/field"
 import { ConnectInstructions, useMcpUrl } from "@/components/bundel/ConnectAiSheet"
+import { Favicon } from "@/components/bundel/Favicon"
 import { addBlockedSite, removeBlockedSite, revokeAiApp } from "@/lib/ai-actions"
 
 export interface ConnectedApp {
   id: string
   name: string
+  /** The app's website, for its icon. */
+  site: string | null
   bundelTitle: string | null
   lastUsedAt: string | null
   createdAt: string
@@ -88,9 +91,13 @@ export function AiSettings({ apps: initialApps, sites: initialSites }: { apps: C
             <ul className="divide-y divide-line/70">
               {apps.map((app) => (
                 <li key={app.id} className="flex min-h-[60px] items-center gap-3 px-4 py-2">
-                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-tint-soft text-tint-ink">
-                    <Sparkles className="h-4 w-4" />
-                  </span>
+                  {app.site ? (
+                    <Favicon url={`https://${app.site}`} size={36} className="rounded-xl" />
+                  ) : (
+                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-tint-soft text-tint-ink">
+                      <Sparkles className="h-4 w-4" />
+                    </span>
+                  )}
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-[15px] font-medium">{app.name}</p>
                     <p className="truncate text-[13px] text-ink-3">

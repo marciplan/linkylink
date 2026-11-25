@@ -47,6 +47,7 @@ export function RecommendationsClient({
     } catch (error) {
       console.error("Error performing action:", error)
       toast.error("That didn't work. Please try again.")
+    } finally {
       setProcessingLinks(prev => {
         const next = new Set(prev)
         next.delete(linkId)
@@ -121,6 +122,41 @@ export function RecommendationsClient({
     }
   }
 
+  // Hide every remaining suggestion in one go; Undo brings them back.
+  const handleIgnoreAll = async () => {
+    const ids = recommendations.map((r) => r.link.id)
+    const dismiss = (body: object) =>
+      fetch("/api/recommendations/dismiss", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
+    const show = () =>
+      setDismissedLinks((prev) => {
+        const next = new Set(prev)
+        ids.forEach((id) => next.delete(id))
+        return next
+      })
+
+    setDismissedLinks((prev) => new Set([...prev, ...ids]))
+    try {
+      const response = await dismiss({ linkIds: ids })
+      if (!response.ok) throw new Error("Failed to ignore suggestions")
+      toast(`Ignored ${ids.length} ${ids.length === 1 ? "suggestion" : "suggestions"}`, {
+        duration: 8000,
+        action: {
+          label: "Undo",
+          onClick: async () => {
+            // Show them again only once the server agrees, so a reload can't hide them a second time.
+            const res = await dismiss({ restore: ids }).catch(() => null)
+            if (res?.ok) show()
+            else toast.error("Couldn't undo that. Please try again.")
+          }
+        }
+      })
+    } catch (error) {
+      console.error("Error ignoring suggestions:", error)
+      toast.error("That didn't work. Please try again.")
+      show()
+    }
+  }
+
   if (recommendations.length === 0) {
     return (
       <div className="flex flex-col items-center rounded-3xl bg-surface px-6 py-14 text-center shadow-card">
@@ -135,15 +171,21 @@ export function RecommendationsClient({
 
   return (
     <div className="space-y-3 lg:grid lg:grid-cols-2 lg:items-start lg:gap-4 lg:space-y-0">
-      <div className="flex items-center gap-3 rounded-3xl bg-tint-soft p-4 text-tint-ink lg:col-span-2">
+      <div className="flex flex-wrap items-center gap-3 rounded-3xl bg-tint-soft p-4 text-tint-ink lg:col-span-2">
         <Sparkles className="h-5 w-5 shrink-0" />
-        <p className="min-w-0 flex-1 text-[14px] font-medium leading-snug">
+        <p className="min-w-0 flex-1 basis-48 text-[14px] font-medium leading-snug">
           Move {bestFitCount === recommendations.length ? "all " : ""}{bestFitCount} {bestFitCount === 1 ? "link" : "links"} to the best fit? You can undo it.
         </p>
+        <div className="ml-auto flex gap-2">
+        <Button variant="ghost" size="sm" onClick={handleIgnoreAll} disabled={applyingAll || processingLinks.size > 0} className="text-tint-ink hover:bg-tint/10 hover:text-tint-ink">
+          <X className="h-4 w-4" strokeWidth={2.5} />
+          Ignore all
+        </Button>
         <Button variant="primary" size="sm" onClick={handleApplyAll} disabled={applyingAll || processingLinks.size > 0}>
           {applyingAll ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" strokeWidth={2.5} />}
           Apply all
         </Button>
+        </div>
       </div>
       {recommendations.map((recommendation) => {
         const isProcessing = processingLinks.has(recommendation.link.id)

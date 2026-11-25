@@ -8,6 +8,19 @@ import { subBundelIds } from "@/lib/sub-bundels"
 
 export const metadata = { title: "You - Bundel" }
 
+/** The website an AI app belongs to (claude.ai, chatgpt.com), for its icon. Null for local apps. */
+function appSite(clientId: string, redirectHost: string | null): string | null {
+  let host: string | undefined
+  try {
+    host = clientId.startsWith("https://") ? new URL(clientId).hostname : redirectHost ?? undefined
+  } catch {
+    return null
+  }
+  // redirectHost is a bare host only for web redirects; app schemes are stored as "scheme://".
+  if (!host || host.includes("/") || !host.includes(".") || /^(localhost|127\.|\[)/.test(host)) return null
+  return host.split(":")[0].replace(/^www\./, "")
+}
+
 export default async function AccountPage() {
   const session = await auth()
   if (!session?.user?.id) redirect("/login?callbackUrl=/account")
@@ -27,7 +40,7 @@ export default async function AccountPage() {
       prisma.mcpGrant.findMany({
         where: { userId: session.user.id, revokedAt: null },
         orderBy: { createdAt: "desc" },
-        select: { id: true, clientName: true, bundelId: true, lastUsedAt: true, createdAt: true },
+        select: { id: true, clientName: true, clientId: true, redirectHost: true, bundelId: true, lastUsedAt: true, createdAt: true },
       }),
       []
     ),
@@ -42,6 +55,7 @@ export default async function AccountPage() {
     .map((g) => ({
       id: g.id,
       name: g.clientName,
+      site: appSite(g.clientId, g.redirectHost),
       bundelTitle: g.bundelId ? titles.get(g.bundelId) ?? null : null,
       lastUsedAt: g.lastUsedAt?.toISOString() ?? null,
       createdAt: g.createdAt.toISOString(),
