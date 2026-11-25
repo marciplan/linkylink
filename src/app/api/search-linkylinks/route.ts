@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { subBundelIds } from "@/lib/sub-bundels"
 import { NextRequest, NextResponse } from "next/server"
 
 export async function GET(request: NextRequest) {
@@ -20,6 +21,7 @@ export async function GET(request: NextRequest) {
     const linkylinks = await prisma.linkLink.findMany({
       where: {
         userId: session.user.id,
+        id: { notIn: await subBundelIds(session.user.id) },
         OR: [
           { title: { contains: query, mode: 'insensitive' } },
           { subtitle: { contains: query, mode: 'insensitive' } },

@@ -1,6 +1,7 @@
 import { ImageResponse } from "next/og"
 import type { NextRequest } from 'next/server'
 import { prisma } from "@/lib/prisma"
+import { isHiddenFrom } from '@/lib/sub-bundels'
 import { optional } from "@/lib/optional"
 import { bundelTone } from "@/lib/emoji-tone"
 import { tonePalette, type Tone } from "@/lib/tone"
@@ -125,6 +126,8 @@ export async function GET(
           title: true,
           subtitle: true,
           avatar: true,
+          isPublic: true,
+          userId: true,
           user: { select: { username: true, image: true } },
           type: true,
           year: true,
@@ -138,7 +141,7 @@ export async function GET(
       }),
       TIMEOUT_MS
     )
-    if (!bundel) return fallbackImage()
+    if (!bundel || (await isHiddenFrom(bundel, null))) return fallbackImage()
 
     const ask = await withTimeout(optional(prisma.ask.findUnique({ where: { linkylinkId: bundel.id } }), null), TIMEOUT_MS).catch(() => null)
     const icon = bundelIcon(bundel.avatar, null, bundel.title)

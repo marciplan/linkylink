@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation"
 import { Metadata } from "next"
 import { prisma } from "@/lib/prisma"
+import { isHiddenFrom } from "@/lib/sub-bundels"
 
 interface PageProps {
   params: Promise<{
@@ -40,7 +41,7 @@ export default async function KoboPage({ params }: PageProps) {
     },
   })
 
-  if (!linkylink || linkylink.user.username !== username) {
+  if (!linkylink || linkylink.user.username !== username || (await isHiddenFrom(linkylink, null))) {
     notFound()
   }
 

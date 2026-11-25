@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/PageHeader"
 import { buttonStyles } from "@/components/ui/button"
 import { generateRecommendations } from "@/lib/recommendations"
 import { optional } from "@/lib/optional"
+import { subBundelIds } from "@/lib/sub-bundels"
 import { ActivityList } from "@/components/ActivityList"
 import { LinkylinkCard } from "@/components/LinkylinkCard"
 import { DashboardSearch } from "@/components/DashboardSearch"
@@ -25,9 +26,11 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   const sp = await searchParams
   const searchQuery = sp.search?.trim()
   
+  const hiddenIds = await subBundelIds(session.user.id)
   const linkylinks = await prisma.linkLink.findMany({
     where: {
       userId: session.user.id,
+      id: { notIn: hiddenIds },
       ...(searchQuery && {
         OR: [
           { title: { contains: searchQuery, mode: 'insensitive' } },
@@ -94,7 +97,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   if (!searchQuery && linkylinks.length >= 2) {
     const [bundles, dismissed] = await Promise.all([
       prisma.linkLink.findMany({
-        where: { userId: session.user.id, type: "NORMAL" },
+        where: { userId: session.user.id, type: "NORMAL", id: { notIn: hiddenIds } },
         include: { links: true, user: { select: { username: true } } },
       }),
       prisma.dismissedRecommendation.findMany({ where: { userId: session.user.id }, select: { linkId: true } }),

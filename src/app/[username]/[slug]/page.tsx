@@ -7,6 +7,7 @@ import { bundelIcon } from "@/lib/bundel-icon"
 import { bundelTone } from "@/lib/emoji-tone"
 import { toneThemeColor } from "@/lib/tone"
 import { optional } from "@/lib/optional"
+import { isHiddenFrom, subBundelParent } from "@/lib/sub-bundels"
 import { summarizeVotes } from "@/lib/sharing"
 import { BundelVisitorView } from "./BundelVisitorView"
 import { OwnerView, ReviewOwner } from "./views"
@@ -44,7 +45,7 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
     include: { user: true },
   })
 
-  if (!linkylink || linkylink.user.username !== username) {
+  if (!linkylink || linkylink.user.username !== username || (await isHiddenFrom(linkylink, (await auth())?.user?.id))) {
     return {}
   }
 
@@ -129,7 +130,7 @@ export default async function PublicLinkylinkPage({ params, searchParams }: Page
       : null,
   ])
 
-  if (!linkylink || linkylink.user.username !== username) {
+  if (!linkylink || linkylink.user.username !== username || (await isHiddenFrom(linkylink, session?.user?.id))) {
     notFound()
   }
 
@@ -166,6 +167,41 @@ export default async function PublicLinkylinkPage({ params, searchParams }: Page
           : [],
       ])
     : [null, {}, null, []]
+  // What AI activities found, for the owner only (visitors never see private results).
+  const [subRows, parentRow] = isNormal && isOwner
+    ? await Promise.all([
+        optional(
+          prisma.subBundel.findMany({
+            where: { parentId: linkylink.id, child: { userId: linkylink.userId } },
+            orderBy: { createdAt: "asc" },
+            select: {
+              activity: true,
+              sourceLinkId: true,
+              child: {
+                select: {
+                  id: true, title: true, slug: true,
+                  links: { orderBy: { order: "asc" }, select: { id: true, title: true, url: true, context: true, favicon: true } },
+                },
+              },
+            },
+          }),
+          []
+        ),
+        subBundelParent(linkylink.id),
+      ])
+    : [[], null]
+  const subBundels = subRows.map((s) => ({
+    id: s.child.id,
+    title: s.child.title,
+    path: `/${username}/${s.child.slug}`,
+    activity: s.activity,
+    sourceLinkId: s.sourceLinkId,
+    links: s.child.links,
+  }))
+  const subBundelOf = parentRow
+    ? { title: parentRow.parent.title, path: `/${parentRow.parent.user.username}/${parentRow.parent.slug}`, isPublic: linkylink.isPublic }
+    : null
+
   const askSettings = ask
     ? { kind: ask.kind, question: ask.question, allowSuggestions: ask.allowSuggestions, closed: ask.closed }
     : null
@@ -212,6 +248,8 @@ export default async function PublicLinkylinkPage({ params, searchParams }: Page
           voteSummary={voteSummary}
           suggestions={suggestions.map((x) => ({ id: x.id, url: x.url, title: x.title, note: x.note, name: x.name }))}
           remixedFrom={remixedFrom}
+          subBundels={subBundels}
+          subBundelOf={subBundelOf}
         />
       : <BundelVisitorView
           bundel={linkylink}

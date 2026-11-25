@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { subBundelIds } from "@/lib/sub-bundels"
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import { ChevronLeft, Sparkles } from "lucide-react"
@@ -18,6 +19,7 @@ export default async function RecommendationsPage() {
   const bundles = await prisma.linkLink.findMany({
     where: {
       userId: session.user.id,
+      id: { notIn: await subBundelIds(session.user.id) },
     },
     include: {
       links: {

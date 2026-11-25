@@ -7,6 +7,7 @@ import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import { recordActivity } from "@/lib/sharing"
 import { optional } from "@/lib/optional"
+import { generateBundelDefaults, uniqueSlug } from "@/lib/bundel-core"
 
 const createLinkylinkSchema = z.object({
   title: z.string().min(1).max(100),
@@ -29,23 +30,12 @@ export async function createLinkylink(data: z.infer<typeof createLinkylinkSchema
 
   const { title, subtitle, avatar } = createLinkylinkSchema.parse(data)
   
-  // Generate unique slug
-  const slug = generateSlug(title)
-  let counter = 0
-  let uniqueSlug = slug
-  
-  while (await prisma.linkLink.findUnique({ where: { slug: uniqueSlug } })) {
-    counter++
-    uniqueSlug = `${slug}-${counter}`
-  }
-
-  // Create the linkylink first
   const linkylink = await prisma.linkLink.create({
     data: {
       title,
       subtitle,
       avatar: avatar || undefined,
-      slug: uniqueSlug,
+      slug: await uniqueSlug(title),
       userId: session.user.id,
     },
     include: {
@@ -53,21 +43,8 @@ export async function createLinkylink(data: z.infer<typeof createLinkylinkSchema
     }
   })
 
-  // Trigger background generation (non-blocking)
-  // The API route will handle emoji and background generation asynchronously
-  if (!avatar) {
-    fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/generate-defaults`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        linkylinkId: linkylink.id,
-        title,
-        subtitle
-      }),
-    }).catch(err => {
-      console.error('Failed to trigger background generation:', err)
-    })
-  }
+  // Emoji and background are generated in the background when no icon was picked.
+  if (!avatar) generateBundelDefaults(linkylink.id, title, subtitle)
 
   revalidatePath("/dashboard")
   return linkylink
@@ -234,6 +211,15 @@ export async function deleteLink(linkId: string) {
 
   if (!link || link.linkylink.userId !== session.user.id) {
     throw new Error("Link not found")
+  }
+
+  // What AI activities found for this link goes with it.
+  const subIds = await optional(
+    prisma.subBundel.findMany({ where: { sourceLinkId: linkId, child: { userId: session.user.id } }, select: { childId: true } }),
+    []
+  )
+  if (subIds.length > 0) {
+    await prisma.linkLink.deleteMany({ where: { id: { in: subIds.map((s) => s.childId) }, userId: session.user.id } })
   }
 
   await prisma.link.delete({
