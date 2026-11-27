@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma"
 import { generateSlug } from "@/lib/utils"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
+import { isHttpUrl } from "@/lib/http-url"
 import { recordActivity } from "@/lib/sharing"
 import { optional } from "@/lib/optional"
 import { generateBundelDefaults, uniqueSlug } from "@/lib/bundel-core"
@@ -16,10 +17,13 @@ const createLinkylinkSchema = z.object({
   avatar: z.string().url().optional().or(z.literal("")),
 })
 
+/** Links are http(s) only: z.url() alone also accepts "javascript:". */
+const httpUrl = z.string().url().max(2048).refine(isHttpUrl, "Use an http or https link")
+
 const addLinkSchema = z.object({
   linkylinkId: z.string(),
   title: z.string().min(1).max(100),
-  url: z.string().url(),
+  url: httpUrl,
   context: z.string().max(280).optional(),
 })
 
@@ -156,6 +160,8 @@ export async function addLinkToLinkylink(linkylinkId: string, linkData: { title:
     throw new Error("Bundel not found")
   }
 
+  linkData = { ...linkData, url: httpUrl.parse(linkData.url) }
+
   // Fetch favicon BEFORE creating the link - users get instant visual feedback
   const favicon = await fetchFavicon(linkData.url)
 
@@ -284,7 +290,7 @@ export async function updateLinkOrder(linkylinkId: string, linkIds: string[]) {
 
 const updateLinkSchema = z.object({
   title: z.string().trim().min(1).max(100).optional(),
-  url: z.string().url().optional(),
+  url: httpUrl.optional(),
   context: z.string().max(280).nullable().optional(),
 })
 
@@ -697,7 +703,7 @@ export async function updateCategoryOrder(linkylinkId: string, categoryIds: stri
 const addCategoryItemSchema = z.object({
   categoryId: z.string(),
   title: z.string().min(1).max(100),
-  url: z.string().url(),
+  url: httpUrl,
   context: z.string().max(280).optional(),
 })
 
@@ -980,7 +986,7 @@ export async function updateCategoryItem(itemId: string, data: { title?: string;
     throw new Error("Item not found")
   }
 
-  const url = data.url !== undefined ? z.string().url().max(2000).parse(data.url) : undefined
+  const url = data.url !== undefined ? httpUrl.parse(data.url) : undefined
   const updated = await prisma.categoryItem.update({
     where: { id: itemId },
     data: {

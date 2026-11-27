@@ -293,7 +293,7 @@ export default function ReviewOwnerView({ review }: ReviewOwnerViewProps) {
 
       <main className="relative -mt-7 rounded-t-4xl bg-bg lg:sticky lg:top-0 lg:col-start-2 lg:mt-0 lg:h-dvh lg:rounded-none lg:bg-transparent lg:py-2 lg:pr-2">
         {/* Desktop: an inset, rounded panel that scrolls on its own, framed by the hero's field. */}
-        <motion.div layoutScroll className="pb-40 pt-5 lg:h-full lg:overflow-y-auto lg:rounded-2xl lg:bg-bg lg:pb-32 lg:pt-20 lg:shadow-card">
+        <motion.div layoutScroll className="pb-40 pt-5 lg:h-full lg:overflow-y-auto scroll-autohide lg:rounded-2xl lg:bg-bg lg:pb-32 lg:pt-20 lg:shadow-card">
         <div className="mx-auto max-w-2xl space-y-4 px-4 lg:max-w-5xl lg:grid lg:grid-cols-2 lg:items-start lg:gap-5 lg:space-y-0 lg:px-12">
           {categories.length === 0 && (
             <section className="animate-rise rounded-3xl bg-surface p-5 shadow-card ring-1 ring-line/50 lg:col-span-2">

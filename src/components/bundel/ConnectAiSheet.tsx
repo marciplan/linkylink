@@ -5,7 +5,7 @@ import { Copy, Sparkles } from "lucide-react"
 import { Sheet } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { copyText } from "@/lib/share"
-import { LINK_ACTIVITIES, activityPrompt } from "@/lib/mcp/activities"
+import { activitiesForLink, activityPrompt } from "@/lib/mcp/activities"
 
 export { useMcpUrl }
 
@@ -74,7 +74,7 @@ export function ConnectAiSheet({ open, onOpenChange, bundelId, bundelTitle }: { 
 }
 
 /** In a link's edit sheet: copy a ready-made request for the user's AI app. */
-export function ResearchWithAi({ linkTitle, bundelTitle, onConnect }: { linkTitle: string; bundelTitle: string; onConnect: () => void }) {
+export function ResearchWithAi({ linkUrl, linkTitle, bundelTitle, onConnect }: { linkUrl: string; linkTitle: string; bundelTitle: string; onConnect: () => void }) {
   return (
     <div className="space-y-2 border-t border-line/60 pt-4">
       <p className="flex items-center gap-1.5 text-[13px] font-semibold uppercase tracking-wide text-ink-3">
@@ -82,7 +82,7 @@ export function ResearchWithAi({ linkTitle, bundelTitle, onConnect }: { linkTitl
         Research with AI
       </p>
       <div className="flex flex-wrap gap-2">
-        {LINK_ACTIVITIES.map((a) => (
+        {activitiesForLink(linkUrl, linkTitle).map((a) => (
           <Button
             key={a.key}
             variant="secondary"

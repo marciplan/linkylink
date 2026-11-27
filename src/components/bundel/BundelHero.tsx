@@ -1,5 +1,6 @@
 import { ViewTransition } from "react"
 import Image from "next/image"
+import { HeroDrift } from "./HeroDrift"
 import { FluentEmoji } from "@/components/FluentEmoji"
 import { toneProps, type Tone } from "@/lib/tone"
 import type { BundelIcon } from "@/lib/bundel-icon"
@@ -52,10 +53,11 @@ export function BundelHero({ tone, headerImage, icon, iconAction, title, subtitl
       {/* On desktop the field fills the viewport, so it also frames the content panel. */}
       <div className="tone-hero absolute inset-0 -z-10 lg:fixed lg:[--hero-w:var(--pane)]" {...toneProps(tone)}>
         {headerImage && (
-          <div className="absolute inset-0 lg:right-auto lg:w-[var(--pane)]">
-            <Image src={headerImage} alt="" fill priority sizes="(min-width: 1024px) 440px, 100vw" className="object-cover" />
+          <div className="absolute inset-0">
+            <Image src={headerImage} alt="" fill priority sizes="100vw" className="object-cover" />
           </div>
         )}
+        <HeroDrift />
         <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/5 to-black/55" />
       </div>
       <div className="mx-auto flex min-h-[320px] max-w-2xl flex-col justify-end px-5 pb-12 pt-[calc(env(safe-area-inset-top)+76px)] sm:min-h-[360px] lg:min-h-0 lg:max-w-none lg:flex-1 lg:px-10 lg:pb-32">

@@ -85,7 +85,7 @@ export function ReviewVisitorView({ review, previewHref }: ReviewVisitorViewProp
 
       <main className="relative -mt-7 rounded-t-4xl bg-bg lg:sticky lg:top-0 lg:col-start-2 lg:mt-0 lg:h-dvh lg:rounded-none lg:bg-transparent lg:py-2 lg:pr-2">
         {/* Desktop: an inset, rounded panel that scrolls on its own, framed by the hero's field. */}
-        <div className="pb-40 pt-5 lg:h-full lg:overflow-y-auto lg:rounded-2xl lg:bg-bg lg:pb-32 lg:pt-20 lg:shadow-card">
+        <div className="pb-40 pt-5 lg:h-full lg:overflow-y-auto scroll-autohide lg:rounded-2xl lg:bg-bg lg:pb-32 lg:pt-20 lg:shadow-card">
         <div className="mx-auto max-w-2xl space-y-4 px-4 lg:max-w-5xl lg:grid lg:grid-cols-2 lg:items-start lg:gap-5 lg:space-y-0 lg:px-12">
           {review.categories.length === 0 ? (
             <p className="py-16 text-center text-ink-3">Nothing here yet.</p>

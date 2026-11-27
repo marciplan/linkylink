@@ -2,6 +2,7 @@ import Link from "next/link"
 import { Share } from "lucide-react"
 import { BundelHero } from "@/components/bundel/BundelHero"
 import { HeroByline } from "@/components/bundel/HeroByline"
+import { OpenAllButton } from "@/components/bundel/OpenAllButton"
 import { featuredLinkIds, LinkRowBody, type BundelLink } from "@/components/bundel/LinkRow"
 import { LinkContextMenu } from "@/components/ContextMenu"
 import { LinkMoreButton } from "@/components/bundel/LinkMoreButton"
@@ -98,6 +99,7 @@ export function BundelVisitorView({ bundel, currentUser, commentCounts, previewH
             <span>
               {count} {count === 1 ? "link" : "links"}
             </span>
+            <OpenAllButton links={bundel.links} countClicks={!previewHref} className="hidden lg:inline-flex" />
             {remixedFrom && (
               <>
                 <span aria-hidden>·</span>
@@ -113,7 +115,7 @@ export function BundelVisitorView({ bundel, currentUser, commentCounts, previewH
 
       <main className="relative -mt-6 rounded-t-4xl bg-bg lg:sticky lg:top-0 lg:col-start-2 lg:mt-0 lg:h-dvh lg:rounded-none lg:bg-transparent lg:py-2 lg:pr-2">
         {/* Desktop: an inset, rounded panel that scrolls on its own, framed by the hero's field. */}
-        <div id="bundel-scroll" className="pb-36 pt-5 lg:h-full lg:overflow-y-auto lg:rounded-2xl lg:bg-bg lg:pb-32 lg:pt-20 lg:shadow-card">
+        <div id="bundel-scroll" className="pb-36 pt-5 lg:h-full lg:overflow-y-auto scroll-autohide lg:rounded-2xl lg:bg-bg lg:pb-32 lg:pt-20 lg:shadow-card">
         <div className="mx-auto max-w-2xl px-4 lg:max-w-3xl lg:px-12">
           {ask ? (
             <AskVisitorList

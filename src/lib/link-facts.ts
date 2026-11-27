@@ -10,7 +10,8 @@ export interface LinkFacts {
 }
 
 const SYMBOL = "(?:€|\\$|£)"
-const NUMBER = "\\d{1,3}(?:[.,\\s]\\d{3})*(?:[.,]\\d{1,2})?(?:,-)?|\\d+(?:[.,]\\d{1,2})?(?:,-)?"
+// A thousands group must end the number: "€25 100% wool" is €25, not €25 100.
+const NUMBER = "\\d{1,3}(?:[.,\\s]\\d{3}(?![\\d%a-zA-Z]))*(?:[.,]\\d{1,2})?(?:,-)?|\\d+(?:[.,]\\d{1,2})?(?:,-)?"
 // Symbol first ("€859") wins. A trailing sign ("859 €") only counts when the number stands alone
 // and no other amount follows, so "iPhone 15 €999" is €999, not €15.
 const AMOUNT = `(?:${SYMBOL}\\s?(?:${NUMBER})|(?<![\\w.,€$£-])(?:${NUMBER})\\s?(?:€(?!\\s?\\d)|EUR\\b|euro\\b))`
@@ -70,18 +71,26 @@ function percentOff(text: string): number | undefined {
   return n > 0 && n < 100 ? n : undefined
 }
 
+// "4/5" or "3/10" alone is as likely a date or "part 3 of 10", so a bare fraction needs
+// a decimal ("4.8/5") or a rating word nearby.
+const RATING_WORD = /\b(?:ratings?|rated|scores?|reviews?|beoordel\w*|cijfer|sterren|stars?)\b|★|⭐/i
+const NOT_MORE = "(?!\\s?\\/|\\d|[.,]\\d)"
+
 function ratingOf(text: string): string | undefined {
-  // Explicit forms first ("4.8/5", "★ 4.5"), then "4.5 stars" — but not "5 Star Wars".
-  const outOfFive =
-    text.match(/(?:★|⭐)\s?(\d(?:[.,]\d)?)|(?<![\w.,])(\d(?:[.,]\d)?)\s?(?:\/\s?5\b|★|⭐)/) ??
-    text.match(/(?<![\w.,])(\d(?:[.,]\d)?)\s?(?:[Ss]tars?|[Ss]terren)\b(?!\s+[A-Z])/)
+  const context = RATING_WORD.test(text)
+  const star = text.match(/(?:★|⭐)\s?(\d(?:[.,]\d)?)|(?<![\w.,])(\d(?:[.,]\d)?)\s?(?:★|⭐)/)
+  const fiveMatch = text.match(new RegExp(`(?<![\\w.,/])(\\d(?:[.,]\\d)?)\\s?\\/\\s?5${NOT_MORE}`))
+  const five = fiveMatch && (context || /[.,]/.test(fiveMatch[1])) ? fiveMatch : null
+  // "4.5 stars", but not "5 Star Wars".
+  const stars = text.match(/(?<![\w.,])(\d(?:[.,]\d)?)\s?(?:[Ss]tars?|[Ss]terren)\b(?!\s+[A-Z])/)
+  const outOfFive = star ?? five ?? stars
   if (outOfFive) {
     const n = Number((outOfFive[1] ?? outOfFive[2]).replace(",", "."))
     if (n > 0 && n <= 5) return `${n}`
   }
-  const outOfTen = text.match(/\b(\d{1,2}(?:[.,]\d)?)\s?\/\s?10\b/)
-  if (outOfTen) {
-    const n = Number(outOfTen[1].replace(",", "."))
+  const tenMatch = text.match(new RegExp(`(?<![\\w.,/])(\\d{1,2}(?:[.,]\\d)?)\\s?\\/\\s?10${NOT_MORE}`))
+  if (tenMatch && (context || /[.,]/.test(tenMatch[1]))) {
+    const n = Number(tenMatch[1].replace(",", "."))
     if (n > 0 && n <= 10) return `${n}/10`
   }
   return undefined

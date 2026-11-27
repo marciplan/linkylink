@@ -13,7 +13,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     headers: {
       "Content-Type": user.photoType,
       // A day, not forever: a removed photo should not linger in caches.
-      "Cache-Control": "public, max-age=86400",
+      // Private: a shared cache would keep serving a photo after it is removed.
+      "Cache-Control": "private, max-age=86400",
       "X-Content-Type-Options": "nosniff",
     },
   })

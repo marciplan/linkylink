@@ -97,9 +97,18 @@ export async function fetchPublicHead(start: URL, { timeoutMs = 5000, maxBytes =
   // Links saved as http:// are tried over https; redirects must stay on https.
   let url = new URL(start)
   if (url.protocol === "http:") url.protocol = "https:"
+  // `timeout` below only catches an idle socket; this caps the whole lookup, redirects included.
+  const deadline = Date.now() + timeoutMs
   for (let hop = 0; hop <= maxRedirects; hop++) {
     if (url.protocol !== "https:" || isPrivateHostname(url.hostname)) return null
-    const result = await new Promise<{ html: string } | { redirect: string } | null>((resolve) => {
+    const left = deadline - Date.now()
+    if (left <= 0) return null
+    const result = await new Promise<{ html: string } | { redirect: string } | null>((settle) => {
+      // Callbacks below only fire after `timer` is set, at the end of this block.
+      const resolve = (value: { html: string } | { redirect: string } | null) => {
+        clearTimeout(timer)
+        settle(value)
+      }
       const req = https.get(
         url,
         {
@@ -134,8 +143,11 @@ export async function fetchPublicHead(start: URL, { timeoutMs = 5000, maxBytes =
           })
           res.on("end", () => resolve({ html }))
           res.on("error", () => resolve(html ? { html } : null))
+          // Destroyed by the deadline: keep what arrived, it may hold the meta tags.
+          res.on("close", () => resolve(html ? { html } : null))
         }
       )
+      const timer = setTimeout(() => req.destroy(), left)
       req.on("timeout", () => req.destroy())
       req.on("error", () => resolve(null))
     })

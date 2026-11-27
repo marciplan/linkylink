@@ -3,6 +3,7 @@
 import { SessionProvider } from "next-auth/react"
 import { Toaster } from "sonner"
 import { ThemeProvider } from "./theme-provider"
+import { ScrollbarAutoHide } from "./ScrollbarAutoHide"
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
@@ -12,6 +13,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         storageKey="linkylink-theme"
       >
         {children}
+        <ScrollbarAutoHide />
         <Toaster
           position="bottom-center"
           offset={96}

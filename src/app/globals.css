@@ -112,6 +112,15 @@
 }
 
 @layer utilities {
+  /* A thin scrollbar that only shows while scrolling (see ScrollbarAutoHide). */
+  .scroll-autohide {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+  }
+  .scroll-autohide[data-scrolling] {
+    scrollbar-color: oklch(var(--ink) / 0.25) transparent;
+  }
+
   .tap-highlight-transparent {
     -webkit-tap-highlight-color: transparent;
   }
@@ -331,4 +340,73 @@
   ::view-transition-new(*) {
     animation: none !important;
   }
+}
+
+/* Hero ambience: soft light that drifts slowly, and a few specks rising. White in soft-light,
+   so it suits any tone or photo. Sized to the pane (--hero-w) when the field fills the viewport. */
+.hero-drift {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.hero-drift > i {
+  position: absolute;
+  border-radius: 9999px;
+  will-change: transform;
+}
+.hero-drift > .orb {
+  aspect-ratio: 1;
+  mix-blend-mode: soft-light;
+  background: radial-gradient(closest-side, rgb(255 255 255 / 0.7), rgb(255 255 255 / 0));
+}
+.hero-drift > .orb:nth-child(1) {
+  width: calc(var(--hero-w, 100%) * 1.1);
+  left: calc(var(--hero-w, 100%) * -0.35);
+  top: -12%;
+  animation: hero-drift-a 28s ease-in-out infinite alternate;
+}
+.hero-drift > .orb:nth-child(2) {
+  width: calc(var(--hero-w, 100%) * 0.9);
+  left: calc(var(--hero-w, 100%) * 0.45);
+  top: 30%;
+  opacity: 0.8;
+  animation: hero-drift-b 34s ease-in-out infinite alternate;
+}
+.hero-drift > .orb:nth-child(3) {
+  width: calc(var(--hero-w, 100%) * 1.2);
+  left: calc(var(--hero-w, 100%) * -0.1);
+  bottom: -35%;
+  opacity: 0.6;
+  animation: hero-drift-c 40s ease-in-out infinite alternate;
+}
+.hero-drift > .speck {
+  bottom: -12px;
+  width: var(--s, 6px);
+  height: var(--s, 6px);
+  left: calc(var(--hero-w, 100%) * var(--x));
+  background: rgb(255 255 255 / 0.55);
+  box-shadow: 0 0 12px rgb(255 255 255 / 0.5);
+  opacity: 0;
+  animation: hero-rise var(--d, 22s) linear var(--delay, 0s) infinite;
+}
+@keyframes hero-drift-a {
+  to { transform: translate(18%, 14%) scale(1.15); }
+}
+@keyframes hero-drift-b {
+  to { transform: translate(-22%, -12%) scale(0.9); }
+}
+@keyframes hero-drift-c {
+  to { transform: translate(12%, -16%) scale(1.1); }
+}
+@keyframes hero-rise {
+  0% { transform: translate(0, 0); opacity: 0; }
+  15% { opacity: 0.9; }
+  50% { transform: translate(14px, -50vh); }
+  85% { opacity: 0.6; }
+  100% { transform: translate(-10px, -100vh); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-drift > i { animation: none; }
+  .hero-drift > .speck { display: none; }
 }
