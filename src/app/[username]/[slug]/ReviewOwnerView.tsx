@@ -29,7 +29,7 @@ import { bundelIcon } from "@/lib/bundel-icon"
 import { domainOf } from "@/lib/links"
 import { copyText, shareOrCopy } from "@/lib/share"
 import { bundelTone, emojiTone } from "@/lib/emoji-tone"
-import { toneProps } from "@/lib/tone"
+import { toneProps, tonePageCss } from "@/lib/tone"
 import { CATEGORY_PRESETS, categoryEmoji, categoryLabel, reviewBarTitle } from "@/lib/year-review"
 import { cn } from "@/lib/utils"
 
@@ -245,11 +245,11 @@ export default function ReviewOwnerView({ review }: ReviewOwnerViewProps) {
 
   return (
     <div data-tint style={{ "--tint-h": hue } as React.CSSProperties} className="min-h-dvh bg-bg lg:grid lg:bg-transparent lg:grid-cols-[var(--pane)_minmax(0,1fr)] lg:items-start lg:[--pane:440px]">
-      <style>{`:root{--tint-h:${hue}}`}</style>
+      <style>{tonePageCss(tone)}</style>
       <TopBar
         title={reviewBarTitle(title, review.year)}
         leading={
-          <Link href="/dashboard" className={topBarButton} aria-label="Back to your Bundels" title="Back to your Bundels">
+          <Link href="/dashboard" transitionTypes={["sheet-down"]} className={topBarButton} aria-label="Back to your Bundels" title="Back to your Bundels">
             <ChevronLeft className="h-5 w-5" strokeWidth={2.5} />
           </Link>
         }

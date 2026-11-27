@@ -1,5 +1,6 @@
 import { ViewTransition } from "react"
 import Link from "next/link"
+import { ICON_SHARE } from "@/components/bundel/BundelHero"
 import { ChevronRight } from "lucide-react"
 import { CopyLinkButton } from "@/components/CopyLinkButton"
 import { BundelIconTile } from "@/components/bundel/BundelHero"
@@ -47,10 +48,11 @@ export function LinkylinkCard({
     <div className="group relative">
       <Link
         href={`/${username}/${slug}`}
+        transitionTypes={["sheet-up"]}
         className="stagger flex min-h-[76px] items-center gap-3.5 px-3.5 py-3 transition-colors active:bg-ink/5 hover:bg-ink/[0.02] lg:h-full lg:min-h-[168px] lg:flex-col lg:items-stretch lg:gap-0 lg:rounded-3xl lg:bg-surface lg:p-5 lg:shadow-card lg:ring-1 lg:ring-line/50 lg:transition-[transform,box-shadow] lg:hover:-translate-y-0.5 lg:hover:bg-surface lg:hover:shadow-float"
         style={{ "--i": index } as React.CSSProperties}
       >
-        <ViewTransition name={`bundel-icon-${slug}`} share="morph">
+        <ViewTransition name={`bundel-icon-${slug}`} share={ICON_SHARE}>
           <BundelIconTile icon={icon} tone={tone} size={52} variant="tile" />
         </ViewTransition>
         <span className="min-w-0 flex-1 lg:mt-4 lg:flex-none">

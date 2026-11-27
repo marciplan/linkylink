@@ -6,6 +6,9 @@ import { toneProps, type Tone } from "@/lib/tone"
 import type { BundelIcon } from "@/lib/bundel-icon"
 import { cn } from "@/lib/utils"
 
+/** The icon morphs between card and hero, except when the page arrives or leaves as a sheet. */
+export const ICON_SHARE = { "sheet-up": "none", "sheet-down": "none", default: "morph" }
+
 interface BundelHeroProps {
   tone: Tone
   headerImage?: string | null
@@ -63,7 +66,7 @@ export function BundelHero({ tone, headerImage, icon, iconAction, title, subtitl
       <div className="mx-auto flex min-h-[320px] max-w-2xl flex-col justify-end px-5 pb-12 pt-[calc(env(safe-area-inset-top)+76px)] sm:min-h-[360px] lg:min-h-0 lg:max-w-none lg:flex-1 lg:px-10 lg:pb-32">
         <div className="relative w-fit">
           {slug ? (
-            <ViewTransition name={`bundel-icon-${slug}`} share="morph">
+            <ViewTransition name={`bundel-icon-${slug}`} share={ICON_SHARE}>
               <BundelIconTile icon={icon} tone={tone} />
             </ViewTransition>
           ) : (
