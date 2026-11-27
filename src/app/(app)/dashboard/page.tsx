@@ -26,7 +26,11 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   const sp = await searchParams
   const searchQuery = sp.search?.trim()
   
-  const hiddenIds = await subBundelIds(session.user.id)
+  const [hiddenIds, me] = await Promise.all([
+    subBundelIds(session.user.id),
+    // The session's image goes stale after a photo change; Bundel pages read the database too.
+    prisma.user.findUnique({ where: { id: session.user.id }, select: { image: true } }),
+  ])
   const linkylinks = await prisma.linkLink.findMany({
     where: {
       userId: session.user.id,
@@ -180,7 +184,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
                 title={linkylink.title}
                 subtitle={linkylink.subtitle}
                 avatar={linkylink.avatar}
-                userImage={session.user.image}
+                userImage={me?.image ?? null}
                 slug={linkylink.slug}
                 username={username}
                 linkCount={linkylink._count.links}

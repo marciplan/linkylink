@@ -1,6 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  experimental: {
+    // Route changes run as view transitions, so a Bundel's icon can fly from the dashboard into its hero.
+    viewTransition: true,
+  },
   // Dev only: hosts other than localhost that may load dev assets (e.g. a Tailscale name), comma-separated.
   allowedDevOrigins: process.env.NEXT_DEV_ORIGINS?.split(",").map((h) => h.trim()).filter(Boolean),
   // The OAuth consent page must never be framed, or a hidden iframe could trick a click on Allow.

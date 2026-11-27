@@ -8,8 +8,9 @@ import { toast } from "sonner"
 import {
   Check, ChevronLeft, Eye, GripVertical, Link2, Lock, MoreHorizontal, Paintbrush, Plus, Share, Sparkles, Trash2, Vote, X,
 } from "lucide-react"
+import { HeroByline } from "@/components/bundel/HeroByline"
 import { BundelHero } from "@/components/bundel/BundelHero"
-import { LinkRowBody, type BundelLink } from "@/components/bundel/LinkRow"
+import { featuredLinkIds, LinkRowBody, type BundelLink } from "@/components/bundel/LinkRow"
 import { TopBar } from "@/components/bundel/TopBar"
 import { linkRowStyles, topBarButton } from "@/components/bundel/styles"
 import { AddLinkSheet, type NewLink } from "@/components/bundel/AddLinkSheet"
@@ -57,14 +58,17 @@ interface BundelOwnerViewProps {
   remixedFrom: { title: string; path: string; username: string } | null
   /** Sub-Bundels AI activities made under this Bundel's links. */
   subBundels?: SubBundelSummary[]
+  /** When a link was last added. */
+  updatedAt?: Date | null
   /** Set when this Bundel is itself a sub-Bundel: where it hangs. */
   subBundelOf?: { title: string; path: string; isPublic: boolean } | null
 }
 
 function OwnerLinkRow({
-  link, commentCount, onOpen, onDelete, onDragEnd, footer,
+  link, featured, commentCount, onOpen, onDelete, onDragEnd, footer,
 }: {
   link: BundelLink
+  featured: boolean
   commentCount: number
   onOpen: () => void
   onDelete: () => void
@@ -111,7 +115,7 @@ function OwnerLinkRow({
           className={footer ? "pressable block w-full rounded-3xl p-4 pb-3 text-left" : linkRowStyles}
           aria-label={`Edit ${link.title}`}
         >
-          <LinkRowBody link={link} commentCount={commentCount} />
+          <LinkRowBody link={link} commentCount={commentCount} featured={featured} />
         </button>
         {footer}
         <button
@@ -138,13 +142,14 @@ function MaybeAsk({ bundelId, ask, summary, ownerName, children }: { bundelId: s
   )
 }
 
-export default function BundelOwnerView({ bundel, commentCounts, ask: initialAsk, voteSummary, suggestions: initialSuggestions, remixedFrom, subBundels = [], subBundelOf = null }: BundelOwnerViewProps) {
+export default function BundelOwnerView({ bundel, commentCounts, ask: initialAsk, voteSummary, suggestions: initialSuggestions, remixedFrom, subBundels = [], subBundelOf = null, updatedAt = null }: BundelOwnerViewProps) {
   const router = useRouter()
   const [title, setTitle] = useState(bundel.title)
   const [subtitle, setSubtitle] = useState(bundel.subtitle ?? "")
   const [avatar, setAvatar] = useState(bundel.avatar)
   const [headerImage, setHeaderImage] = useState(bundel.headerImage)
   const [links, setLinks] = useState(bundel.links)
+  const featured = featuredLinkIds(links)
   const [adding, setAdding] = useState(false)
   const [pastedUrl, setPastedUrl] = useState("")
   const [editing, setEditing] = useState<BundelLink | null>(null)
@@ -197,7 +202,12 @@ export default function BundelOwnerView({ bundel, commentCounts, ask: initialAsk
     try {
       const created = await addLink({ linkylinkId: bundel.id, title, url, context })
       setLinks((l) => l.map((x) => (x.id === temp.id ? { ...created, likes: 0 } : x)))
-      requestAnimationFrame(() => window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" }))
+      requestAnimationFrame(() => {
+        // Desktop scrolls inside the panel, mobile scrolls the window.
+        const panel = document.getElementById("bundel-scroll")
+        if (panel && panel.scrollHeight > panel.clientHeight) panel.scrollTo({ top: panel.scrollHeight, behavior: "smooth" })
+        else window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" })
+      })
     } catch {
       setLinks((l) => l.filter((x) => x.id !== temp.id))
       toast.error("Couldn't add that link")
@@ -301,7 +311,7 @@ export default function BundelOwnerView({ bundel, commentCounts, ask: initialAsk
     })
 
   return (
-    <div data-tint style={{ "--tint-h": hue } as React.CSSProperties} className="min-h-dvh bg-bg lg:grid lg:grid-cols-[var(--pane)_minmax(0,1fr)] lg:items-start lg:[--pane:440px]">
+    <div data-tint style={{ "--tint-h": hue } as React.CSSProperties} className="min-h-dvh bg-bg lg:grid lg:bg-transparent lg:grid-cols-[var(--pane)_minmax(0,1fr)] lg:items-start lg:[--pane:440px]">
       {/* Sheets render in a portal outside this element, so set the hue page-wide too. */}
       <style>{`:root{--tint-h:${hue}}`}</style>
       <TopBar
@@ -340,6 +350,7 @@ export default function BundelOwnerView({ bundel, commentCounts, ask: initialAsk
       />
 
       <BundelHero
+        slug={bundel.slug}
         tone={tone}
         headerImage={headerImage}
         icon={icon}
@@ -347,7 +358,7 @@ export default function BundelOwnerView({ bundel, commentCounts, ask: initialAsk
           <button
             onClick={() => setAppearanceOpen(true)}
             aria-label="Change icon and background"
-            className="pressable absolute -bottom-1.5 -right-1.5 grid h-8 w-8 place-items-center rounded-full bg-white text-ink shadow-float"
+            className="pressable absolute -bottom-1.5 -right-1.5 grid h-8 w-8 place-items-center rounded-full bg-white text-neutral-900 shadow-float"
           >
             <Paintbrush className="h-4 w-4" />
           </button>
@@ -381,7 +392,7 @@ export default function BundelOwnerView({ bundel, commentCounts, ask: initialAsk
         }
         meta={
           <>
-            <span>@{bundel.user.username}</span>
+            <HeroByline username={bundel.user.username} image={bundel.user.image} updatedAt={updatedAt} />
             <span aria-hidden>·</span>
             <span>{links.length} {links.length === 1 ? "link" : "links"}</span>
             <span aria-hidden>·</span>
@@ -410,7 +421,9 @@ export default function BundelOwnerView({ bundel, commentCounts, ask: initialAsk
       <div id="hero-end" aria-hidden className="lg:hidden" />
 
       <MaybeAsk bundelId={bundel.id} ask={ask} summary={voteSummary} ownerName={bundel.user.username}>
-      <main className="relative -mt-6 rounded-t-4xl bg-bg pb-40 pt-5 lg:col-start-2 lg:mt-0 lg:min-h-dvh lg:rounded-none lg:pb-32 lg:pt-20">
+      <main className="relative -mt-6 rounded-t-4xl bg-bg lg:sticky lg:top-0 lg:col-start-2 lg:mt-0 lg:h-dvh lg:rounded-none lg:bg-transparent lg:py-2 lg:pr-2">
+        {/* Desktop: an inset, rounded panel that scrolls on its own, framed by the hero's field. */}
+        <motion.div layoutScroll id="bundel-scroll" className="pb-40 pt-5 lg:h-full lg:overflow-y-auto lg:rounded-2xl lg:bg-bg lg:pb-32 lg:pt-20 lg:shadow-card">
         <div className="mx-auto max-w-2xl space-y-3 px-4 lg:max-w-3xl lg:px-12">
           {suggestions.length > 0 && (
             <section aria-label="Suggestions" className="rounded-3xl bg-surface p-4 shadow-card ring-1 ring-line/50">
@@ -473,6 +486,7 @@ export default function BundelOwnerView({ bundel, commentCounts, ask: initialAsk
                   <OwnerLinkRow
                     key={link.id}
                     link={link}
+                    featured={featured.has(link.id)}
                     commentCount={commentCounts[link.id] ?? 0}
                     onOpen={() => !link.id.startsWith("temp-") && setEditing(link)}
                     onDelete={() => handleDelete(link.id)}
@@ -488,6 +502,7 @@ export default function BundelOwnerView({ bundel, commentCounts, ask: initialAsk
             </>
           )}
         </div>
+      </motion.div>
       </main>
       </MaybeAsk>
 

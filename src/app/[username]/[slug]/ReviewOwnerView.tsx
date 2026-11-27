@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Reorder, useDragControls } from "framer-motion"
+import { motion, Reorder, useDragControls } from "framer-motion"
 import { toast } from "sonner"
 import { PreviewDrawer } from "@/components/bundel/PreviewDrawer"
 import { ChevronLeft, Eye, GripVertical, Link2, MoreHorizontal, Paintbrush, Plus, Settings2, Share, Trash2 } from "lucide-react"
@@ -244,7 +244,7 @@ export default function ReviewOwnerView({ review }: ReviewOwnerViewProps) {
   const shareReview = () => shareOrCopy({ title, text: `My ${review.year ?? ""} in review`.trim(), url: window.location.origin + path })
 
   return (
-    <div data-tint style={{ "--tint-h": hue } as React.CSSProperties} className="min-h-dvh bg-bg lg:grid lg:grid-cols-[var(--pane)_minmax(0,1fr)] lg:items-start lg:[--pane:440px]">
+    <div data-tint style={{ "--tint-h": hue } as React.CSSProperties} className="min-h-dvh bg-bg lg:grid lg:bg-transparent lg:grid-cols-[var(--pane)_minmax(0,1fr)] lg:items-start lg:[--pane:440px]">
       <style>{`:root{--tint-h:${hue}}`}</style>
       <TopBar
         title={reviewBarTitle(title, review.year)}
@@ -291,7 +291,9 @@ export default function ReviewOwnerView({ review }: ReviewOwnerViewProps) {
       />
       <div id="hero-end" aria-hidden className="lg:hidden" />
 
-      <main className="relative -mt-7 rounded-t-4xl bg-bg pb-40 pt-5 lg:col-start-2 lg:mt-0 lg:min-h-dvh lg:rounded-none lg:pb-32 lg:pt-20">
+      <main className="relative -mt-7 rounded-t-4xl bg-bg lg:sticky lg:top-0 lg:col-start-2 lg:mt-0 lg:h-dvh lg:rounded-none lg:bg-transparent lg:py-2 lg:pr-2">
+        {/* Desktop: an inset, rounded panel that scrolls on its own, framed by the hero's field. */}
+        <motion.div layoutScroll className="pb-40 pt-5 lg:h-full lg:overflow-y-auto lg:rounded-2xl lg:bg-bg lg:pb-32 lg:pt-20 lg:shadow-card">
         <div className="mx-auto max-w-2xl space-y-4 px-4 lg:max-w-5xl lg:grid lg:grid-cols-2 lg:items-start lg:gap-5 lg:space-y-0 lg:px-12">
           {categories.length === 0 && (
             <section className="animate-rise rounded-3xl bg-surface p-5 shadow-card ring-1 ring-line/50 lg:col-span-2">
@@ -377,6 +379,7 @@ export default function ReviewOwnerView({ review }: ReviewOwnerViewProps) {
             </button>
           )}
         </div>
+      </motion.div>
       </main>
 
       <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-4 pb-safe lg:left-[var(--pane)]">

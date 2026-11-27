@@ -33,7 +33,7 @@ export function AuthShell({
 
       {/* Desktop only: a brand panel with a live example, so the form isn't alone on a wide screen. */}
       <aside
-        className="tone-hero grain relative hidden items-center justify-center overflow-hidden text-white lg:flex"
+        className="tone-hero grain relative hidden items-center justify-center overflow-hidden text-white lg:m-2 lg:flex lg:rounded-2xl"
         style={{ "--t-h": 265, "--t-s": 0.05, "--t-c": 0.09 } as React.CSSProperties}
       >
         <div className="mx-auto w-full max-w-sm px-8 py-16 text-center">

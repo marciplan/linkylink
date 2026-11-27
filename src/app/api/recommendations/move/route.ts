@@ -68,6 +68,7 @@ export async function POST(request: NextRequest) {
           title: link.title,
           url: link.url,
           favicon: link.favicon,
+          image: link.image,
           context: link.context,
           order: nextOrder,
           clicks: 0

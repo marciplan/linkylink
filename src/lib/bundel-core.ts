@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma"
 import { generateSlug } from "@/lib/utils"
+import { fillLinkImages } from "@/lib/link-image"
 import { domainOf, faviconFor, normalizeUrl, titleFromUrl } from "@/lib/links"
 
 // Bundel writes that both the app (session user) and the MCP server (token
@@ -121,6 +122,7 @@ export async function appendLinks(userId: string, linkylinkId: string, input: Cl
   )
   if (created.length > 0) {
     await prisma.linkLink.update({ where: { id: linkylinkId }, data: { updatedAt: new Date() } })
+    fillLinkImages(created)
   }
   return { created, duplicates }
 }
