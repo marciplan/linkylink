@@ -61,7 +61,7 @@ export function BundelHero({ tone, headerImage, icon, iconAction, title, subtitl
         <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/5 to-black/55" />
       </div>
       <div className="mx-auto flex min-h-[320px] max-w-2xl flex-col justify-end px-5 pb-12 pt-[calc(env(safe-area-inset-top)+76px)] sm:min-h-[360px] lg:min-h-0 lg:max-w-none lg:flex-1 lg:px-10 lg:pb-32">
-        <div className="relative w-fit animate-rise">
+        <div className="relative w-fit">
           {slug ? (
             <ViewTransition name={`bundel-icon-${slug}`} share="morph">
               <BundelIconTile icon={icon} tone={tone} />
