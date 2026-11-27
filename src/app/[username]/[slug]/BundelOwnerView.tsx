@@ -1,5 +1,6 @@
 "use client"
 
+import { tonePageCss } from "@/lib/tone"
 import { shownLinkImage } from "@/lib/http-url"
 import { useCallback, useEffect, useRef, useState } from "react"
 import Link from "next/link"
@@ -315,7 +316,7 @@ export default function BundelOwnerView({ bundel, commentCounts, ask: initialAsk
   return (
     <div data-tint style={{ "--tint-h": hue } as React.CSSProperties} className="min-h-dvh bg-bg lg:grid lg:bg-transparent lg:grid-cols-[var(--pane)_minmax(0,1fr)] lg:items-start lg:[--pane:440px]">
       {/* Sheets render in a portal outside this element, so set the hue page-wide too. */}
-      <style>{`:root{--tint-h:${hue}}`}</style>
+      <style>{tonePageCss(tone)}</style>
       <TopBar
         title={title || "Untitled"}
         tone={tone}
@@ -324,6 +325,7 @@ export default function BundelOwnerView({ bundel, commentCounts, ask: initialAsk
         leading={
           <Link
             href={subBundelOf?.path ?? "/dashboard"}
+            transitionTypes={subBundelOf ? undefined : ["sheet-down"]}
             className={topBarButton}
             aria-label={subBundelOf ? `Back to ${subBundelOf.title}` : "Back to your Bundels"}
             title={subBundelOf ? `Back to ${subBundelOf.title}` : "Back to your Bundels"}

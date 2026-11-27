@@ -1,5 +1,6 @@
 import { fillLinkImages, needsLinkImage } from "@/lib/link-image"
 import { shownLinkImage } from "@/lib/http-url"
+import { ViewTransition } from "react"
 import { notFound } from "next/navigation"
 import { Metadata, Viewport } from "next"
 import { prisma } from "@/lib/prisma"
@@ -285,7 +286,10 @@ export default async function PublicLinkylinkPage({ params, searchParams }: Page
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      {view}
+      {/* From the dashboard the Bundel slides up like a sheet, and back down on the way back. */}
+      <ViewTransition enter={{ "sheet-up": "sheet-up", default: "none" }} exit={{ "sheet-down": "sheet-down", default: "none" }} default="none">
+        <div>{view}</div>
+      </ViewTransition>
     </>
   )
 }

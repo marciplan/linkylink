@@ -1,3 +1,4 @@
+import { tonePageCss } from "@/lib/tone"
 import Link from "next/link"
 import { Share } from "lucide-react"
 import { TopBar } from "@/components/bundel/TopBar"
@@ -37,7 +38,7 @@ export function ReviewVisitorView({ review, previewHref }: ReviewVisitorViewProp
 
   return (
     <div data-tint style={{ "--tint-h": hue } as React.CSSProperties} className="min-h-dvh bg-bg lg:grid lg:bg-transparent lg:grid-cols-[var(--pane)_minmax(0,1fr)] lg:items-start lg:[--pane:440px]">
-      <style>{`:root{--tint-h:${hue}}`}</style>
+      <style>{tonePageCss(tone)}</style>
       <TopBar
         title={reviewBarTitle(review.title, review.year)}
         leading={

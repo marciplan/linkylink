@@ -59,3 +59,11 @@ export function tonePalette(tone: Tone) {
 export function toneThemeColor(tone: Tone): string {
   return oklchToHex(0.42, tone.deep, tone.hue)
 }
+
+/**
+ * Page-wide CSS for a Bundel page: the tint hue, and on phones the page background in the
+ * hero's colour, so the strip behind the status bar (which Safari colours from the page) matches it.
+ */
+export function tonePageCss(tone: Tone): string {
+  return `:root{--tint-h:${tone.hue}}@media (max-width:1023px){html,body{background-color:${toneThemeColor(tone)}}}`
+}
