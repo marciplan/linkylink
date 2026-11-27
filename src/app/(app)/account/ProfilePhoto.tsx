@@ -52,11 +52,16 @@ export function ProfilePhoto({ username, image }: { username: string; image: str
 
   async function remove() {
     setBusy(true)
-    const res = await fetch("/api/account/photo", { method: "DELETE" })
-    setBusy(false)
-    if (!res.ok) return toast.error("Couldn't remove your photo. Try again.")
-    toast.success("Photo removed")
-    router.refresh()
+    try {
+      const res = await fetch("/api/account/photo", { method: "DELETE" })
+      if (!res.ok) throw new Error()
+      toast.success("Photo removed")
+      router.refresh()
+    } catch {
+      toast.error("Couldn't remove your photo. Try again.")
+    } finally {
+      setBusy(false)
+    }
   }
 
   return (

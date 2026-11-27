@@ -76,6 +76,8 @@ model Link {
   title                    String
   url                      String
   favicon                  String?
+  /// The page's preview image (og:image). "" once looked up and none was found; null while not yet looked up.
+  image                    String?
   context                  String?
   order                    Int
   clicks                   Int                       @default(0)

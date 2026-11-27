@@ -8,6 +8,7 @@ import { z } from "zod"
 import { recordActivity } from "@/lib/sharing"
 import { optional } from "@/lib/optional"
 import { generateBundelDefaults, uniqueSlug } from "@/lib/bundel-core"
+import { fillLinkImages } from "@/lib/link-image"
 
 const createLinkylinkSchema = z.object({
   title: z.string().min(1).max(100),
@@ -108,6 +109,8 @@ export async function addLink(data: z.infer<typeof addLinkSchema>) {
     },
   })
 
+  fillLinkImages([link])
+
   // If favicon fetch failed, retry in background with exponential backoff
   if (!favicon) {
     setImmediate(async () => {
@@ -167,6 +170,8 @@ export async function addLinkToLinkylink(linkylinkId: string, linkData: { title:
       linkylinkId,
     },
   })
+
+  fillLinkImages([link])
 
   // If favicon fetch failed, retry in background with exponential backoff
   if (!favicon) {
@@ -306,10 +311,11 @@ export async function updateLink(linkId: string, data: z.infer<typeof updateLink
     where: { id: linkId },
     data: {
       ...(title !== undefined && { title }),
-      ...(urlChanged && { url, favicon: await fetchFavicon(url) }),
+      ...(urlChanged && { url, favicon: await fetchFavicon(url), image: null }),
       ...(context !== undefined && { context: context?.trim() || null }),
     },
   })
+  if (urlChanged) fillLinkImages([updated])
 
   revalidatePath(`/dashboard`)
   revalidatePath(`/edit/${link.linkylinkId}`)

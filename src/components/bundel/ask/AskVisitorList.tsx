@@ -1,6 +1,6 @@
 "use client"
 
-import { LinkRowBody, type BundelLink } from "@/components/bundel/LinkRow"
+import { featuredLinkIds, LinkRowBody, type BundelLink } from "@/components/bundel/LinkRow"
 import { LinkMoreButton } from "@/components/bundel/LinkMoreButton"
 import { cn } from "@/lib/utils"
 import type { VoteSummary } from "@/lib/sharing"
@@ -26,6 +26,7 @@ interface AskVisitorListProps {
 export default function AskVisitorList(props: AskVisitorListProps) {
   const { links, commentCounts, owner, currentUser, loginHref, focusLinkId } = props
   const titles = Object.fromEntries(links.map((l) => [l.id, l.title]))
+  const featured = featuredLinkIds(links)
 
   return (
     <AskProvider
@@ -56,7 +57,7 @@ export default function AskVisitorList(props: AskVisitorListProps) {
                 ping={`/api/links/${link.id}/click`}
                 className="pressable block rounded-3xl p-4 pb-3"
               >
-                <LinkRowBody link={link} commentCount={commentCounts[link.id] ?? 0} />
+                <LinkRowBody link={link} commentCount={commentCounts[link.id] ?? 0} featured={featured.has(link.id)} />
               </a>
               <VoteBar linkId={link.id} title={link.title} />
               <LinkMoreButton

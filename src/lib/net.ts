@@ -88,3 +88,64 @@ export function fetchPublicText(url: URL, { timeoutMs = 5000, maxBytes = 64 * 10
     req.on("error", () => resolve(null))
   })
 }
+
+/**
+ * GET an https page on the public internet and return the start of its HTML,
+ * up to and including </head>. Follows a few redirects, checking every hop.
+ */
+export async function fetchPublicHead(start: URL, { timeoutMs = 5000, maxBytes = 512 * 1024, maxRedirects = 3 } = {}): Promise<{ html: string; url: URL } | null> {
+  // Links saved as http:// are tried over https; redirects must stay on https.
+  let url = new URL(start)
+  if (url.protocol === "http:") url.protocol = "https:"
+  for (let hop = 0; hop <= maxRedirects; hop++) {
+    if (url.protocol !== "https:" || isPrivateHostname(url.hostname)) return null
+    const result = await new Promise<{ html: string } | { redirect: string } | null>((resolve) => {
+      const req = https.get(
+        url,
+        {
+          lookup: publicLookup,
+          timeout: timeoutMs,
+          headers: {
+            Accept: "text/html,application/xhtml+xml;q=0.9,*/*;q=0.5",
+            "User-Agent": "Mozilla/5.0 (compatible; BundelBot/1.0; +https://bundel.link)",
+          },
+        },
+        (res) => {
+          const status = res.statusCode ?? 0
+          if (status >= 300 && status < 400 && res.headers.location) {
+            res.resume()
+            return resolve({ redirect: res.headers.location })
+          }
+          if (status < 200 || status >= 300 || !String(res.headers["content-type"] ?? "").includes("html")) {
+            res.resume()
+            return resolve(null)
+          }
+          let html = ""
+          let size = 0
+          const done = () => {
+            req.destroy()
+            resolve({ html })
+          }
+          res.setEncoding("utf8")
+          res.on("data", (chunk: string) => {
+            html += chunk
+            size += Buffer.byteLength(chunk)
+            if (size >= maxBytes || /<\/head>/i.test(html)) done()
+          })
+          res.on("end", () => resolve({ html }))
+          res.on("error", () => resolve(html ? { html } : null))
+        }
+      )
+      req.on("timeout", () => req.destroy())
+      req.on("error", () => resolve(null))
+    })
+    if (!result) return null
+    if ("html" in result) return { html: result.html, url }
+    try {
+      url = new URL(result.redirect, url)
+    } catch {
+      return null
+    }
+  }
+  return null
+}

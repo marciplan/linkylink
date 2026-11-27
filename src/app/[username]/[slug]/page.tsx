@@ -1,3 +1,4 @@
+import { fillLinkImages } from "@/lib/link-image"
 import { notFound } from "next/navigation"
 import { Metadata, Viewport } from "next"
 import { prisma } from "@/lib/prisma"
@@ -134,6 +135,9 @@ export default async function PublicLinkylinkPage({ params, searchParams }: Page
     notFound()
   }
 
+  // Links added before preview images existed (or by import) get theirs on first view.
+  fillLinkImages(linkylink.links.filter((l) => l.image === null).slice(0, 12))
+
   // Check if current user is the owner
   const isOwner = session?.user?.id === linkylink.userId
 
@@ -209,6 +213,9 @@ export default async function PublicLinkylinkPage({ params, searchParams }: Page
     ? { title: remix.source.title, path: `/${remix.source.user.username}/${remix.source.slug}`, username: remix.source.user.username }
     : null
 
+  // "Updated" means a link was added; bundel.updatedAt also moves on every view.
+  const updatedAt = linkylink.links.reduce<Date>((latest, l) => (l.createdAt > latest ? l.createdAt : latest), linkylink.createdAt)
+
   // Increment views (don't await to not block rendering)
   incrementViews(slug)
 
@@ -250,6 +257,7 @@ export default async function PublicLinkylinkPage({ params, searchParams }: Page
           remixedFrom={remixedFrom}
           subBundels={subBundels}
           subBundelOf={subBundelOf}
+          updatedAt={updatedAt}
         />
       : <BundelVisitorView
           bundel={linkylink}
@@ -260,6 +268,7 @@ export default async function PublicLinkylinkPage({ params, searchParams }: Page
           voteSummary={voteSummary}
           focusLinkId={focusLinkId}
           remixedFrom={remixedFrom}
+          updatedAt={updatedAt}
         />
 
   return (

@@ -1,3 +1,4 @@
+import { ViewTransition } from "react"
 import Image from "next/image"
 import { FluentEmoji } from "@/components/FluentEmoji"
 import { toneProps, type Tone } from "@/lib/tone"
@@ -13,6 +14,8 @@ interface BundelHeroProps {
   title: React.ReactNode
   subtitle?: React.ReactNode
   meta?: React.ReactNode
+  /** Shared with the Bundel's card on the dashboard, so the icon morphs between them. */
+  slug?: string
 }
 
 /**
@@ -43,18 +46,27 @@ export function BundelIconTile({ icon, tone, size = 72, variant = "chip" }: { ic
  * Full-bleed header: the Bundel's image or a generated mesh gradient, with the
  * title block anchored to the bottom where it is closest to the thumb.
  */
-export function BundelHero({ tone, headerImage, icon, iconAction, title, subtitle, meta }: BundelHeroProps) {
+export function BundelHero({ tone, headerImage, icon, iconAction, title, subtitle, meta, slug }: BundelHeroProps) {
   return (
     <section className="grain relative isolate overflow-hidden text-white lg:sticky lg:top-0 lg:flex lg:h-dvh">
-      <div className="tone-hero absolute inset-0 -z-10" {...toneProps(tone)}>
+      {/* On desktop the field fills the viewport, so it also frames the content panel. */}
+      <div className="tone-hero absolute inset-0 -z-10 lg:fixed lg:[--hero-w:var(--pane)]" {...toneProps(tone)}>
         {headerImage && (
-          <Image src={headerImage} alt="" fill priority sizes="100vw" className="object-cover" />
+          <div className="absolute inset-0 lg:right-auto lg:w-[var(--pane)]">
+            <Image src={headerImage} alt="" fill priority sizes="(min-width: 1024px) 440px, 100vw" className="object-cover" />
+          </div>
         )}
         <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/5 to-black/55" />
       </div>
       <div className="mx-auto flex min-h-[320px] max-w-2xl flex-col justify-end px-5 pb-12 pt-[calc(env(safe-area-inset-top)+76px)] sm:min-h-[360px] lg:min-h-0 lg:max-w-none lg:flex-1 lg:px-10 lg:pb-32">
         <div className="relative w-fit animate-rise">
-          <BundelIconTile icon={icon} tone={tone} />
+          {slug ? (
+            <ViewTransition name={`bundel-icon-${slug}`} share="morph">
+              <BundelIconTile icon={icon} tone={tone} />
+            </ViewTransition>
+          ) : (
+            <BundelIconTile icon={icon} tone={tone} />
+          )}
           {iconAction}
         </div>
         <div className="mt-5 animate-rise [animation-delay:60ms] [text-shadow:0_1px_12px_rgb(0_0_0/0.25)]">

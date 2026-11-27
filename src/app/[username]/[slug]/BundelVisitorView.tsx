@@ -1,7 +1,8 @@
 import Link from "next/link"
 import { Share } from "lucide-react"
 import { BundelHero } from "@/components/bundel/BundelHero"
-import { LinkRowBody, type BundelLink } from "@/components/bundel/LinkRow"
+import { HeroByline } from "@/components/bundel/HeroByline"
+import { featuredLinkIds, LinkRowBody, type BundelLink } from "@/components/bundel/LinkRow"
 import { LinkContextMenu } from "@/components/ContextMenu"
 import { LinkMoreButton } from "@/components/bundel/LinkMoreButton"
 import { TopBar } from "@/components/bundel/TopBar"
@@ -36,6 +37,8 @@ interface BundelVisitorViewProps {
   /** Link to highlight when someone shared a single link (?l=). */
   focusLinkId?: string
   remixedFrom?: { title: string; path: string; username: string } | null
+  /** When a link was last added. */
+  updatedAt?: Date | null
 }
 
 /**
@@ -43,7 +46,7 @@ interface BundelVisitorViewProps {
  * for click counting), and only small islands — favicons, the per-link sheet
  * and the share bar — hydrate on the client.
  */
-export function BundelVisitorView({ bundel, currentUser, commentCounts, previewHref, ask, voteSummary = {}, focusLinkId, remixedFrom }: BundelVisitorViewProps) {
+export function BundelVisitorView({ bundel, currentUser, commentCounts, previewHref, ask, voteSummary = {}, focusLinkId, remixedFrom, updatedAt }: BundelVisitorViewProps) {
   const icon = bundelIcon(bundel.avatar, bundel.user.image, bundel.title)
   const tone = bundelTone(bundel.slug, icon)
   const hue = tone.hue
@@ -51,9 +54,10 @@ export function BundelVisitorView({ bundel, currentUser, commentCounts, previewH
   const loginHref = `/login?callbackUrl=${encodeURIComponent(path)}`
   const owner = { username: bundel.user.username, avatar: bundel.avatar || bundel.user.image }
   const count = bundel.links.length
+  const featured = featuredLinkIds(bundel.links)
 
   return (
-    <div data-tint style={{ "--tint-h": hue } as React.CSSProperties} className="min-h-dvh bg-bg lg:grid lg:grid-cols-[var(--pane)_minmax(0,1fr)] lg:items-start lg:[--pane:440px]">
+    <div data-tint style={{ "--tint-h": hue } as React.CSSProperties} className="min-h-dvh bg-bg lg:grid lg:bg-transparent lg:grid-cols-[var(--pane)_minmax(0,1fr)] lg:items-start lg:[--pane:440px]">
       {/* Sheets render in a portal outside this element, so set the hue page-wide too. */}
       <style>{`:root{--tint-h:${hue}}`}</style>
       <TopBar
@@ -81,6 +85,7 @@ export function BundelVisitorView({ bundel, currentUser, commentCounts, previewH
       />
 
       <BundelHero
+        slug={bundel.slug}
         tone={tone}
         headerImage={bundel.headerImage}
         icon={icon}
@@ -88,7 +93,7 @@ export function BundelVisitorView({ bundel, currentUser, commentCounts, previewH
         subtitle={bundel.subtitle}
         meta={
           <>
-            <span>@{bundel.user.username}</span>
+            <HeroByline username={bundel.user.username} image={bundel.user.image} updatedAt={updatedAt} />
             <span aria-hidden>·</span>
             <span>
               {count} {count === 1 ? "link" : "links"}
@@ -106,7 +111,9 @@ export function BundelVisitorView({ bundel, currentUser, commentCounts, previewH
       />
       <div id="hero-end" aria-hidden className="lg:hidden" />
 
-      <main className="relative -mt-6 rounded-t-4xl bg-bg pb-36 pt-5 lg:col-start-2 lg:mt-0 lg:min-h-dvh lg:rounded-none lg:pb-32 lg:pt-20">
+      <main className="relative -mt-6 rounded-t-4xl bg-bg lg:sticky lg:top-0 lg:col-start-2 lg:mt-0 lg:h-dvh lg:rounded-none lg:bg-transparent lg:py-2 lg:pr-2">
+        {/* Desktop: an inset, rounded panel that scrolls on its own, framed by the hero's field. */}
+        <div id="bundel-scroll" className="pb-36 pt-5 lg:h-full lg:overflow-y-auto lg:rounded-2xl lg:bg-bg lg:pb-32 lg:pt-20 lg:shadow-card">
         <div className="mx-auto max-w-2xl px-4 lg:max-w-3xl lg:px-12">
           {ask ? (
             <AskVisitorList
@@ -141,7 +148,7 @@ export function BundelVisitorView({ bundel, currentUser, commentCounts, previewH
                     ping={`/api/links/${link.id}/click`}
                     className={linkRowStyles}
                   >
-                    <LinkRowBody link={link} commentCount={commentCounts[link.id] ?? 0} />
+                    <LinkRowBody link={link} commentCount={commentCounts[link.id] ?? 0} featured={featured.has(link.id)} />
                   </a>
                   </LinkContextMenu>
                   <LinkMoreButton
@@ -169,6 +176,7 @@ export function BundelVisitorView({ bundel, currentUser, commentCounts, previewH
             </Link>
           </p>
         </div>
+      </div>
       </main>
 
       {!previewHref && (

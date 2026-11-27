@@ -191,9 +191,11 @@
   }
 
   /* Deep field for heroes: always dark, so white text works on every hue. */
+  /* --hero-w pins the glow to a width other than the element's own (the desktop backdrop
+     spans the viewport but the glow belongs to the left pane). */
   .tone-hero {
     background:
-      radial-gradient(75% 65% at 22% 32%, oklch(0.52 var(--t-c) var(--t-h) / 0.6) 0%, transparent 70%),
+      radial-gradient(calc(var(--hero-w, 100%) * 0.75) 65% at calc(var(--hero-w, 100%) * 0.22) 32%, oklch(0.52 var(--t-c) var(--t-h) / 0.6) 0%, transparent 70%),
       linear-gradient(168deg, oklch(0.38 var(--t-c) var(--t-h)), oklch(0.24 calc(var(--t-c) * 0.85) calc(var(--t-h) + 14)));
   }
 
@@ -201,7 +203,7 @@
      so those get a pale field of the same hue instead. */
   .tone-hero.tone-icon[data-ink="dark"] {
     background:
-      radial-gradient(75% 65% at 22% 28%, oklch(0.99 calc(var(--t-s) * 0.4) var(--t-h)) 0%, transparent 70%),
+      radial-gradient(calc(var(--hero-w, 100%) * 0.75) 65% at calc(var(--hero-w, 100%) * 0.22) 28%, oklch(0.99 calc(var(--t-s) * 0.4) var(--t-h)) 0%, transparent 70%),
       linear-gradient(168deg, oklch(0.94 calc(var(--t-s) * 0.8) var(--t-h)), oklch(0.84 calc(var(--t-s) * 1.2) calc(var(--t-h) + 14)));
   }
 
@@ -311,5 +313,22 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* Shared-element morphs between pages (the Bundel icon from card to hero). */
+::view-transition-group(.morph) {
+  animation-duration: 420ms;
+  animation-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
+}
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 220ms;
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
   }
 }
