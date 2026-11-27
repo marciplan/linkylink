@@ -1,4 +1,5 @@
-import { fillLinkImages } from "@/lib/link-image"
+import { fillLinkImages, needsLinkImage } from "@/lib/link-image"
+import { shownLinkImage } from "@/lib/http-url"
 import { notFound } from "next/navigation"
 import { Metadata, Viewport } from "next"
 import { prisma } from "@/lib/prisma"
@@ -136,7 +137,14 @@ export default async function PublicLinkylinkPage({ params, searchParams }: Page
   }
 
   // Links added before preview images existed (or by import) get theirs on first view.
-  fillLinkImages(linkylink.links.filter((l) => l.image === null).slice(0, 12))
+  fillLinkImages(
+    linkylink.links
+      .filter((l) => needsLinkImage(l.image))
+      .slice(0, 12)
+      .map((l) => ({ id: l.id, url: l.url, image: l.image }))
+  )
+  // From here on, image is only ever a URL to show.
+  for (const l of linkylink.links) l.image = shownLinkImage(l.image)
 
   // Check if current user is the owner
   const isOwner = session?.user?.id === linkylink.userId

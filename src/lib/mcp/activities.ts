@@ -87,6 +87,28 @@ export function findActivity(key: string) {
 /** Activities that run on a single link (compare runs on a whole Bundel). */
 export const LINK_ACTIVITIES = ACTIVITIES.filter((a) => a.key !== "compare")
 
+const PLACE_HOST =
+  /(^|\.)(maps\.app\.goo\.gl|maps\.apple\.com|maps\.google\.[a-z.]+|booking\.com|airbnb\.[a-z.]+|tripadvisor\.[a-z.]+|yelp\.[a-z.]+|hotels\.com|expedia\.[a-z.]+|vrbo\.com|eventbrite\.[a-z.]+|ticketmaster\.[a-z.]+|songkick\.com|ra\.co|foursquare\.com|thefork\.[a-z.]+|opentable\.[a-z.]+|resy\.com|getyourguide\.[a-z.]+|viator\.com|hostelworld\.com|campings?\.[a-z.]+)$/i
+const PLACE_PATH = /^(www\.)?google\.[a-z.]+$|^goo\.gl$/i
+const PLACE_WORDS =
+  /(?<![\p{L}\p{N}])(hotel|hostel|motel|resort|villa|b&b|bnb|apartment|venue|restaurant|caf[eé]|bistro|museum|festival|concert|wedding|trouwlocatie|conference|congres|stadium|arena|theat(er|re)|beach|strand|camping|campsite|airport|marina|zoo|dierentuin|castle|kasteel)(?![\p{L}\p{N}])/iu
+
+/** True when a link is a place or event, so "places to stay nearby" makes sense. Software, articles and shops are not. */
+export function looksLikePlace(url: string, title: string): boolean {
+  try {
+    const u = new URL(url)
+    if (PLACE_HOST.test(u.hostname)) return true
+    if (PLACE_PATH.test(u.hostname) && u.pathname.startsWith("/maps")) return true
+  } catch {}
+  return PLACE_WORDS.test(title)
+}
+
+/** The research that fits this link: deals and alternatives always, places to stay only for places and events. */
+export function activitiesForLink(url: string, title: string) {
+  const place = looksLikePlace(url, title)
+  return LINK_ACTIVITIES.filter((a) => a.key !== "find_stays_nearby" || place)
+}
+
 export function fill(template: string, values: { link: string; title: string; max?: number }) {
   // Function replacers, so a "$" in a title is never read as a replacement pattern.
   return template

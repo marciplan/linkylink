@@ -86,7 +86,7 @@ export function LinkRowBody({ link, commentCount = 0, reserveAction = true, feat
           <FactChips title={link.title} context={link.context} />
         </span>
       </span>
-      {image && <LinkImage src={image} className="mt-3.5" />}
+      {image && <LinkImage key={image} src={image} className="mt-3.5" />}
       {link.context && (
         <span className={cn("mt-3 block border-l-2 border-tint/50 pl-3 text-[14.5px] leading-snug text-ink-2 text-pretty", !image && "ml-[58px]")}>
           {link.context}

@@ -1,5 +1,6 @@
 "use client"
 
+import { shownLinkImage } from "@/lib/http-url"
 import { useCallback, useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -9,6 +10,7 @@ import {
   Check, ChevronLeft, Eye, GripVertical, Link2, Lock, MoreHorizontal, Paintbrush, Plus, Share, Sparkles, Trash2, Vote, X,
 } from "lucide-react"
 import { HeroByline } from "@/components/bundel/HeroByline"
+import { OpenAllButton } from "@/components/bundel/OpenAllButton"
 import { BundelHero } from "@/components/bundel/BundelHero"
 import { featuredLinkIds, LinkRowBody, type BundelLink } from "@/components/bundel/LinkRow"
 import { TopBar } from "@/components/bundel/TopBar"
@@ -257,7 +259,7 @@ export default function BundelOwnerView({ bundel, commentCounts, ask: initialAsk
     setLinks((l) => l.map((x) => (x.id === id ? { ...x, ...changes } : x)))
     try {
       const updated = await updateLink(id, changes)
-      setLinks((l) => l.map((x) => (x.id === id ? { ...x, favicon: updated.favicon } : x)))
+      setLinks((l) => l.map((x) => (x.id === id ? { ...x, favicon: updated.favicon, image: shownLinkImage(updated.image) } : x)))
     } catch {
       setLinks(before)
       toast.error("Couldn't save that link")
@@ -398,6 +400,7 @@ export default function BundelOwnerView({ bundel, commentCounts, ask: initialAsk
             <span aria-hidden>·</span>
             <span>{bundel.views.toLocaleString()} views</span>
             <CopyLinkButton path={path} className="hidden h-8 w-8 bg-white/15 text-white hover:bg-white/25 hover:text-white lg:grid" />
+            <OpenAllButton links={links} className="hidden lg:inline-flex" />
             {subBundelOf && (
               <>
                 <span aria-hidden>·</span>
@@ -423,7 +426,7 @@ export default function BundelOwnerView({ bundel, commentCounts, ask: initialAsk
       <MaybeAsk bundelId={bundel.id} ask={ask} summary={voteSummary} ownerName={bundel.user.username}>
       <main className="relative -mt-6 rounded-t-4xl bg-bg lg:sticky lg:top-0 lg:col-start-2 lg:mt-0 lg:h-dvh lg:rounded-none lg:bg-transparent lg:py-2 lg:pr-2">
         {/* Desktop: an inset, rounded panel that scrolls on its own, framed by the hero's field. */}
-        <motion.div layoutScroll id="bundel-scroll" className="pb-40 pt-5 lg:h-full lg:overflow-y-auto lg:rounded-2xl lg:bg-bg lg:pb-32 lg:pt-20 lg:shadow-card">
+        <motion.div layoutScroll id="bundel-scroll" className="pb-40 pt-5 lg:h-full lg:overflow-y-auto scroll-autohide lg:rounded-2xl lg:bg-bg lg:pb-32 lg:pt-20 lg:shadow-card">
         <div className="mx-auto max-w-2xl space-y-3 px-4 lg:max-w-3xl lg:px-12">
           {suggestions.length > 0 && (
             <section aria-label="Suggestions" className="rounded-3xl bg-surface p-4 shadow-card ring-1 ring-line/50">
@@ -531,6 +534,7 @@ export default function BundelOwnerView({ bundel, commentCounts, ask: initialAsk
         extra={(close) =>
           editing && (
             <ResearchWithAi
+              linkUrl={editing.url}
               linkTitle={editing.title}
               bundelTitle={title}
               onConnect={() => {
